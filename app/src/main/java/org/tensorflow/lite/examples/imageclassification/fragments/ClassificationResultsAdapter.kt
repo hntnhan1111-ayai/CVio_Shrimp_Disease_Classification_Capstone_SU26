@@ -19,10 +19,8 @@ package org.tensorflow.lite.examples.imageclassification.fragments
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import org.tensorflow.lite.examples.imageclassification.benchmark.Prediction
 import org.tensorflow.lite.examples.imageclassification.databinding.ItemClassificationResultBinding
-import org.tensorflow.lite.support.label.Category
-import org.tensorflow.lite.task.vision.classifier.Classifications
-import kotlin.math.min
 
 class ClassificationResultsAdapter :
     RecyclerView.Adapter<ClassificationResultsAdapter.ViewHolder>() {
@@ -30,19 +28,13 @@ class ClassificationResultsAdapter :
         private const val NO_VALUE = "--"
     }
 
-    private var categories: MutableList<Category?> = mutableListOf()
+    private var predictions: MutableList<Prediction?> = mutableListOf()
     private var adapterSize: Int = 0
 
-    fun updateResults(listClassifications: List<Classifications>?) {
-        categories = MutableList(adapterSize) { null }
-        listClassifications?.let { it ->
-            if (it.isNotEmpty()) {
-                val sortedCategories = it[0].categories.sortedBy { it?.index }
-                val min = min(sortedCategories.size, categories.size)
-                for (i in 0 until min) {
-                    categories[i] = sortedCategories[i]
-                }
-            }
+    fun updateResults(listPredictions: List<Prediction>?) {
+        predictions = MutableList(adapterSize) { null }
+        listPredictions?.take(adapterSize)?.forEachIndexed { index, prediction ->
+            predictions[index] = prediction
         }
     }
 
@@ -60,12 +52,12 @@ class ClassificationResultsAdapter :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        categories[position].let { category ->
-            holder.bind(category?.label, category?.score)
+        predictions[position].let { prediction ->
+            holder.bind(prediction?.label, prediction?.confidence)
         }
     }
 
-    override fun getItemCount(): Int = categories.size
+    override fun getItemCount(): Int = predictions.size
 
     inner class ViewHolder(private val binding: ItemClassificationResultBinding) :
         RecyclerView.ViewHolder(binding.root) {

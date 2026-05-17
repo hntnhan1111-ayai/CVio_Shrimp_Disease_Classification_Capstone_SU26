@@ -44,4 +44,4 @@ task copyTestModel(type: Copy, dependsOn: downloadModelFile) {
 }
 
 preBuild.dependsOn downloadModelFile, downloadModelFile0, downloadModelFile1, downloadModelFile2,
-        copyTestModel
+        copyTestModel, syncCvioBenchmarkModels

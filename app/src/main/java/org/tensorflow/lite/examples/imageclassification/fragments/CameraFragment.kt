@@ -17,29 +17,42 @@
 package org.tensorflow.lite.examples.imageclassification.fragments
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
+import android.provider.MediaStore
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import org.tensorflow.lite.examples.imageclassification.ImageClassifierHelper
 import org.tensorflow.lite.examples.imageclassification.R
+import org.tensorflow.lite.examples.imageclassification.benchmark.ClassificationResult
+import org.tensorflow.lite.examples.imageclassification.benchmark.ImageSource
 import org.tensorflow.lite.examples.imageclassification.databinding.FragmentCameraBinding
-import org.tensorflow.lite.task.vision.classifier.Classifications
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -64,9 +77,21 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var selectedBitmap: Bitmap? = null
+    private var selectedGroundTruthLabel: String? = null
+    private var uploadedImageMode = false
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
+
+    private val imagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.data?.let { uri ->
+                    onImageSelected(uri, result.data)
+                }
+            }
+        }
 
     override fun onResume() {
         super.onResume()
@@ -79,6 +104,10 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
 
     override fun onDestroyView() {
         _fragmentCameraBinding = null
+        if (::imageClassifierHelper.isInitialized) {
+            imageClassifierHelper.close()
+        }
+        selectedBitmap = null
         super.onDestroyView()
 
         // Shut down our background executor
@@ -114,8 +143,11 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
             setUpCamera()
         }
 
-        // Attach listeners to UI control widgets
+        applySystemBarInsets()
+        initBenchmarkControls()
         initBottomSheetControls()
+        updateControlsUi()
+        updateModelStatus()
     }
 
     // Initialize CameraX, and prepare to bind the camera use cases
@@ -131,6 +163,112 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
             },
             ContextCompat.getMainExecutor(requireContext())
         )
+    }
+
+    private fun applySystemBarInsets() {
+        val bottomSheetRoot = fragmentCameraBinding.bottomSheetLayout.root
+        val initialBottomPadding = bottomSheetRoot.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(fragmentCameraBinding.cameraContainer) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            bottomSheetRoot.setPadding(
+                bottomSheetRoot.paddingLeft,
+                bottomSheetRoot.paddingTop,
+                bottomSheetRoot.paddingRight,
+                initialBottomPadding + systemBars.bottom
+            )
+            insets
+        }
+    }
+
+    private fun initBenchmarkControls() {
+        val modelAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            imageClassifierHelper.models.map { it.selectorLabel }
+        )
+        modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        fragmentCameraBinding.spinnerModelSelector.adapter = modelAdapter
+        fragmentCameraBinding.spinnerModelSelector.setSelection(imageClassifierHelper.currentModel, false)
+        fragmentCameraBinding.spinnerModelSelector.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    if (imageClassifierHelper.currentModel == position) return
+                    imageClassifierHelper.currentModel = position
+                    imageClassifierHelper.clearImageClassifier()
+                    imageClassifierHelper.resetSessionAccuracy()
+                    classificationResultsAdapter.updateResults(null)
+                    classificationResultsAdapter.notifyDataSetChanged()
+                    updateModelStatus()
+                    val model = imageClassifierHelper.selectedModel()
+                    if (!model.supported) {
+                        Toast.makeText(
+                            requireContext(),
+                            "ONNX is registered but not supported in this build",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return
+                    }
+                    if (uploadedImageMode) {
+                        selectedBitmap?.let { runUploadedImageInference(it) }
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    /* no op */
+                }
+            }
+
+        val groundTruthAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            listOf(getString(R.string.ground_truth_none)) + imageClassifierHelper.labels
+        )
+        groundTruthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        fragmentCameraBinding.spinnerGroundTruth.adapter = groundTruthAdapter
+        fragmentCameraBinding.spinnerGroundTruth.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    selectedGroundTruthLabel = if (position == 0) {
+                        null
+                    } else {
+                        imageClassifierHelper.labels[position - 1]
+                    }
+                    imageClassifierHelper.resetSessionAccuracy()
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    /* no op */
+                }
+            }
+
+        fragmentCameraBinding.buttonSelectImage.setOnClickListener {
+            launchImagePicker()
+        }
+
+        fragmentCameraBinding.buttonResumeCamera.setOnClickListener {
+            uploadedImageMode = false
+            fragmentCameraBinding.imageSelectedPreview.visibility = View.GONE
+            updateModelStatus()
+        }
+
+        fragmentCameraBinding.buttonSaveLog.setOnClickListener {
+            val path = imageClassifierHelper.saveLastResult()
+            if (path == null) {
+                Toast.makeText(requireContext(), "No inference result to save", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Saved log: $path", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun initBottomSheetControls() {
@@ -161,7 +299,7 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
 
         // When clicked, increase the number of objects that can be classified at a time
         fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
-            if (imageClassifierHelper.maxResults < 3) {
+            if (imageClassifierHelper.maxResults < imageClassifierHelper.maxAvailableResults) {
                 imageClassifierHelper.maxResults++
                 updateControlsUi()
                 classificationResultsAdapter.updateAdapterSize(size = imageClassifierHelper.maxResults)
@@ -184,8 +322,7 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
             }
         }
 
-        // When clicked, change the underlying hardware used for inference. Current options are CPU
-        // GPU, and NNAPI
+        // When clicked, change the underlying hardware used for inference.
         fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
         fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -203,25 +340,6 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
                     /* no op */
                 }
             }
-
-        // When clicked, change the underlying model used for object classification
-        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(0, false)
-        fragmentCameraBinding.bottomSheetLayout.spinnerModel.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    imageClassifierHelper.currentModel = position
-                    updateControlsUi()
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                    /* no op */
-                }
-            }
     }
 
     // Update the values displayed in the bottom sheet. Reset classifier.
@@ -230,12 +348,13 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
             imageClassifierHelper.maxResults.toString()
 
         fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
-            String.format("%.2f", imageClassifierHelper.threshold)
+            String.format(Locale.US, "%.2f", imageClassifierHelper.threshold)
         fragmentCameraBinding.bottomSheetLayout.threadsValue.text =
             imageClassifierHelper.numThreads.toString()
         // Needs to be cleared instead of reinitialized because the GPU
         // delegate needs to be initialized on the thread using it when applicable
         imageClassifierHelper.clearImageClassifier()
+        updateModelStatus()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -302,29 +421,133 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
         }
     }
 
-    private fun getScreenOrientation() : Int {
-        val outMetrics = DisplayMetrics()
-
-        val display: Display?
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            display = requireActivity().display
-            display?.getRealMetrics(outMetrics)
-        } else {
-            @Suppress("DEPRECATION")
-            display = requireActivity().windowManager.defaultDisplay
-            @Suppress("DEPRECATION")
-            display.getMetrics(outMetrics)
+    private fun classifyImage(image: ImageProxy) {
+        if (uploadedImageMode) {
+            image.close()
+            return
+        }
+        if (!imageClassifierHelper.selectedModel().supported) {
+            image.close()
+            return
         }
 
-        return display?.rotation ?: 0
-    }
-
-    private fun classifyImage(image: ImageProxy) {
         // Copy out RGB bits to the shared bitmap buffer
         image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
-        // Pass Bitmap and rotation to the image classifier helper for processing and classification
-        imageClassifierHelper.classify(bitmapBuffer, getScreenOrientation())
+        imageClassifierHelper.classify(
+            image = bitmapBuffer,
+            rotationDegrees = image.imageInfo.rotationDegrees,
+            source = ImageSource.CAMERA,
+            groundTruthLabel = selectedGroundTruthLabel,
+            autoLog = false
+        )
+    }
+
+    private fun launchImagePicker() {
+        val photoPickerIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+                type = "image/*"
+            }
+        } else {
+            null
+        }
+        val fallbackIntent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+        }
+        val intent = if (
+            photoPickerIntent != null &&
+            photoPickerIntent.resolveActivity(requireActivity().packageManager) != null
+        ) {
+            photoPickerIntent
+        } else {
+            fallbackIntent
+        }
+        imagePickerLauncher.launch(intent)
+    }
+
+    private fun onImageSelected(uri: Uri, data: Intent?) {
+        data?.let { intent ->
+            val flags = intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION
+            if (flags != 0 && intent.action == Intent.ACTION_OPEN_DOCUMENT) {
+                try {
+                    requireContext().contentResolver.takePersistableUriPermission(uri, flags)
+                } catch (e: SecurityException) {
+                    Log.w(TAG, "Unable to persist URI permission", e)
+                }
+            }
+        }
+
+        val bitmap = decodeBitmap(uri)
+        if (bitmap == null) {
+            Toast.makeText(requireContext(), "Unable to decode selected image", Toast.LENGTH_SHORT).show()
+            return
+        }
+        selectedBitmap = bitmap
+        uploadedImageMode = true
+        fragmentCameraBinding.imageSelectedPreview.setImageBitmap(bitmap)
+        fragmentCameraBinding.imageSelectedPreview.visibility = View.VISIBLE
+        updateModelStatus()
+        runUploadedImageInference(bitmap)
+    }
+
+    private fun runUploadedImageInference(bitmap: Bitmap) {
+        if (!imageClassifierHelper.selectedModel().supported) {
+            Toast.makeText(
+                requireContext(),
+                "Selected ONNX model is not supported in this build",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        cameraExecutor.execute {
+            imageClassifierHelper.classify(
+                image = bitmap,
+                rotationDegrees = 0,
+                source = ImageSource.UPLOAD,
+                groundTruthLabel = selectedGroundTruthLabel,
+                autoLog = true
+            )
+        }
+    }
+
+    private fun decodeBitmap(uri: Uri): Bitmap? {
+        return try {
+            val resolver = requireContext().contentResolver
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(resolver, uri)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                    decoder.isMutableRequired = false
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(resolver, uri)
+            }
+            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to decode selected image", e)
+            null
+        }
+    }
+
+    private fun updateModelStatus() {
+        val model = imageClassifierHelper.selectedModel()
+        val supportStatus = if (model.supported) "Ready" else "ONNX registered; not supported"
+        val mode = if (uploadedImageMode) "Upload image" else "Live camera"
+        fragmentCameraBinding.textModelStatus.text = String.format(
+            Locale.US,
+            "%s\n%s | %s | %s | %.3f MB | %dx%d | FLOPs: %s\nLogs: %s",
+            model.displayName,
+            supportStatus,
+            mode,
+            ImageClassifierHelper.delegateLabel(imageClassifierHelper.currentDelegate),
+            model.modelSizeMb,
+            model.expectedInputWidth,
+            model.expectedInputHeight,
+            model.flops ?: "N/A",
+            imageClassifierHelper.logsDirectoryPath()
+        )
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -337,16 +560,45 @@ class CameraFragment : Fragment(), ImageClassifierHelper.ClassifierListener {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    override fun onResults(
-        results: List<Classifications>?,
-        inferenceTime: Long
-    ) {
+    override fun onResults(result: ClassificationResult) {
         activity?.runOnUiThread {
             // Show result on bottom sheet
-            classificationResultsAdapter.updateResults(results)
+            classificationResultsAdapter.updateResults(result.predictions)
             classificationResultsAdapter.notifyDataSetChanged()
             fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
-                String.format("%d ms", inferenceTime)
+                String.format(Locale.US, "%.2f ms", result.metrics.inferenceMs)
+            fragmentCameraBinding.bottomSheetLayout.benchmarkMetricsValue.text =
+                formatMetrics(result)
+            if (result.metrics.source == ImageSource.UPLOAD && result.logFilePath != null) {
+                Toast.makeText(requireContext(), "Logged upload metrics", Toast.LENGTH_SHORT).show()
+            }
         }
+    }
+
+    private fun formatMetrics(result: ClassificationResult): String {
+        val metrics = result.metrics
+        return String.format(
+            Locale.US,
+            "Model: %s\nFormat: %s | Precision: %s | Runtime: %s\nDelegate: %s | Size: %.3f MB | Input: %s\nPreprocess: %.2f ms | Inference: %.2f ms | Postprocess: %.2f ms | Total: %.2f ms\nFPS: %.2f | FLOPs: %s\nTop-1: %s (%.2f%%)\nGround truth: %s | Correct: %s | Session accuracy: %s\nLog: %s",
+            metrics.modelName,
+            metrics.format,
+            metrics.precision,
+            metrics.runtime,
+            metrics.delegate,
+            metrics.modelSizeMb,
+            metrics.inputSizeLabel,
+            metrics.preprocessMs,
+            metrics.inferenceMs,
+            metrics.postprocessMs,
+            metrics.totalMs,
+            metrics.fps,
+            metrics.flopsLabel,
+            metrics.top1Label,
+            metrics.top1Confidence * 100.0f,
+            metrics.groundTruthLabel ?: "N/A",
+            metrics.correctnessLabel,
+            metrics.accuracyLabel,
+            result.logFilePath ?: "not saved automatically"
+        )
     }
 }

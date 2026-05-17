@@ -26,8 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.junit.Assert.*
-import org.tensorflow.lite.support.label.Category
-import org.tensorflow.lite.task.vision.classifier.Classifications
+import org.tensorflow.lite.examples.imageclassification.benchmark.ClassificationResult
 import java.io.InputStream
 import java.lang.Exception
 
@@ -39,37 +38,20 @@ import java.lang.Exception
 @RunWith(AndroidJUnit4::class)
 class ImageClassificationTest {
 
-    val controlCategories = listOf<Category>(
-        Category.create("cup", "cup", 0.76953125f),
-        Category.create("coffee mug", "coffee mug", 0.125f),
-        Category.create("espresso", "espresso", 0.0546875f)
-    )
-
     @Test
     @Throws(Exception::class)
-    fun classificationResultsShouldNotChange() {
+    fun classificationReturnsBenchmarkMetrics() {
         val imageClassifierHelper = ImageClassifierHelper(
-            context = InstrumentationRegistry.getInstrumentation().context,
+            context = InstrumentationRegistry.getInstrumentation().targetContext,
             imageClassifierListener = object : ImageClassifierHelper.ClassifierListener {
                 override fun onError(error: String) {
-                    // no op
+                    fail(error)
                 }
 
-                override fun onResults(
-                    results: List<Classifications>?,
-                    inferenceTime: Long
-                ) {
-                    assertNotNull(results)
-
-                    // Verify that the classified data and control
-                    // data have the same number of categories
-                    assertEquals(controlCategories.size, results!![0].categories.size)
-
-                    // Loop through the categories
-                    for (i in controlCategories.indices) {
-                        // Verify that the labels are consistent
-                        assertEquals(controlCategories[i].label, results[0].categories[i].label)
-                    }
+                override fun onResults(result: ClassificationResult) {
+                    assertTrue(result.predictions.isNotEmpty())
+                    assertTrue(result.metrics.inferenceMs >= 0.0)
+                    assertEquals("TFLITE", result.metrics.format)
                 }
             }, threshold = 0.0f
         )

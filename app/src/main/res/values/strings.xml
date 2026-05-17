@@ -28,6 +28,7 @@
         results button</string>
     <string name="alt_bottom_sheet_thread_button_minus">Decrease the number of threads used</string>
     <string name="alt_bottom_sheet_thread_button_plus">Increase the number of threads used</string>
+    <string name="alt_selected_image_preview">Selected image preview</string>
 
     <string name="label_interence_time">Inference Time</string>
     <string name="label_fps">Frames per Second</string>
@@ -36,6 +37,10 @@
     <string name="label_threads">Number of Threads</string>
     <string name="label_delegate">Delegate</string>
     <string name="label_models">ML Model</string>
+    <string name="action_select_image">Select Image</string>
+    <string name="action_camera">Camera</string>
+    <string name="action_save_log">Save Log</string>
+    <string name="ground_truth_none">Ground Truth: N/A</string>
 
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>

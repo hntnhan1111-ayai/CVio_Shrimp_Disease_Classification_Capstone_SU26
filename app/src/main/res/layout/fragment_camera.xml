@@ -25,6 +25,88 @@
         android:layout_height="match_parent"
         app:scaleType="fillStart" />
 
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/benchmark_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@color/bottom_sheet_background"
+        android:elevation="8dp"
+        android:fillViewport="false"
+        android:padding="@dimen/benchmark_panel_padding">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinner_model_selector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/benchmark_control_min_height"
+                android:spinnerMode="dropdown"
+                android:theme="@style/BottomSheetSpinnerItemStyle" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/benchmark_control_gap"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_select_image"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/benchmark_control_gap"
+                    android:layout_weight="1"
+                    android:text="@string/action_select_image" />
+
+                <Button
+                    android:id="@+id/button_resume_camera"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/benchmark_control_gap"
+                    android:layout_weight="1"
+                    android:text="@string/action_camera" />
+
+                <Button
+                    android:id="@+id/button_save_log"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/action_save_log" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinner_ground_truth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/benchmark_control_gap"
+                android:minHeight="@dimen/benchmark_control_min_height"
+                android:spinnerMode="dropdown"
+                android:theme="@style/BottomSheetSpinnerItemStyle" />
+
+            <ImageView
+                android:id="@+id/image_selected_preview"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/upload_preview_height"
+                android:layout_marginTop="@dimen/benchmark_control_gap"
+                android:background="@android:color/black"
+                android:contentDescription="@string/alt_selected_image_preview"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/text_model_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/benchmark_control_gap"
+                android:textColor="@color/bottom_sheet_text_color"
+                android:textSize="@dimen/benchmark_status_text_size" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.core.widget.NestedScrollView>
+
     <include
         android:id="@+id/bottom_sheet_layout"
         layout="@layout/info_bottom_sheet" />

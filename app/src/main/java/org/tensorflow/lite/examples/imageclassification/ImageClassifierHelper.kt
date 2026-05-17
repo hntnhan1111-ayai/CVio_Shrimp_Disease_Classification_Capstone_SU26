@@ -17,146 +17,225 @@
 package org.tensorflow.lite.examples.imageclassification
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.os.SystemClock
+import android.os.Build
 import android.util.Log
-import android.view.Surface
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.Rot90Op
-import org.tensorflow.lite.task.core.BaseOptions
-import org.tensorflow.lite.task.core.vision.ImageProcessingOptions
-import org.tensorflow.lite.task.vision.classifier.Classifications
-import org.tensorflow.lite.task.vision.classifier.ImageClassifier
+import org.tensorflow.lite.examples.imageclassification.benchmark.BenchmarkMetrics
+import org.tensorflow.lite.examples.imageclassification.benchmark.ClassificationResult
+import org.tensorflow.lite.examples.imageclassification.benchmark.CvioModel
+import org.tensorflow.lite.examples.imageclassification.benchmark.CvioModelRegistry
+import org.tensorflow.lite.examples.imageclassification.benchmark.ImageSource
+import org.tensorflow.lite.examples.imageclassification.benchmark.MetricsLogger
+import org.tensorflow.lite.examples.imageclassification.benchmark.Prediction
+import org.tensorflow.lite.examples.imageclassification.benchmark.TfliteClassifierRunner
+import java.io.Closeable
+import java.time.Instant
+import java.util.Locale
 
 class ImageClassifierHelper(
-    var threshold: Float = 0.5f,
+    var threshold: Float = 0.0f,
     var numThreads: Int = 2,
     var maxResults: Int = 3,
-    var currentDelegate: Int = 0,
+    var currentDelegate: Int = DELEGATE_CPU,
     var currentModel: Int = 0,
     val context: Context,
     val imageClassifierListener: ClassifierListener?
-) {
-    private var imageClassifier: ImageClassifier? = null
+) : Closeable {
+    private val registry = CvioModelRegistry.load(context)
+    private val metricsLogger = MetricsLogger(context)
+    private var runner: TfliteClassifierRunner? = null
+    private var sessionCorrect = 0
+    private var sessionLabeled = 0
+    var lastResult: ClassificationResult? = null
+        private set
 
-    init {
-        setupImageClassifier()
-    }
+    val models: List<CvioModel>
+        get() = registry.models
+
+    val labels: List<String>
+        get() = registry.labels
+
+    val maxAvailableResults: Int
+        get() = registry.labels.size
+
+    fun selectedModel(): CvioModel = registry.models[currentModel]
+
+    fun logsDirectoryPath(): String = metricsLogger.logDirectoryPath()
 
     fun clearImageClassifier() {
-        imageClassifier = null
+        runner?.close()
+        runner = null
     }
 
-    private fun setupImageClassifier() {
-        val optionsBuilder = ImageClassifier.ImageClassifierOptions.builder()
-            .setScoreThreshold(threshold)
-            .setMaxResults(maxResults)
+    fun resetSessionAccuracy() {
+        sessionCorrect = 0
+        sessionLabeled = 0
+    }
 
-        val baseOptionsBuilder = BaseOptions.builder().setNumThreads(numThreads)
+    fun saveLastResult(): String? {
+        val result = lastResult ?: return null
+        return metricsLogger.append(result).absolutePath
+    }
 
-        when (currentDelegate) {
-            DELEGATE_CPU -> {
-                // Default
-            }
-            DELEGATE_GPU -> {
-                if (CompatibilityList().isDelegateSupportedOnThisDevice) {
-                    baseOptionsBuilder.useGpu()
-                } else {
-                    imageClassifierListener?.onError("GPU is not supported on this device")
-                }
-            }
-            DELEGATE_NNAPI -> {
-                baseOptionsBuilder.useNnapi()
-            }
+    fun classify(
+        image: Bitmap,
+        rotationDegrees: Int,
+        source: ImageSource = ImageSource.CAMERA,
+        groundTruthLabel: String? = null,
+        autoLog: Boolean = false
+    ) {
+        val model = selectedModel()
+        if (!model.supported) {
+            imageClassifierListener?.onError(
+                "${model.displayName} is registered but ONNX Runtime is not implemented in this build."
+            )
+            return
         }
-
-        optionsBuilder.setBaseOptions(baseOptionsBuilder.build())
-
-        val modelName =
-            when (currentModel) {
-                MODEL_MOBILENETV1 -> "mobilenetv1.tflite"
-                MODEL_EFFICIENTNETV0 -> "efficientnet-lite0.tflite"
-                MODEL_EFFICIENTNETV1 -> "efficientnet-lite1.tflite"
-                MODEL_EFFICIENTNETV2 -> "efficientnet-lite2.tflite"
-                else -> "mobilenetv1.tflite"
-            }
 
         try {
-            imageClassifier =
-                ImageClassifier.createFromFileAndOptions(context, modelName, optionsBuilder.build())
-        } catch (e: IllegalStateException) {
-            imageClassifierListener?.onError(
-                "Image classifier failed to initialize. See error logs for details"
+            val activeRunner = runner ?: createRunner(model).also { runner = it }
+            val benchmarkRuns = if (source == ImageSource.UPLOAD) UPLOAD_BENCHMARK_RUNS else CAMERA_BENCHMARK_RUNS
+            val output = activeRunner.classify(
+                bitmap = image,
+                rotationDegrees = rotationDegrees,
+                labels = registry.labels,
+                threshold = threshold,
+                maxResults = maxResults.coerceIn(1, maxAvailableResults),
+                benchmarkRuns = benchmarkRuns
             )
-            Log.e(TAG, "TFLite failed to load model with error: " + e.message)
+            val predictions = output.predictions.ifEmpty {
+                listOf(Prediction(index = -1, label = "No result above threshold", confidence = 0f))
+            }
+            val top1 = predictions.first()
+            val correct = groundTruthLabel?.let { it == top1.label }
+            if (correct != null) {
+                sessionLabeled += 1
+                if (correct) sessionCorrect += 1
+            }
+            val sessionAccuracy = if (sessionLabeled > 0) {
+                sessionCorrect.toDouble() / sessionLabeled.toDouble()
+            } else {
+                null
+            }
+            val totalMs = output.preprocessMs + output.inferenceMs + output.postprocessMs
+            val metrics = BenchmarkMetrics(
+                timestamp = timestampNow(),
+                deviceModel = Build.MODEL ?: "unknown",
+                androidVersion = Build.VERSION.RELEASE ?: "unknown",
+                appVersion = appVersionName(),
+                modelId = model.modelId,
+                modelName = model.displayName,
+                format = model.formatLabel,
+                precision = model.precision,
+                runtime = model.runtime,
+                delegate = delegateLabel(currentDelegate),
+                modelSizeMb = model.modelSizeMb,
+                inputWidth = output.inputWidth,
+                inputHeight = output.inputHeight,
+                preprocessMs = output.preprocessMs,
+                inferenceMs = output.inferenceMs,
+                postprocessMs = output.postprocessMs,
+                totalMs = totalMs,
+                fps = if (output.inferenceMs > 0.0) 1000.0 / output.inferenceMs else 0.0,
+                flops = model.flops,
+                top1Label = top1.label,
+                top1Confidence = top1.confidence,
+                topKPredictions = predictions,
+                groundTruthLabel = groundTruthLabel,
+                correct = correct,
+                sessionAccuracy = sessionAccuracy,
+                source = source
+            )
+            val result = ClassificationResult(
+                model = model,
+                predictions = predictions,
+                metrics = metrics,
+                logFilePath = null
+            )
+            val loggedResult = if (autoLog) {
+                val logPath = metricsLogger.append(result).absolutePath
+                result.copy(logFilePath = logPath)
+            } else {
+                result
+            }
+            lastResult = loggedResult
+            imageClassifierListener?.onResults(loggedResult)
+            Log.i(
+                TAG,
+                String.format(
+                    Locale.US,
+                    "model=%s source=%s inference=%.3fms fps=%.2f top1=%s %.4f",
+                    model.modelId,
+                    source.label,
+                    metrics.inferenceMs,
+                    metrics.fps,
+                    metrics.top1Label,
+                    metrics.top1Confidence
+                )
+            )
+        } catch (e: Exception) {
+            clearImageClassifier()
+            imageClassifierListener?.onError(
+                "Inference failed for ${model.displayName}: ${e.message ?: e.javaClass.simpleName}"
+            )
+            Log.e(TAG, "Inference failed", e)
         }
     }
 
-    fun classify(image: Bitmap, rotation: Int) {
-        if (imageClassifier == null) {
-            setupImageClassifier()
+    override fun close() {
+        clearImageClassifier()
+    }
+
+    private fun createRunner(model: CvioModel): TfliteClassifierRunner {
+        if (model.format != "tflite") {
+            throw IllegalStateException("Only TFLite models are supported in this build")
         }
-
-        // Inference time is the difference between the system time at the start and finish of the
-        // process
-        var inferenceTime = SystemClock.uptimeMillis()
-
-        // Create preprocessor for the image.
-        // See https://www.tensorflow.org/lite/inference_with_metadata/
-        //            lite_support#imageprocessor_architecture
-        val imageProcessor =
-            ImageProcessor.Builder()
-                .build()
-
-        // Preprocess the image and convert it into a TensorImage for classification.
-        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(image))
-
-        val imageProcessingOptions = ImageProcessingOptions.builder()
-            .setOrientation(getOrientationFromRotation(rotation))
-            .build()
-
-        val results = imageClassifier?.classify(tensorImage, imageProcessingOptions)
-        inferenceTime = SystemClock.uptimeMillis() - inferenceTime
-        imageClassifierListener?.onResults(
-            results,
-            inferenceTime
+        return TfliteClassifierRunner(
+            context = context,
+            model = model,
+            numThreads = numThreads,
+            delegate = currentDelegate
         )
     }
 
-    // Receive the device rotation (Surface.x values range from 0->3) and return EXIF orientation
-    // http://jpegclub.org/exif_orientation.html
-    private fun getOrientationFromRotation(rotation: Int) : ImageProcessingOptions.Orientation {
-        when (rotation) {
-            Surface.ROTATION_270 ->
-                return ImageProcessingOptions.Orientation.BOTTOM_RIGHT
-            Surface.ROTATION_180 ->
-                return ImageProcessingOptions.Orientation.RIGHT_BOTTOM
-            Surface.ROTATION_90 ->
-                return ImageProcessingOptions.Orientation.TOP_LEFT
-            else ->
-                return ImageProcessingOptions.Orientation.RIGHT_TOP
+    private fun timestampNow(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Instant.now().toString()
+        } else {
+            System.currentTimeMillis().toString()
+        }
+    }
+
+    private fun appVersionName(): String {
+        return try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            packageInfo.versionName ?: "unknown"
+        } catch (e: PackageManager.NameNotFoundException) {
+            "unknown"
         }
     }
 
     interface ClassifierListener {
         fun onError(error: String)
-        fun onResults(
-            results: List<Classifications>?,
-            inferenceTime: Long
-        )
+        fun onResults(result: ClassificationResult)
     }
 
     companion object {
-        const val DELEGATE_CPU = 0
-        const val DELEGATE_GPU = 1
-        const val DELEGATE_NNAPI = 2
-        const val MODEL_MOBILENETV1 = 0
-        const val MODEL_EFFICIENTNETV0 = 1
-        const val MODEL_EFFICIENTNETV1 = 2
-        const val MODEL_EFFICIENTNETV2 = 3
+        const val DELEGATE_CPU = TfliteClassifierRunner.DELEGATE_CPU
+        const val DELEGATE_GPU = TfliteClassifierRunner.DELEGATE_GPU
+        const val DELEGATE_NNAPI = TfliteClassifierRunner.DELEGATE_NNAPI
 
+        private const val CAMERA_BENCHMARK_RUNS = 1
+        private const val UPLOAD_BENCHMARK_RUNS = 5
         private const val TAG = "ImageClassifierHelper"
+
+        fun delegateLabel(delegate: Int): String {
+            return when (delegate) {
+                DELEGATE_GPU -> "GPU"
+                DELEGATE_NNAPI -> "NNAPI"
+                else -> "CPU"
+            }
+        }
     }
 }
