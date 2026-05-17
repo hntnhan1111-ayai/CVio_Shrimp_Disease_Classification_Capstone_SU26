@@ -1,3 +1,14 @@
+# Android / Gradle / IDE
+/.idea/
+/.gradle/
+captures/
+local.properties
+*.iml
+*.apk
+*.aab
+*.jks
+*.keystore
+
 # Miscellaneous
 *.class
 *.lock
@@ -6,8 +17,6 @@
 *.swp
 .buildlog/
 .history
-
-
 
 # Flutter repo-specific
 /bin/cache/
