@@ -1,0 +1,5 @@
+model_key,model_family,path,status,size_mb,seconds,error
+efficientnet_b0_float32,pytorch_imagenet,/content/drive/MyDrive/shrimp_disease_images/mobile_accuracy_optimization/tflite/efficientnet_b0_float32.tflite,converted,15.29,3.1,
+efficientnet_b0_dynamic_range,pytorch_imagenet,/content/drive/MyDrive/shrimp_disease_images/mobile_accuracy_optimization/tflite/efficientnet_b0_dynamic_range.tflite,converted,4.32,2.8,
+efficientnet_b0_float16,pytorch_imagenet,/content/drive/MyDrive/shrimp_disease_images/mobile_accuracy_optimization/tflite/efficientnet_b0_float16.tflite,converted,7.69,1.9,
+efficientnet_b0_full_int8,pytorch_imagenet,/content/drive/MyDrive/shrimp_disease_images/mobile_accuracy_optimization/tflite/efficientnet_b0_full_int8.tflite,converted,4.66,236.4,

@@ -1,0 +1,30 @@
+[
+  {
+    "model":"efficientnet_b0",
+    "onnx_path":"\/content\/drive\/MyDrive\/onnx_models\/efficientnet_b0.onnx",
+    "onnx_size_mb":15.3,
+    "saved_model_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/saved_models\/efficientnet_b0",
+    "float32_tflite_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/tflite\/efficientnet_b0_float32.tflite",
+    "dynamic_tflite_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/tflite\/efficientnet_b0_dynamic_range.tflite",
+    "float32_size_mb":15.29,
+    "dynamic_size_mb":4.32,
+    "smoke_test":"{\"input_shape\": [1, 224, 224, 3], \"input_dtype\": \"<class 'numpy.float32'>\", \"output_shape\": [1, 4], \"output_dtype\": \"float32\"}",
+    "status":"converted",
+    "error":"",
+    "seconds":28.7
+  },
+  {
+    "model":"mobilenet_v3_large",
+    "onnx_path":"\/content\/drive\/MyDrive\/onnx_models\/mobilenet_v3_large.onnx",
+    "onnx_size_mb":16.04,
+    "saved_model_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/saved_models\/mobilenet_v3_large",
+    "float32_tflite_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/tflite\/mobilenet_v3_large_float32.tflite",
+    "dynamic_tflite_path":"\/content\/drive\/MyDrive\/onnx_models\/litert_models\/tflite\/mobilenet_v3_large_dynamic_range.tflite",
+    "float32_size_mb":16.04,
+    "dynamic_size_mb":4.31,
+    "smoke_test":"{\"input_shape\": [1, 224, 224, 3], \"input_dtype\": \"<class 'numpy.float32'>\", \"output_shape\": [1, 4], \"output_dtype\": \"float32\"}",
+    "status":"converted",
+    "error":"",
+    "seconds":15.5
+  }
+]
