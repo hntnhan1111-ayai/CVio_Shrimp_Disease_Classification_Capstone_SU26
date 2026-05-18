@@ -1,34 +1,46 @@
 package rs.smobile.shrimpdisease.classifier
 
-/**
- * Central runtime configuration for the packaged shrimp disease classifier.
- * Keep MODEL_FILE and LABEL_FILE aligned with files under app/src/main/assets.
- */
-object ModelConfig {
-    const val MODEL_FILE = "efficientnet_b0_float16.tflite"
-    const val LABEL_FILE = "labels.txt"
+import org.tensorflow.lite.DataType
 
-    // Change to "yolo_ultralytics" when using a YOLO classification export.
-    const val MODEL_FAMILY = "efficientnet_imagenet"
+/**
+ * Central runtime defaults for packaged shrimp disease classifiers.
+ * Keep DEFAULT_MODEL_FILE and LABEL_FILE aligned with app/src/main/assets.
+ */
+object ModelDefaults {
+    const val DEFAULT_MODEL_FILE = "efficientnet_b0_float16.tflite"
+    const val LABEL_FILE = "labels.txt"
 
     const val INPUT_SIZE = 224
     const val NUM_THREADS = 4
     const val TOP_K = 3
-    const val CONFIDENCE_THRESHOLD = 0.60f
+    const val CONFIDENCE_THRESHOLD = 0.50f
 
     const val USE_NNAPI = false
     const val USE_XNNPACK = true
 }
 
+data class ModelConfig(
+    val modelName: String,
+    val inputSize: Int,
+    val modelFamily: ModelFamily,
+    val inputLayout: InputLayout,
+    val inputDataType: DataType,
+    val inputWidth: Int = inputSize,
+    val inputHeight: Int = inputSize,
+    val quantizationScale: Float = 0f,
+    val quantizationZeroPoint: Int = 0,
+    val inputShape: List<Int> = emptyList(),
+)
+
 /** Supported preprocessing profiles for the exported classification models. */
 enum class ModelFamily {
-    EFFICIENTNET_IMAGENET,
-    YOLO_ULTRALYTICS;
+    YOLO_ULTRALYTICS,
+    PYTORCH_IMAGENET;
 
     companion object {
         fun fromConfig(value: String): ModelFamily = when (value.lowercase()) {
-            "efficientnet_imagenet", "pytorch_imagenet" -> EFFICIENTNET_IMAGENET
-            "yolo_ultralytics" -> YOLO_ULTRALYTICS
+            "efficientnet_imagenet", "pytorch_imagenet", "mobilenet_imagenet" -> PYTORCH_IMAGENET
+            "yolo_ultralytics", "ultralytics_yolo", "yolo" -> YOLO_ULTRALYTICS
             else -> error("Unsupported MODEL_FAMILY: $value")
         }
     }
@@ -37,5 +49,5 @@ enum class ModelFamily {
 /** Supported 4D image tensor layouts discovered from the LiteRT input tensor. */
 enum class InputLayout {
     NHWC,
-    NCHW
+    NCHW,
 }

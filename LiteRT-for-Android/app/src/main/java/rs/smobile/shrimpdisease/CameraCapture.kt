@@ -40,7 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import rs.smobile.shrimpdisease.classifier.ModelConfig
+import rs.smobile.shrimpdisease.classifier.ModelDefaults
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
 
@@ -200,7 +200,7 @@ private fun CameraPreview(
                         ResolutionSelector.Builder()
                             .setResolutionStrategy(
                                 ResolutionStrategy(
-                                    Size(ModelConfig.INPUT_SIZE, ModelConfig.INPUT_SIZE),
+                                    Size(ModelDefaults.INPUT_SIZE, ModelDefaults.INPUT_SIZE),
                                     ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
                                 )
                             )

@@ -7,7 +7,9 @@ import android.util.Log
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.InterpreterApi
 import org.tensorflow.lite.Tensor
+import rs.smobile.shrimpdisease.data.PredictionItem
 import rs.smobile.shrimpdisease.loadModelFile
+import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.inject.Inject
@@ -19,8 +21,7 @@ import kotlin.math.exp
 class ShrimpClassifier @Inject constructor(
     private val assetManager: AssetManager,
 ) {
-    private var modelFamily = ModelFamily.fromConfig(ModelConfig.MODEL_FAMILY)
-    var labels: List<String> = loadLabels(assetManager, ModelConfig.LABEL_FILE)
+    var labels: List<String> = loadLabels(assetManager, ModelDefaults.LABEL_FILE)
         private set
 
     private var interpreterApi: InterpreterApi
@@ -29,15 +30,16 @@ class ShrimpClassifier @Inject constructor(
     private var inputBuffer: ByteBuffer
     private var outputBuffer: ByteBuffer
     private var preprocessor: ImagePreprocessor
+    private var activeModelConfig: ModelConfig
     var modelInfo: ModelInfo
         private set
 
     init {
         // Load the default model eagerly so the first prediction can run immediately.
-        val (api, inT, outT, inBuf, outBuf, prep, info, lbls) = initializeFromAssets(
-            modelFile = ModelConfig.MODEL_FILE,
-            labelFile = ModelConfig.LABEL_FILE,
-            modelFamilyString = ModelConfig.MODEL_FAMILY,
+        val (api, inT, outT, inBuf, outBuf, prep, config, info, lbls) = initializeFromAssets(
+            modelFile = ModelDefaults.DEFAULT_MODEL_FILE,
+            labelFile = ModelDefaults.LABEL_FILE,
+            modelFamilyString = modelFamilyForAsset(ModelDefaults.DEFAULT_MODEL_FILE),
         )
 
         interpreterApi = api
@@ -46,6 +48,7 @@ class ShrimpClassifier @Inject constructor(
         inputBuffer = inBuf
         outputBuffer = outBuf
         preprocessor = prep
+        activeModelConfig = config
         modelInfo = info
         labels = lbls
         logModelInfo()
@@ -58,6 +61,7 @@ class ShrimpClassifier @Inject constructor(
         val inBuf: ByteBuffer,
         val outBuf: ByteBuffer,
         val prep: ImagePreprocessor,
+        val config: ModelConfig,
         val info: ModelInfo,
         val labels: List<String>,
     )
@@ -68,9 +72,9 @@ class ShrimpClassifier @Inject constructor(
         modelFamilyString: String,
     ): InitResult {
         val options = InterpreterApi.Options()
-            .setNumThreads(ModelConfig.NUM_THREADS)
-            .setUseNNAPI(ModelConfig.USE_NNAPI)
-            .setUseXNNPACK(ModelConfig.USE_XNNPACK)
+            .setNumThreads(ModelDefaults.NUM_THREADS)
+            .setUseNNAPI(ModelDefaults.USE_NNAPI)
+            .setUseXNNPACK(ModelDefaults.USE_XNNPACK)
 
         val api = InterpreterApi.create(
             assetManager.loadModelFile(modelFile),
@@ -91,15 +95,19 @@ class ShrimpClassifier @Inject constructor(
 
         val inputQuantization = inT.quantizationParams()
         val mf = ModelFamily.fromConfig(modelFamilyString)
-        val prep = ImagePreprocessor(
-            inputWidth = inputWidth,
-            inputHeight = inputHeight,
+        val config = ModelConfig(
+            modelName = modelFile,
+            inputSize = inputWidth,
+            modelFamily = mf,
             inputLayout = inputLayout,
             inputDataType = inT.dataType(),
+            inputWidth = inputWidth,
+            inputHeight = inputHeight,
             quantizationScale = inputQuantization.getScale(),
             quantizationZeroPoint = inputQuantization.getZeroPoint(),
-            modelFamily = mf,
+            inputShape = inputShape.toList(),
         )
+        val prep = ImagePreprocessor()
 
         val lbls = loadLabels(assetManager, labelFile)
 
@@ -117,7 +125,7 @@ class ShrimpClassifier @Inject constructor(
         val info = ModelInfo(
             modelFile = modelFile,
             labelFile = labelFile,
-            modelFamily = modelFamilyString,
+            modelFamily = mf.name,
             input = inT.toTensorInfo(),
             output = outT.toTensorInfo(),
             inputLayout = inputLayout,
@@ -126,10 +134,7 @@ class ShrimpClassifier @Inject constructor(
             warnings = warnings,
         )
 
-        // Store the resolved family so preprocessing stays aligned with the loaded model.
-        modelFamily = mf
-
-        return InitResult(api, inT, outT, inBuf, outBuf, prep, info, lbls)
+        return InitResult(api, inT, outT, inBuf, outBuf, prep, config, info, lbls)
     }
 
     /**
@@ -137,8 +142,12 @@ class ShrimpClassifier @Inject constructor(
      * relative to the `assets/` root (e.g. "efficientnet_b0.tflite").
      */
     @Synchronized
-    fun loadModelFromAssets(modelFile: String, labelFile: String = ModelConfig.LABEL_FILE, modelFamilyString: String = ModelConfig.MODEL_FAMILY) {
-        val (api, inT, outT, inBuf, outBuf, prep, info, lbls) = initializeFromAssets(modelFile, labelFile, modelFamilyString)
+    fun loadModelFromAssets(
+        modelFile: String,
+        labelFile: String = ModelDefaults.LABEL_FILE,
+        modelFamilyString: String = modelFamilyForAsset(modelFile),
+    ) {
+        val (api, inT, outT, inBuf, outBuf, prep, config, info, lbls) = initializeFromAssets(modelFile, labelFile, modelFamilyString)
         val previousApi = interpreterApi
 
         // Replace the active model only after the new interpreter is ready.
@@ -147,7 +156,9 @@ class ShrimpClassifier @Inject constructor(
         outputTensor = outT
         inputBuffer = inBuf
         outputBuffer = outBuf
+        prep.debugEnabled = preprocessor.debugEnabled
         preprocessor = prep
+        activeModelConfig = config
         modelInfo = info
         labels = lbls
         previousApi.close()
@@ -167,26 +178,56 @@ class ShrimpClassifier @Inject constructor(
 
     fun modelFamilyForAsset(modelFile: String): String {
         val lowerName = modelFile.lowercase()
-        return if (lowerName.contains("yolo")) {
-            "yolo_ultralytics"
-        } else {
-            ModelConfig.MODEL_FAMILY
+        return when {
+            lowerName.contains("yolo") ||
+                lowerName.startsWith("best_") ||
+                lowerName.contains("best_float") -> ModelFamily.YOLO_ULTRALYTICS.name
+
+            lowerName.contains("efficientnet") ||
+                lowerName.contains("mobilenet") -> ModelFamily.PYTORCH_IMAGENET.name
+
+            else -> ModelFamily.PYTORCH_IMAGENET.name
         }
     }
 
+    fun setPreprocessDebugEnabled(enabled: Boolean) {
+        preprocessor.debugEnabled = enabled
+    }
+
     @Synchronized
-    fun classify(bitmap: Bitmap): ClassificationResult {
-        preprocessor.preprocess(bitmap, inputBuffer)
+    fun logFirstPreprocessedValuesForBitmap(bitmap: Bitmap, count: Int = 10) {
+        val buffer = preprocessor.preprocess(bitmap, activeModelConfig)
+        preprocessor.logFirstInputValues(buffer, activeModelConfig, count)
+    }
+
+    @Synchronized
+    fun classify(
+        bitmap: Bitmap,
+        threshold: Float = ModelDefaults.CONFIDENCE_THRESHOLD,
+        groundTruthLabel: String? = null,
+    ): ClassificationResult {
+        val totalStartNanos = SystemClock.elapsedRealtimeNanos()
+        val preprocessingStartNanos = SystemClock.elapsedRealtimeNanos()
+        preprocessor.preprocess(bitmap, activeModelConfig, inputBuffer)
+        val preprocessingTimeMs = BenchmarkUtils.calculateInferenceTime(
+            preprocessingStartNanos,
+            SystemClock.elapsedRealtimeNanos(),
+        )
         outputBuffer.rewind()
 
-        val startNanos = SystemClock.elapsedRealtimeNanos()
+        val inferenceStartNanos = SystemClock.elapsedRealtimeNanos()
         interpreterApi.run(inputBuffer, outputBuffer)
-        val elapsedNanos = SystemClock.elapsedRealtimeNanos() - startNanos
+        val inferenceEndNanos = SystemClock.elapsedRealtimeNanos()
+        val modelInferenceTimeMs = BenchmarkUtils.calculateInferenceTime(
+            inferenceStartNanos,
+            inferenceEndNanos,
+        )
 
+        val postprocessingStartNanos = SystemClock.elapsedRealtimeNanos()
         val probabilities = toProbabilities(readOutputValues())
         val topK = probabilities.indices
             .sortedByDescending { probabilities[it] }
-            .take(ModelConfig.TOP_K)
+            .take(ModelDefaults.TOP_K)
             .map { index ->
                 Prediction(
                     label = labels.getOrNull(index) ?: "Unknown class index: $index",
@@ -196,10 +237,38 @@ class ShrimpClassifier @Inject constructor(
 
         require(topK.isNotEmpty()) { "Model output is empty." }
 
+        val top1 = topK.first()
+        val isAboveThreshold = top1.confidence >= threshold
+        val postprocessingTimeMs = BenchmarkUtils.calculateInferenceTime(
+            postprocessingStartNanos,
+            SystemClock.elapsedRealtimeNanos(),
+        )
+        val totalTimeMs = BenchmarkUtils.calculateInferenceTime(
+            totalStartNanos,
+            SystemClock.elapsedRealtimeNanos(),
+        )
+        val speed = BenchmarkUtils.calculateSpeed(totalTimeMs)
+        val fps = BenchmarkUtils.calculateFps(totalTimeMs)
+
         return ClassificationResult(
-            top1 = topK.first(),
-            topK = topK,
-            inferenceTimeMs = elapsedNanos / 1_000_000.0,
+            predictedClass = if (isAboveThreshold) top1.label else LOW_CONFIDENCE_LABEL,
+            confidence = top1.confidence,
+            top3Predictions = topK.take(3).map { prediction ->
+                PredictionItem(prediction.label, prediction.confidence)
+            },
+            inferenceTimeMs = totalTimeMs,
+            speed = speed,
+            fps = fps,
+            modelName = modelInfo.modelFile,
+            threshold = threshold,
+            isAboveThreshold = isAboveThreshold,
+            timestamp = System.currentTimeMillis(),
+            groundTruthLabel = groundTruthLabel,
+            isCorrect = groundTruthLabel?.let { top1.label == it },
+            preprocessingTimeMs = preprocessingTimeMs,
+            modelInferenceTimeMs = modelInferenceTimeMs,
+            postprocessingTimeMs = postprocessingTimeMs,
+            totalTimeMs = totalTimeMs,
         )
     }
 
@@ -242,8 +311,8 @@ class ShrimpClassifier @Inject constructor(
         if (labelsCount != outputClassCount) {
             add("labels.txt has $labelsCount labels but model output has $outputClassCount classes.")
         }
-        if (inputWidth != ModelConfig.INPUT_SIZE || inputHeight != ModelConfig.INPUT_SIZE) {
-            add("Model input is ${inputWidth}x$inputHeight, while ModelConfig.INPUT_SIZE is ${ModelConfig.INPUT_SIZE}. Runtime tensor shape is used.")
+        if (inputWidth != ModelDefaults.INPUT_SIZE || inputHeight != ModelDefaults.INPUT_SIZE) {
+            add("Model input is ${inputWidth}x$inputHeight, while ModelDefaults.INPUT_SIZE is ${ModelDefaults.INPUT_SIZE}. Runtime tensor shape is used.")
         }
     }
 
@@ -299,6 +368,7 @@ class ShrimpClassifier @Inject constructor(
     private companion object {
         private const val TAG = "ShrimpClassifier"
         private const val RGB_CHANNELS = 3
+        private const val LOW_CONFIDENCE_LABEL = "Unknown / Low confidence"
     }
 }
 
