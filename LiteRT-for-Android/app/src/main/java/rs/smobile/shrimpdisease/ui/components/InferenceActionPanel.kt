@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -27,6 +26,11 @@ fun InferenceActionPanel(
     modifier: Modifier = Modifier,
 ) {
     CVioCard(modifier = modifier) {
+        Text(
+            text = "Actions",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
         if (isLoading) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -42,31 +46,34 @@ fun InferenceActionPanel(
             }
         }
 
-        Button(
+        PrimaryActionButton(
+            text = if (hasResult) "Run Inference Again" else "Run Inference",
             enabled = hasImage && !isLoading,
             onClick = onRunInference,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = if (hasResult) "Analyze Again" else "Use This Image")
-        }
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            OutlinedButton(
+            SecondaryActionButton(
+                text = "Save Result",
                 enabled = hasResult,
                 onClick = onSaveResult,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text(text = "Save")
-            }
-            OutlinedButton(
-                onClick = if (hasResult) onHistory else onGoHome,
+            )
+            SecondaryActionButton(
+                text = "History",
+                onClick = onHistory,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text(text = if (hasResult) "History" else "Home")
-            }
+            )
         }
+
+        SecondaryActionButton(
+            text = "Home",
+            onClick = onGoHome,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

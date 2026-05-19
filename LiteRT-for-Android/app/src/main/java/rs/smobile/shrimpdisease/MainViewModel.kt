@@ -12,13 +12,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import rs.smobile.shrimpdisease.auth.AuthRepository
+import rs.smobile.shrimpdisease.auth.AuthResult
+import rs.smobile.shrimpdisease.auth.AuthRole
 import rs.smobile.shrimpdisease.classifier.ClassificationResult
 import rs.smobile.shrimpdisease.classifier.ModelDefaults
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.classifier.ShrimpClassifier
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
+import rs.smobile.shrimpdisease.data.HistoryFilter
+import rs.smobile.shrimpdisease.data.HistoryUiState
 import rs.smobile.shrimpdisease.data.PredictionLogItem
 import rs.smobile.shrimpdisease.data.PredictionLogRepository
+import rs.smobile.shrimpdisease.profile.FarmerProfileRepository
+import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
+import rs.smobile.shrimpdisease.profile.FarmerProfileUpdate
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import javax.inject.Inject
 
@@ -56,6 +64,8 @@ data class SettingsUiState(
 class MainViewModel @Inject constructor(
     private val shrimpClassifier: ShrimpClassifier,
     private val predictionLogRepository: PredictionLogRepository,
+    private val authRepository: AuthRepository,
+    private val farmerProfileRepository: FarmerProfileRepository,
 ) : ViewModel() {
 
     private val _inputState = MutableStateFlow(InferenceInputUiState())
@@ -81,10 +91,25 @@ class MainViewModel @Inject constructor(
 
     val logs: StateFlow<List<PredictionLogItem>> = predictionLogRepository.logs
     val benchmarkMetrics: StateFlow<BenchmarkMetrics> = predictionLogRepository.benchmarkMetrics
+    val historyUiState: StateFlow<HistoryUiState> = predictionLogRepository.historyUiState
+    val farmerProfileUiState: StateFlow<FarmerProfileUiState> = farmerProfileRepository.profile
+    val authSession = authRepository.session
 
     private var fpsWindowStartNanos = SystemClock.elapsedRealtimeNanos()
     private var fpsWindowFrames = 0
     private val loggedResultTimestamps = mutableSetOf<Long>()
+
+    init {
+        predictionLogRepository.setOwner(authRepository.session.value.user?.id)
+        farmerProfileRepository.setUser(authRepository.session.value.user)
+        viewModelScope.launch {
+            authRepository.session.collect { session ->
+                loggedResultTimestamps.clear()
+                predictionLogRepository.setOwner(session.user?.id)
+                farmerProfileRepository.setUser(session.user)
+            }
+        }
+    }
 
     fun setGalleryImage(uri: Uri, bitmap: Bitmap) {
         _inputState.value = InferenceInputUiState(
@@ -145,7 +170,6 @@ class MainViewModel @Inject constructor(
             }
                 .onSuccess { result ->
                     _classificationState.value = ClassificationUiState(result = result)
-                    addResultToLog(result)
                 }
                 .onFailure { error ->
                     val message = error.message ?: "Inference failed."
@@ -157,8 +181,7 @@ class MainViewModel @Inject constructor(
 
     fun saveCurrentResult(): Boolean {
         val result = _classificationState.value.result ?: return false
-        addResultToLog(result)
-        return true
+        return addResultToLog(result)
     }
 
     fun setGroundTruthLabel(label: String?) {
@@ -176,8 +199,45 @@ class MainViewModel @Inject constructor(
         loggedResultTimestamps.clear()
     }
 
+    fun setHistoryFilter(filter: HistoryFilter) {
+        predictionLogRepository.setHistoryFilter(filter)
+    }
+
+    fun updateFarmerProfile(update: FarmerProfileUpdate): Boolean {
+        val updated = farmerProfileRepository.updateProfile(update)
+        if (updated) {
+            authRepository.updateDisplayName(farmerProfileRepository.profile.value.displayName)
+        }
+        return updated
+    }
+
+    fun setFarmerDataPermission(enabled: Boolean): Boolean {
+        return farmerProfileRepository.setDataPermissionEnabled(enabled)
+    }
+
     fun exportLogs(context: Context, uri: Uri): Boolean {
         return predictionLogRepository.exportCsv(context, uri)
+    }
+
+    fun login(
+        role: AuthRole,
+        account: String,
+        password: String,
+    ): AuthResult {
+        return authRepository.login(role, account, password)
+    }
+
+    fun register(
+        role: AuthRole,
+        account: String,
+        password: String,
+    ): AuthResult {
+        return authRepository.register(role, account, password)
+    }
+
+    fun logout() {
+        authRepository.logout()
+        clearInput()
     }
 
     fun loadModel(modelFile: String) {
@@ -225,11 +285,11 @@ class MainViewModel @Inject constructor(
         _settingsState.value = _settingsState.value.copy(cameraFps = fps)
     }
 
-    private fun addResultToLog(result: ClassificationResult) {
-        if (!loggedResultTimestamps.add(result.timestamp)) return
+    private fun addResultToLog(result: ClassificationResult): Boolean {
+        if (!loggedResultTimestamps.add(result.timestamp)) return false
 
         val input = _inputState.value
-        predictionLogRepository.addLog(
+        val saved = predictionLogRepository.addLog(
             PredictionLogItem(
                 imageUri = input.imageUri?.toString(),
                 predictedClass = result.predictedClass,
@@ -247,6 +307,10 @@ class MainViewModel @Inject constructor(
                 thumbnail = input.bitmap.takeIf { input.imageUri == null },
             )
         )
+        if (!saved) {
+            loggedResultTimestamps.remove(result.timestamp)
+        }
+        return saved
     }
 
     private companion object {

@@ -1,22 +1,25 @@
 package rs.smobile.shrimpdisease.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.classifier.ClassificationResult
+import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
+import rs.smobile.shrimpdisease.ui.theme.DiseaseRed
+import rs.smobile.shrimpdisease.ui.theme.HealthyGreen
+import rs.smobile.shrimpdisease.ui.theme.WarningOrange
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 
 @Composable
@@ -36,17 +39,16 @@ fun PredictionCard(
             isLoading -> {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 Text(
-                    text = "Running inference...",
+                    text = "Analyzing shrimp image...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             errorMessage != null -> {
-                CVioStatusChip(
+                ResultStatusBadge(
                     text = "Analysis failed",
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    kind = ResultStatusKind.Disease,
                 )
                 Text(
                     text = errorMessage,
@@ -56,53 +58,58 @@ fun PredictionCard(
             }
 
             result != null -> {
-                val statusColor = statusColor(result)
-                val statusContainer = statusContainerColor(result)
+                val statusKind = result.statusKind()
+                val statusAccent = result.statusAccent()
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        CVioStatusChip(
-                            text = if (result.isAboveThreshold) "Status: ${result.displayPredictionText()}" else "Low confidence",
-                            containerColor = statusContainer,
-                            contentColor = statusColor,
+                        ResultStatusBadge(
+                            text = result.statusText(),
+                            kind = statusKind,
                         )
                         Text(
                             text = result.displayPredictionText(),
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = BenchmarkUtils.confidenceText(result.confidence),
-                            style = MaterialTheme.typography.displayLarge,
-                            color = statusColor,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = "Confidence",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    ConfidenceScoreCard(
+                        label = "Confidence",
+                        value = BenchmarkUtils.confidenceText(result.confidence),
+                        accent = statusAccent,
+                        modifier = Modifier.weight(0.78f),
+                    )
                 }
+
+                LinearProgressIndicator(
+                    progress = { result.confidence.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = statusAccent,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                )
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(24.dp),
+                            color = CVioSurfaceContainerLow,
+                            shape = RoundedCornerShape(22.dp),
                         )
                         .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    Text(
+                        text = "What this means",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                    )
                     Text(
                         text = resultExplanation(result),
                         style = MaterialTheme.typography.bodyMedium,
@@ -115,7 +122,7 @@ fun PredictionCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     CVioMetricTile(
-                        label = "Latency",
+                        label = "Time",
                         value = BenchmarkUtils.latencyText(result.inferenceTimeMs),
                         modifier = Modifier.weight(1f),
                     )
@@ -132,9 +139,9 @@ fun PredictionCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (result.groundTruthLabel != null) {
+                result.groundTruthLabel?.let { groundTruth ->
                     Text(
-                        text = "Ground truth ${result.groundTruthLabel} | ${correctnessText(result.isCorrect)}",
+                        text = "Ground truth $groundTruth | ${correctnessText(result.isCorrect)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -143,7 +150,7 @@ fun PredictionCard(
 
             else -> {
                 Text(
-                    text = "No result yet.",
+                    text = "Run inference to see a shrimp health assessment.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -152,30 +159,38 @@ fun PredictionCard(
     }
 }
 
-private fun statusColor(result: ClassificationResult): Color {
-    val label = result.displayPredictionText().lowercase()
+private fun ClassificationResult.statusKind(): ResultStatusKind {
+    val label = displayPredictionText().lowercase()
     return when {
-        !result.isAboveThreshold -> Color(0xFF743B24)
-        "healthy" in label -> Color(0xFF236863)
-        else -> Color(0xFFBA1A1A)
+        !isAboveThreshold -> ResultStatusKind.Warning
+        "healthy" in label -> ResultStatusKind.Healthy
+        else -> ResultStatusKind.Disease
     }
 }
 
-@Composable
-private fun statusContainerColor(result: ClassificationResult): Color {
-    val label = result.displayPredictionText().lowercase()
+private fun ClassificationResult.statusAccent(): Color {
+    val label = displayPredictionText().lowercase()
     return when {
-        !result.isAboveThreshold -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.25f)
-        "healthy" in label -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-        else -> MaterialTheme.colorScheme.errorContainer
+        !isAboveThreshold -> WarningOrange
+        "healthy" in label -> HealthyGreen
+        else -> DiseaseRed
+    }
+}
+
+private fun ClassificationResult.statusText(): String {
+    val label = displayPredictionText().lowercase()
+    return when {
+        !isAboveThreshold -> "Low confidence"
+        "healthy" in label -> "Status: Healthy"
+        else -> "Disease detected"
     }
 }
 
 private fun resultExplanation(result: ClassificationResult): String {
     return if (result.isAboveThreshold) {
-        "The model detected ${result.predictedClass} with enough confidence for field triage. Confirm with pond conditions and recent behavior before acting."
+        "The AI classified this sample as ${result.predictedClass}. Use this as field triage and confirm with pond conditions before treatment decisions."
     } else {
-        "The top prediction did not pass the confidence threshold. Retake the image with better lighting or review the top-3 breakdown."
+        "The top prediction is below the confidence threshold. Retake the image with better lighting or inspect the top-3 prediction breakdown."
     }
 }
 
@@ -183,7 +198,7 @@ private fun ClassificationResult.displayPredictionText(): String {
     return if (isAboveThreshold) {
         predictedClass
     } else {
-        "$rawTop1Label / Low confidence"
+        "$rawTop1Label / Unknown"
     }
 }
 

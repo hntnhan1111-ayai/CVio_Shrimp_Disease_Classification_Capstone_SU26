@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,13 +22,16 @@ import rs.smobile.shrimpdisease.SettingsUiState
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.ui.components.BenchmarkSummaryCard
-import rs.smobile.shrimpdisease.ui.components.CVioCard
-import rs.smobile.shrimpdisease.ui.components.CVioIconBubble
 import rs.smobile.shrimpdisease.ui.components.CVioMetricTile
-import rs.smobile.shrimpdisease.ui.components.CVioSectionHeader
 import rs.smobile.shrimpdisease.ui.components.CVioStatusChip
+import rs.smobile.shrimpdisease.ui.components.CompactInfoRow
+import rs.smobile.shrimpdisease.ui.components.DataPermissionToggle
 import rs.smobile.shrimpdisease.ui.components.ModelSelector
+import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
+import rs.smobile.shrimpdisease.ui.components.SettingsSectionCard
 import rs.smobile.shrimpdisease.ui.components.ThresholdSlider
+import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
+import rs.smobile.shrimpdisease.ui.theme.DiseaseRed
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 
 @Composable
@@ -48,40 +48,45 @@ fun SettingsScreen(
     onThresholdChange: (Float) -> Unit,
     onShowDebugInfoChange: (Boolean) -> Unit,
     onResetMetrics: () -> Unit,
+    userDisplayName: String? = null,
+    userRole: String? = null,
+    onLogout: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        ProfileCard()
+        Text(
+            text = "Settings",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
 
-        CVioCard {
-            CVioSectionHeader(
-                title = "Data Permissions",
-                subtitle = "Local diagnostics controls for field testing.",
-            )
-            SettingSwitchRow(
-                title = "Detailed diagnostics",
-                message = "Show tensors, camera FPS, and pipeline timing on the inference screen.",
-                checked = settingsState.showDebugInfo,
-                onCheckedChange = onShowDebugInfoChange,
-            )
-            CVioStatusChip(
-                text = if (settingsState.showDebugInfo) "Diagnostics details enabled" else "Diagnostics details hidden",
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (userDisplayName != null && userRole != null && onLogout != null) {
+            SettingsSectionCard(
+                title = "Account",
+                subtitle = "Signed in session",
+                containerColor = CVioSurfaceContainerLow,
+            ) {
+                CompactInfoRow("Name", userDisplayName)
+                CompactInfoRow("Role", userRole)
+                SecondaryActionButton(
+                    text = "Logout",
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
 
-        CVioCard {
-            CVioSectionHeader(
-                title = "Select model",
-                subtitle = "Choose the packaged TFLite model used for offline inference.",
-            )
+        SettingsSectionCard(
+            title = "Model Settings",
+            subtitle = "Choose the packaged LiteRT/TFLite model used for offline inference.",
+        ) {
             ModelSelector(
                 selectedModel = modelInfo.modelFile,
                 availableModels = availableModels,
@@ -104,11 +109,10 @@ fun SettingsScreen(
             }
         }
 
-        CVioCard {
-            CVioSectionHeader(
-                title = "Runtime",
-                subtitle = "On-device classification settings.",
-            )
+        SettingsSectionCard(
+            title = "Runtime",
+            subtitle = "On-device classification runtime.",
+        ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = settingsState.runtimeDelegate == RuntimeDelegate.CPU,
@@ -127,7 +131,7 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 CVioMetricTile(
-                    label = "Input",
+                    label = "Input size",
                     value = BenchmarkUtils.inputSizeText(modelInfo),
                     modifier = Modifier.weight(1f),
                 )
@@ -140,134 +144,68 @@ fun SettingsScreen(
             }
         }
 
-        CVioCard {
+        SettingsSectionCard(
+            title = "Confidence Threshold",
+            subtitle = "Predictions below the threshold are shown as low confidence.",
+            containerColor = CVioSurfaceContainerLow,
+        ) {
             ThresholdSlider(
                 threshold = settingsState.confidenceThreshold,
                 onThresholdChange = onThresholdChange,
             )
-            Text(
-                text = "Predictions below this value are shown as Unknown / Low confidence while Top-3 remains visible.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        }
+
+        SettingsSectionCard(
+            title = "Debug",
+            subtitle = "Technical information stays hidden from the farmer flow unless enabled.",
+        ) {
+            DataPermissionToggle(
+                title = "Show debug info",
+                message = "Display source, model tensors, delegate, FPS, and pipeline timings on the diagnosis screen.",
+                checked = settingsState.showDebugInfo,
+                onCheckedChange = onShowDebugInfoChange,
+            )
+            CVioStatusChip(
+                text = if (settingsState.showDebugInfo) "Debug details enabled" else "Debug details hidden",
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         BenchmarkSummaryCard(metrics = benchmarkMetrics)
 
-        Button(
+        SecondaryActionButton(
+            text = "Reset metrics/logs",
             enabled = benchmarkMetrics.totalRuns > 0,
             onClick = onResetMetrics,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = "Reset metrics/logs")
-        }
+        )
 
-        CVioCard {
-            CVioSectionHeader(title = "Model info")
-            SettingRow("Model name", modelInfo.modelFile)
-            SettingRow("Model family", modelInfo.modelFamily)
-            SettingRow("Input shape", BenchmarkUtils.shapeText(modelInfo.input.shape))
-            SettingRow("Output shape", BenchmarkUtils.shapeText(modelInfo.output.shape))
-            SettingRow("Classes", modelInfo.outputClassCount.toString())
-            SettingRow("Labels", labels.joinToString(", "))
+        SettingsSectionCard(
+            title = "Model Info",
+            subtitle = "Tensor metadata and label contract.",
+        ) {
+            CompactInfoRow("Model name", modelInfo.modelFile)
+            CompactInfoRow("Model family", modelInfo.modelFamily)
+            CompactInfoRow("Input shape", BenchmarkUtils.shapeText(modelInfo.input.shape))
+            CompactInfoRow("Output shape", BenchmarkUtils.shapeText(modelInfo.output.shape))
+            CompactInfoRow("Classes", modelInfo.outputClassCount.toString())
+            Text(
+                text = labels.joinToString(", "),
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (modelInfo.warnings.isNotEmpty()) {
                 modelInfo.warnings.forEach { warning ->
                     Text(
                         text = warning,
-                        color = MaterialTheme.colorScheme.error,
+                        color = DiseaseRed,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ProfileCard() {
-    CVioCard {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            CVioIconBubble(
-                label = "F",
-                size = 80.dp,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(
-                text = "CVio Farmer",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Coastal farm profile | offline diagnostics",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingSwitchRow(
-    title: String,
-    message: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-        )
-    }
-}
-
-@Composable
-private fun SettingRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.weight(0.8f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            modifier = Modifier
-                .weight(1.2f)
-                .padding(start = 12.dp),
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
     }
 }

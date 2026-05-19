@@ -3,6 +3,16 @@ package rs.smobile.shrimpdisease.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // MarineCare Mobile / CVio palette from the Stitch design system.
+val OceanBlue = Color(0xFF006D77)
+val DeepTeal = Color(0xFF00535B)
+val AquaGreen = Color(0xFF83C5BE)
+val LightCyan = Color(0xFFE0FBFC)
+val SoftCream = Color(0xFFFFF7F2)
+val DarkNavy = Color(0xFF001E2E)
+val WarningOrange = Color(0xFFE29578)
+val DiseaseRed = Color(0xFFBA1A1A)
+val HealthyGreen = Color(0xFF236863)
+
 val md_theme_light_primary = Color(0xFF00535B)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFF006D77)

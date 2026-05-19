@@ -19,7 +19,7 @@ fun BenchmarkSummaryCard(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Inference Summary",
+            text = "Benchmark Summary",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )

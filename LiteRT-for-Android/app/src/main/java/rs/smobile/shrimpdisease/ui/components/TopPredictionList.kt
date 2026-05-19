@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,10 +23,10 @@ fun TopPredictionList(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Confidence Breakdown",
+            text = "Top-3 Prediction",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (predictions.isEmpty()) {
             Text(
@@ -63,7 +64,7 @@ private fun PredictionRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = label,
+                text = "$rank. $label",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -75,7 +76,9 @@ private fun PredictionRow(
         }
         LinearProgressIndicator(
             progress = { confidence.coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp),
             color = accent,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )

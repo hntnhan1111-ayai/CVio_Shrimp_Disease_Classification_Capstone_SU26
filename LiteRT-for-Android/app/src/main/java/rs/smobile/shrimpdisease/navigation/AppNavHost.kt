@@ -6,14 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,12 +13,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,13 +23,22 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import rs.smobile.shrimpdisease.MainViewModel
 import rs.smobile.shrimpdisease.RuntimeDelegate
+import rs.smobile.shrimpdisease.auth.AuthResult
+import rs.smobile.shrimpdisease.auth.AuthRole
+import rs.smobile.shrimpdisease.ui.admin.AdminDataControlScreen
+import rs.smobile.shrimpdisease.ui.admin.AdminDashboardScreen
+import rs.smobile.shrimpdisease.ui.admin.AdminUsersScreen
+import rs.smobile.shrimpdisease.ui.auth.AuthScreen
+import rs.smobile.shrimpdisease.ui.components.AppScaffold
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavigationItem
 import rs.smobile.shrimpdisease.ui.history.HistoryScreen
 import rs.smobile.shrimpdisease.ui.home.HomeScreen
 import rs.smobile.shrimpdisease.ui.inference.InferenceScreen
+import rs.smobile.shrimpdisease.ui.onboarding.WelcomeScreen
+import rs.smobile.shrimpdisease.ui.profile.ProfileScreen
 import rs.smobile.shrimpdisease.ui.settings.SettingsScreen
 import rs.smobile.shrimpdisease.utils.BitmapUtils
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
@@ -57,7 +55,12 @@ fun AppNavHost(
     val availableModels by viewModel.availableModels.collectAsStateWithLifecycle()
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val benchmarkMetrics by viewModel.benchmarkMetrics.collectAsStateWithLifecycle()
+    val historyUiState by viewModel.historyUiState.collectAsStateWithLifecycle()
+    val farmerProfileUiState by viewModel.farmerProfileUiState.collectAsStateWithLifecycle()
     val selectedGroundTruthLabel by viewModel.selectedGroundTruthLabel.collectAsStateWithLifecycle()
+    val authSession by viewModel.authSession.collectAsStateWithLifecycle()
+
+    var selectedAuthRole by remember { mutableStateOf(AuthRole.Farmer) }
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -104,57 +107,123 @@ fun AppNavHost(
         ).show()
     }
 
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-        ?: Screen.Home.route
-    val title = screenTitleForRoute(currentRoute)
+    val openCameraInput = {
+        if (hasCameraPermission) {
+            viewModel.startCameraInput()
+            navController.openInference()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
 
-    Scaffold(
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+        ?: startDestinationFor(authSession.user?.role)
+    val title = if (currentRoute == Screen.Inference.route && classificationState.result != null) {
+        "Scan Result"
+    } else {
+        screenTitleForRoute(currentRoute)
+    }
+
+    val currentTopLevelScreens = if (authSession.user?.role == AuthRole.Admin) {
+        adminTopLevelScreens
+    } else {
+        topLevelScreens
+    }
+    val navigationItems = currentTopLevelScreens.map { screen ->
+        ShrimpNavigationItem(route = screen.route, label = screen.title)
+    }
+    val showChrome = currentRoute !in authRoutes
+    val isFocusedCapture = currentRoute == Screen.Inference.route &&
+        classificationState.result == null &&
+        !classificationState.isLoading
+    val topLevelRoutes = currentTopLevelScreens.map { it.route }
+    val topLevelAnchor = if (authSession.user?.role == AuthRole.Admin) {
+        Screen.AdminDashboard.route
+    } else {
+        Screen.Home.route
+    }
+
+    AppScaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-            )
-        },
-        bottomBar = {
-            if (currentRoute in topLevelScreens.map { it.route }) {
-                PrimaryNavigation(
-                    currentRoute = currentRoute,
-                    onNavigate = { screen -> navController.navigateTopLevel(screen) },
-                )
+        title = title,
+        currentRoute = currentRoute,
+        navigationItems = navigationItems,
+        showTopBar = showChrome && currentRoute !in setOf(
+            Screen.Home.route,
+            Screen.History.route,
+            Screen.Profile.route,
+        ),
+        showBottomBar = showChrome && currentRoute in topLevelRoutes && !isFocusedCapture,
+        onNavigate = { item ->
+            currentTopLevelScreens.firstOrNull { it.route == item.route }?.let { screen ->
+                navController.navigateTopLevel(screen, topLevelAnchor)
             }
         },
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = startDestinationFor(authSession.user?.role),
             modifier = Modifier.padding(innerPadding),
         ) {
+            composable(Screen.Welcome.route) {
+                WelcomeScreen(
+                    onGetStarted = {
+                        selectedAuthRole = AuthRole.Farmer
+                        navController.navigate(Screen.Auth.route)
+                    },
+                    onLoginAsFarmer = {
+                        selectedAuthRole = AuthRole.Farmer
+                        navController.navigate(Screen.Auth.route)
+                    },
+                    onLoginAsAdmin = {
+                        selectedAuthRole = AuthRole.Admin
+                        navController.navigate(Screen.Auth.route)
+                    },
+                )
+            }
+
+            composable(Screen.Auth.route) {
+                AuthScreen(
+                    selectedRole = selectedAuthRole,
+                    onRoleSelected = { role -> selectedAuthRole = role },
+                    onLogin = { role, account, password ->
+                        when (val result = viewModel.login(role, account, password)) {
+                            is AuthResult.Success -> {
+                                navController.navigateAuthenticated(result.user.role)
+                            }
+
+                            is AuthResult.Error -> {
+                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    onRegister = { role, account, password ->
+                        when (val result = viewModel.register(role, account, password)) {
+                            is AuthResult.Success -> {
+                                Toast.makeText(
+                                    context,
+                                    "Account created",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                                navController.navigateAuthenticated(result.user.role)
+                            }
+
+                            is AuthResult.Error -> {
+                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                )
+            }
+
             composable(Screen.Home.route) {
                 HomeScreen(
                     modelInfo = modelInfo,
                     benchmarkMetrics = benchmarkMetrics,
                     logs = logs,
                     onSelectImage = { imagePicker.launch("image/*") },
-                    onOpenCamera = {
-                        if (hasCameraPermission) {
-                            viewModel.startCameraInput()
-                            navController.openInference()
-                        } else {
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
-                    },
-                    onChooseModel = { navController.navigateTopLevel(Screen.Settings) },
+                    onOpenCamera = openCameraInput,
+                    onChooseModel = { navController.navigateTopLevel(Screen.Settings, Screen.Home.route) },
                 )
             }
 
@@ -173,6 +242,7 @@ fun AppNavHost(
                     onRequestCameraPermission = {
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     },
+                    onOpenCamera = openCameraInput,
                     onSnapshot = { bitmap ->
                         viewModel.setCameraSnapshot(bitmap)
                     },
@@ -182,24 +252,50 @@ fun AppNavHost(
                     onSelectAnotherImage = { imagePicker.launch("image/*") },
                     onRunInference = viewModel::runInference,
                     onSaveResult = {
+                        val hasResult = classificationState.result != null
                         val saved = viewModel.saveCurrentResult()
                         Toast.makeText(
                             context,
-                            if (saved) "Result logged" else "Run inference before saving",
+                            when {
+                                saved -> "Result saved to history"
+                                hasResult -> "Result already saved"
+                                else -> "Run inference before saving"
+                            },
                             Toast.LENGTH_SHORT,
                         ).show()
                     },
                     onHome = { navController.navigateHomeFromInference() },
-                    onHistory = { navController.navigateTopLevel(Screen.History) },
+                    onHistory = { navController.navigateTopLevel(Screen.History, Screen.Home.route) },
                 )
             }
 
             composable(Screen.History.route) {
                 HistoryScreen(
-                    logs = logs,
-                    benchmarkMetrics = benchmarkMetrics,
+                    historyUiState = historyUiState,
+                    onFilterSelected = viewModel::setHistoryFilter,
                     onExportCsv = { exportCsvLauncher.launch("shrimp_prediction_history.csv") },
                     onClearLogs = viewModel::clearLogs,
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    profileUiState = farmerProfileUiState,
+                    onDataPermissionChanged = { enabled ->
+                        viewModel.setFarmerDataPermission(enabled)
+                    },
+                    onSaveProfile = { update ->
+                        val saved = viewModel.updateFarmerProfile(update)
+                        Toast.makeText(
+                            context,
+                            if (saved) "Profile updated" else "Profile update failed",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    },
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigateLoggedOut()
+                    },
                 )
             }
 
@@ -221,46 +317,70 @@ fun AppNavHost(
                     onThresholdChange = viewModel::setConfidenceThreshold,
                     onShowDebugInfoChange = viewModel::setShowDebugInfo,
                     onResetMetrics = viewModel::clearLogs,
+                    userDisplayName = authSession.user?.displayName,
+                    userRole = authSession.user?.role?.name,
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigateLoggedOut()
+                    },
+                )
+            }
+
+            composable(Screen.AdminDashboard.route) {
+                AdminDashboardScreen()
+            }
+
+            composable(Screen.AdminUsers.route) {
+                AdminUsersScreen()
+            }
+
+            composable(Screen.AdminData.route) {
+                AdminDataControlScreen(
+                    onMarkReviewed = {
+                        Toast.makeText(context, "Marked as reviewed", Toast.LENGTH_SHORT).show()
+                    },
+                    onExcludeFromTraining = {
+                        Toast.makeText(context, "Excluded from training dataset", Toast.LENGTH_SHORT).show()
+                    },
+                    onExportMetadata = {
+                        Toast.makeText(context, "Metadata export queued", Toast.LENGTH_SHORT).show()
+                    },
                 )
             }
         }
     }
 }
 
-@Composable
-private fun PrimaryNavigation(
-    currentRoute: String,
-    onNavigate: (Screen) -> Unit,
-) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
-    ) {
-        topLevelScreens.forEach { screen ->
-            val selected = currentRoute == screen.route
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onNavigate(screen) },
-                icon = {
-                    Text(
-                        text = screen.title.take(1),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                label = { Text(text = screen.title) },
-            )
-        }
-    }
-}
-
-private fun NavHostController.navigateTopLevel(screen: Screen) {
+private fun NavHostController.navigateTopLevel(screen: Screen, anchorRoute: String) {
     navigate(screen.route) {
-        popUpTo(graph.findStartDestination().id) {
+        popUpTo(anchorRoute) {
             saveState = true
         }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+private fun NavHostController.navigateAuthenticated(role: AuthRole) {
+    val destination = if (role == AuthRole.Admin) {
+        Screen.AdminDashboard.route
+    } else {
+        Screen.Home.route
+    }
+    navigate(destination) {
+        popUpTo(Screen.Welcome.route) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.navigateLoggedOut() {
+    navigate(Screen.Welcome.route) {
+        popUpTo(graph.id) {
+            inclusive = true
+        }
+        launchSingleTop = true
     }
 }
 
@@ -281,10 +401,29 @@ private fun NavHostController.navigateHomeFromInference() {
 
 private fun screenTitleForRoute(route: String): String {
     return when (route) {
-        Screen.Home.route -> "CVio"
+        Screen.Welcome.route -> "AquaPulse"
+        Screen.Auth.route -> "Login"
+        Screen.Home.route -> "AquaScan AI"
         Screen.Inference.route -> "Capture"
         Screen.History.route -> Screen.History.title
-        Screen.Settings.route -> "Profile"
-        else -> "CVio"
+        Screen.Profile.route -> Screen.Profile.title
+        Screen.Settings.route -> "Settings"
+        Screen.AdminDashboard.route -> Screen.AdminDashboard.title
+        Screen.AdminUsers.route -> Screen.AdminUsers.title
+        Screen.AdminData.route -> Screen.AdminData.title
+        else -> "AquaScan AI"
     }
 }
+
+private fun startDestinationFor(role: AuthRole?): String {
+    return when (role) {
+        AuthRole.Farmer -> Screen.Home.route
+        AuthRole.Admin -> Screen.AdminDashboard.route
+        null -> Screen.Welcome.route
+    }
+}
+
+private val authRoutes = setOf(
+    Screen.Welcome.route,
+    Screen.Auth.route,
+)
