@@ -2,15 +2,18 @@ package rs.smobile.shrimpdisease.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.classifier.ClassificationResult
@@ -23,88 +26,157 @@ fun PredictionCard(
     errorMessage: String?,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = "Prediction",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            when {
-                isLoading -> {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Text(
-                        text = "Running inference...",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+    CVioCard(modifier = modifier) {
+        Text(
+            text = "Scan Result",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+        when {
+            isLoading -> {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text(
+                    text = "Running inference...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-                errorMessage != null -> {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+            errorMessage != null -> {
+                CVioStatusChip(
+                    text = "Analysis failed",
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
-                result != null -> {
-                    Text(
-                        text = "Prediction: ${result.displayPredictionText()}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Confidence ${BenchmarkUtils.confidenceText(result.confidence)}",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Text(
-                        text = "Threshold ${BenchmarkUtils.confidenceText(result.threshold)} - ${thresholdStatusText(result.isAboveThreshold)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (result.isAboveThreshold) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                    )
-                    Text(
-                        text = "Model ${result.modelName}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = "Latency ${BenchmarkUtils.latencyText(result.inferenceTimeMs)} | Speed ${BenchmarkUtils.speedText(result.speed)} | FPS ${BenchmarkUtils.fpsText(result.fps)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (result.groundTruthLabel != null) {
+            result != null -> {
+                val statusColor = statusColor(result)
+                val statusContainer = statusContainerColor(result)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        CVioStatusChip(
+                            text = if (result.isAboveThreshold) "Status: ${result.displayPredictionText()}" else "Low confidence",
+                            containerColor = statusContainer,
+                            contentColor = statusColor,
+                        )
                         Text(
-                            text = "Ground truth ${result.groundTruthLabel} | ${correctnessText(result.isCorrect)}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = result.displayPredictionText(),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = BenchmarkUtils.confidenceText(result.confidence),
+                            style = MaterialTheme.typography.displayLarge,
+                            color = statusColor,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Confidence",
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
 
-                else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(24.dp),
+                        )
+                        .padding(16.dp),
+                ) {
                     Text(
-                        text = "No result yet.",
+                        text = resultExplanation(result),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CVioMetricTile(
+                        label = "Latency",
+                        value = BenchmarkUtils.latencyText(result.inferenceTimeMs),
+                        modifier = Modifier.weight(1f),
+                    )
+                    CVioMetricTile(
+                        label = "FPS",
+                        value = BenchmarkUtils.fpsText(result.fps),
+                        modifier = Modifier.weight(1f),
+                        accent = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+
+                Text(
+                    text = "Model ${result.modelName} | Threshold ${BenchmarkUtils.confidenceText(result.threshold)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (result.groundTruthLabel != null) {
+                    Text(
+                        text = "Ground truth ${result.groundTruthLabel} | ${correctnessText(result.isCorrect)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            else -> {
+                Text(
+                    text = "No result yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
 }
 
-private fun thresholdStatusText(isAboveThreshold: Boolean): String {
-    return if (isAboveThreshold) "Passed" else "Low confidence"
+private fun statusColor(result: ClassificationResult): Color {
+    val label = result.displayPredictionText().lowercase()
+    return when {
+        !result.isAboveThreshold -> Color(0xFF743B24)
+        "healthy" in label -> Color(0xFF236863)
+        else -> Color(0xFFBA1A1A)
+    }
+}
+
+@Composable
+private fun statusContainerColor(result: ClassificationResult): Color {
+    val label = result.displayPredictionText().lowercase()
+    return when {
+        !result.isAboveThreshold -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.25f)
+        "healthy" in label -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+        else -> MaterialTheme.colorScheme.errorContainer
+    }
+}
+
+private fun resultExplanation(result: ClassificationResult): String {
+    return if (result.isAboveThreshold) {
+        "The model detected ${result.predictedClass} with enough confidence for field triage. Confirm with pond conditions and recent behavior before acting."
+    } else {
+        "The top prediction did not pass the confidence threshold. Retake the image with better lighting or review the top-3 breakdown."
+    }
 }
 
 private fun ClassificationResult.displayPredictionText(): String {

@@ -1,4 +1,4 @@
-# Chạy Shrimp Disease LiteRT Android
+# Chạy CVio LiteRT Android
 
 File này là checklist nhanh cho project Android trong thư mục `LiteRT-for-Android`.
 
@@ -67,7 +67,7 @@ Hoặc copy `app-debug.apk` sang điện thoại, mở bằng Files/Chrome/Drive
 
 ## 5. Chạy App
 
-Mở app **Shrimp Disease** trên điện thoại.
+Mở app **CVio** trên điện thoại.
 
 - `Choose image`: chọn ảnh từ thư viện.
 - `Load camera`: mở camera preview.
@@ -81,6 +81,6 @@ Tất cả inference chạy offline bằng LiteRT/TensorFlow Lite, không gọi 
 
 - `SDK not found`: kiểm tra `ANDROID_HOME`, `ANDROID_SDK_ROOT` hoặc `sdk.dir`.
 - `adb unauthorized`: mở khóa điện thoại và bấm `Allow USB debugging`.
-- Camera không mở: vào `Settings > Apps > Shrimp Disease > Permissions > Camera`.
+- Camera không mở: vào `Settings > Apps > CVio > Permissions > Camera`.
 - `labels count mismatch`: sửa `labels.txt` để số dòng và thứ tự class khớp model.
 - `model input shape mismatch`: app chỉ hỗ trợ tensor ảnh RGB 4D `[1, H, W, 3]` hoặc `[1, 3, H, W]`.

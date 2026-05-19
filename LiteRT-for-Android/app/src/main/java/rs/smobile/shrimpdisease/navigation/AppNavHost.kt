@@ -5,17 +5,14 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -113,27 +110,28 @@ fun AppNavHost(
 
     Scaffold(
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Column {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                )
-                if (currentRoute in topLevelScreens.map { it.route }) {
-                    PrimaryNavigation(
-                        currentRoute = currentRoute,
-                        onNavigate = { screen -> navController.navigateTopLevel(screen) },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                     )
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+        },
+        bottomBar = {
+            if (currentRoute in topLevelScreens.map { it.route }) {
+                PrimaryNavigation(
+                    currentRoute = currentRoute,
+                    onNavigate = { screen -> navController.navigateTopLevel(screen) },
+                )
             }
         },
     ) { innerPadding ->
@@ -145,6 +143,8 @@ fun AppNavHost(
             composable(Screen.Home.route) {
                 HomeScreen(
                     modelInfo = modelInfo,
+                    benchmarkMetrics = benchmarkMetrics,
+                    logs = logs,
                     onSelectImage = { imagePicker.launch("image/*") },
                     onOpenCamera = {
                         if (hasCameraPermission) {
@@ -232,32 +232,24 @@ private fun PrimaryNavigation(
     currentRoute: String,
     onNavigate: (Screen) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp,
     ) {
         topLevelScreens.forEach { screen ->
             val selected = currentRoute == screen.route
-            if (selected) {
-                Button(
-                    onClick = { onNavigate(screen) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 4.dp),
-                ) {
-                    Text(text = screen.title)
-                }
-            } else {
-                TextButton(
-                    onClick = { onNavigate(screen) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 4.dp),
-                ) {
-                    Text(text = screen.title)
-                }
-            }
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onNavigate(screen) },
+                icon = {
+                    Text(
+                        text = screen.title.take(1),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                label = { Text(text = screen.title) },
+            )
         }
     }
 }
@@ -289,10 +281,10 @@ private fun NavHostController.navigateHomeFromInference() {
 
 private fun screenTitleForRoute(route: String): String {
     return when (route) {
-        Screen.Home.route -> "Shrimp Disease"
-        Screen.Inference.route -> Screen.Inference.title
+        Screen.Home.route -> "CVio"
+        Screen.Inference.route -> "Capture"
         Screen.History.route -> Screen.History.title
-        Screen.Settings.route -> Screen.Settings.title
-        else -> "Shrimp Disease"
+        Screen.Settings.route -> "Profile"
+        else -> "CVio"
     }
 }

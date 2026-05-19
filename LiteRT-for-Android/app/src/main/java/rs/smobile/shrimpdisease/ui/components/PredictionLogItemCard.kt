@@ -6,16 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -31,51 +29,65 @@ fun PredictionLogItemCard(
     item: PredictionLogItem,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    CVioCard(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             PredictionThumbnail(item = item)
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    CVioStatusChip(
+                        text = if (item.isAboveThreshold) item.predictedClass else "Low confidence",
+                        containerColor = if (item.isAboveThreshold) {
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        },
+                        contentColor = if (item.isAboveThreshold) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        },
+                    )
+                    Text(
+                        text = DateTimeUtils.formatTimestamp(item.timestamp),
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Text(
-                    text = item.predictedClass,
+                    text = "Pond checkup",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "Confidence ${BenchmarkUtils.confidenceText(item.confidence)} | ${BenchmarkUtils.latencyText(item.inferenceTimeMs)}",
+                    text = "${BenchmarkUtils.confidenceText(item.confidence)} confidence | ${BenchmarkUtils.latencyText(item.inferenceTimeMs)}",
                     style = MaterialTheme.typography.bodyMedium,
+                    color = if (item.isAboveThreshold) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
                 )
                 Text(
-                    text = "FPS ${BenchmarkUtils.fpsText(item.fps)} | ${BenchmarkUtils.speedText(item.speed)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "${item.modelName} | Threshold ${BenchmarkUtils.confidenceText(item.threshold)}",
-                    maxLines = 2,
+                    text = "${item.modelName} | ${BenchmarkUtils.fpsText(item.fps)}",
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "Ground truth ${item.groundTruthLabel ?: "N/A"} | ${correctnessText(item)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = DateTimeUtils.formatTimestamp(item.timestamp),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -85,7 +97,10 @@ fun PredictionLogItemCard(
 
 @Composable
 private fun PredictionThumbnail(item: PredictionLogItem) {
-    val modifier = Modifier.size(72.dp)
+    val modifier = Modifier
+        .size(88.dp)
+        .clip(RoundedCornerShape(20.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
     when {
         item.thumbnail != null -> {
             Image(
@@ -107,23 +122,16 @@ private fun PredictionThumbnail(item: PredictionLogItem) {
 
         else -> {
             Box(
-                modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+                modifier = modifier,
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "No image",
+                    text = "CVio",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
-    }
-}
-
-private fun correctnessText(item: PredictionLogItem): String {
-    return when (item.isCorrect) {
-        true -> "Correct"
-        false -> "Incorrect"
-        null -> "N/A"
     }
 }

@@ -67,5 +67,5 @@ adb install LiteRT-for-Android/app/build/outputs/apk/debug/app-debug.apk
 
 - `App not installed`: gỡ bản app cũ trên điện thoại rồi cài lại APK mới.
 - `There was a problem parsing the package`: điện thoại có thể đang dưới Android 12 hoặc file APK copy bị lỗi.
-- Camera không mở: vào `Settings > Apps > Shrimp Disease > Permissions > Camera` và cấp quyền camera.
+- Camera không mở: vào `Settings > Apps > CVio > Permissions > Camera` và cấp quyền camera.
 - Model không load: đảm bảo các file `.tflite` và `labels.txt` vẫn nằm trong `LiteRT-for-Android/app/src/main/assets/`.

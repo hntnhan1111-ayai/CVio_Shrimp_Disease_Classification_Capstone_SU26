@@ -7,7 +7,7 @@ sealed class Screen(
     object Home : Screen("home", "Home")
     object Inference : Screen("inference", "Inference")
     object History : Screen("history", "History")
-    object Settings : Screen("settings", "Settings")
+    object Settings : Screen("settings", "Profile")
 }
 
 val topLevelScreens = listOf(

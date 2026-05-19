@@ -73,7 +73,9 @@ fun CameraCaptureCard(
         modifier = modifier
             .fillMaxWidth()
             .height(420.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inverseSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
     ) {
         Column(
             modifier = Modifier
@@ -130,7 +132,7 @@ fun CameraCaptureCard(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(text = "Take snapshot")
+                    Text(text = "Take Photo")
                     }
                     OutlinedButton(
                         enabled = enabled,
@@ -139,7 +141,7 @@ fun CameraCaptureCard(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(text = "Clear frame")
+                    Text(text = "Clear")
                     }
                 } else {
                     OutlinedButton(
@@ -150,7 +152,7 @@ fun CameraCaptureCard(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(text = "Retake snapshot")
+                        Text(text = "Retake")
                     }
                 }
             }

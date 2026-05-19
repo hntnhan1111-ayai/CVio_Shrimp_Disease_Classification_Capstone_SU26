@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,33 +20,26 @@ fun TopPredictionList(
     predictions: List<PredictionItem>,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+    CVioCard(modifier = modifier) {
+        Text(
+            text = "Confidence Breakdown",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (predictions.isEmpty()) {
             Text(
-                text = "Top-3 predictions",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                text = "Run inference to see ranked predictions.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
             )
-            if (predictions.isEmpty()) {
-                Text(
-                    text = "Run inference to see ranked predictions.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+        } else {
+            predictions.forEachIndexed { index, prediction ->
+                PredictionRow(
+                    rank = index + 1,
+                    label = prediction.label,
+                    confidence = prediction.confidence,
                 )
-            } else {
-                predictions.forEachIndexed { index, prediction ->
-                    PredictionRow(
-                        rank = index + 1,
-                        label = prediction.label,
-                        confidence = prediction.confidence,
-                    )
-                }
             }
         }
     }
@@ -61,26 +51,33 @@ private fun PredictionRow(
     label: String,
     confidence: Float,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    val accent = when {
+        rank == 1 && "healthy" !in label.lowercase() -> MaterialTheme.colorScheme.error
+        rank == 1 -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.primaryContainer
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "$rank. $label",
-                style = MaterialTheme.typography.bodyLarge,
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
                 text = BenchmarkUtils.confidenceText(confidence),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         LinearProgressIndicator(
             progress = { confidence.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
+            color = accent,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }
 }

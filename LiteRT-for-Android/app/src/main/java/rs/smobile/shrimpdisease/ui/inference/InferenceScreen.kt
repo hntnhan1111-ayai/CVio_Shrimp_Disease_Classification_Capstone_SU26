@@ -2,6 +2,7 @@ package rs.smobile.shrimpdisease.ui.inference
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +46,10 @@ import rs.smobile.shrimpdisease.ui.components.InferenceActionPanel
 import rs.smobile.shrimpdisease.ui.components.MetricsCard
 import rs.smobile.shrimpdisease.ui.components.PredictionCard
 import rs.smobile.shrimpdisease.ui.components.TopPredictionList
+import rs.smobile.shrimpdisease.ui.components.CVioCard
+import rs.smobile.shrimpdisease.ui.components.CVioSectionHeader
+import rs.smobile.shrimpdisease.ui.components.CVioStatusChip
+import rs.smobile.shrimpdisease.ui.theme.CVioPrimaryFixedDim
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import java.util.Locale
 
@@ -76,9 +83,14 @@ fun InferenceScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        CVioSectionHeader(
+            title = "Capture",
+            subtitle = "Use a clear image with good lighting for more reliable classification.",
+        )
+
         InputPreviewCard(
             inputState = inputState,
             isRetakingSnapshot = isRetakingSnapshot,
@@ -191,16 +203,9 @@ private fun GroundTruthCard(
     resultCorrectness: Boolean?,
     onGroundTruthSelected: (String?) -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
+    CVioCard {
             Text(
-                text = "Ground truth",
+                text = "Ground truth label",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -242,12 +247,11 @@ private fun GroundTruthCard(
                     }
                 }
             }
-            Text(
-                text = "Status: ${correctnessText(resultCorrectness)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            CVioStatusChip(
+                text = "Accuracy: ${correctnessText(resultCorrectness)}",
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
     }
 }
 
@@ -265,10 +269,9 @@ private fun InputPreviewCard(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "Image preview",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+        CVioSectionHeader(
+            title = "Image preview",
+            subtitle = "Position the shrimp in the center frame.",
         )
 
         val showCameraPreview = isRetakingSnapshot || (inputState.isCameraActive && inputState.bitmap == null)
@@ -305,39 +308,50 @@ private fun ImagePreview(inputState: InferenceInputUiState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            .aspectRatio(3f / 4f),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inverseSurface),
     ) {
-        when {
-            inputState.bitmap != null -> {
-                Image(
-                    bitmap = inputState.bitmap.asImageBitmap(),
-                    contentDescription = "Selected shrimp image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-            }
-
-            inputState.imageUri != null -> {
-                AsyncImage(
-                    model = inputState.imageUri,
-                    contentDescription = "Selected shrimp image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-            }
-
-            else -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    EmptyState(
-                        title = "No image selected",
-                        message = "Go back Home and select an image or open the camera.",
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                inputState.bitmap != null -> {
+                    Image(
+                        bitmap = inputState.bitmap.asImageBitmap(),
+                        contentDescription = "Selected shrimp image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
                     )
                 }
+
+                inputState.imageUri != null -> {
+                    AsyncImage(
+                        model = inputState.imageUri,
+                        contentDescription = "Selected shrimp image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        EmptyState(
+                            title = "No image selected",
+                            message = "Go back Home and select an image or open the camera.",
+                        )
+                    }
+                }
             }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(CVioPrimaryFixedDim.copy(alpha = 0.10f)),
+            )
         }
     }
 }
@@ -350,14 +364,8 @@ private fun DebugInfoCard(
     runtimeDelegateName: String,
     cameraFps: Double?,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
+    CVioCard(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = "Debug info",
                 style = MaterialTheme.typography.titleMedium,

@@ -64,13 +64,14 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun ShrimpDiseaseTheme(
+fun CVioTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        typography = Typography,
+        typography = CVioTypography,
+        shapes = CVioShapes,
         content = content,
     )
 }

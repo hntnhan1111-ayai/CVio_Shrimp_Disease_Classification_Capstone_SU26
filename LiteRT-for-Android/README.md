@@ -1,4 +1,4 @@
-# Shrimp Disease Android App
+# CVio Android App
 
 Ứng dụng Android dùng LiteRT/TensorFlow Lite để phân loại ảnh tôm theo 4 nhãn trong `assets/labels.txt`:
 
@@ -45,7 +45,7 @@ Debug APK đã được Gradle ký bằng debug key nên có thể cài trực t
 2. Mở file APK bằng `Files`, `My Files`, Chrome hoặc Google Drive.
 3. Bật quyền `Install unknown apps` cho ứng dụng đang mở APK nếu Android yêu cầu.
 4. Chọn `Install`.
-5. Mở app `Shrimp Disease`.
+5. Mở app `CVio`.
 6. Cấp quyền camera khi app hỏi.
 
 Nếu Play Protect cảnh báo vì đây là APK tự build, chọn phần chi tiết và tiếp tục cài đặt nếu bạn tin tưởng file APK được build từ repo này.
@@ -83,4 +83,4 @@ Khi thay model:
 - `App not installed`: gỡ app cũ rồi cài lại APK mới.
 - `There was a problem parsing the package`: thiết bị đang dưới Android 12 hoặc file APK copy bị lỗi.
 - `Failed to load model`: kiểm tra model `.tflite` và `labels.txt` trong `assets/`.
-- Camera không hoạt động: vào `Settings > Apps > Shrimp Disease > Permissions` và cấp quyền camera.
+- Camera không hoạt động: vào `Settings > Apps > CVio > Permissions` và cấp quyền camera.

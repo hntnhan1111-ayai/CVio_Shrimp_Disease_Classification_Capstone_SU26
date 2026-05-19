@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Cats vs Dogs"
+rootProject.name = "CVio"
 include(":app")
  

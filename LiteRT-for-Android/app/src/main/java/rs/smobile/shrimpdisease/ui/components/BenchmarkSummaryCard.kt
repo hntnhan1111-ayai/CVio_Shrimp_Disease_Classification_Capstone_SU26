@@ -1,11 +1,8 @@
 package rs.smobile.shrimpdisease.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,25 +17,48 @@ fun BenchmarkSummaryCard(
     metrics: BenchmarkMetrics,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+    CVioCard(modifier = modifier) {
+        Text(
+            text = "Inference Summary",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "Benchmark Summary",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+            CVioMetricTile(
+                label = "Runs",
+                value = metrics.totalRuns.toString(),
+                modifier = Modifier.weight(1f),
             )
-            MetricRow("Total runs", metrics.totalRuns.toString())
-            MetricRow("Correct runs", "${metrics.correctRuns}/${metrics.evaluatedRuns}")
-            MetricRow("Accuracy", metrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A")
-            MetricRow("Average inference time", "${BenchmarkUtils.decimalText(metrics.averageInferenceTimeMs)} ms")
-            MetricRow("Average speed", BenchmarkUtils.speedText(metrics.averageSpeed))
-            MetricRow("Average FPS", BenchmarkUtils.fpsText(metrics.averageFps))
+            CVioMetricTile(
+                label = "Accuracy",
+                value = metrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A",
+                modifier = Modifier.weight(1f),
+                accent = MaterialTheme.colorScheme.secondary,
+            )
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CVioMetricTile(
+                label = "Avg time",
+                value = "${BenchmarkUtils.decimalText(metrics.averageInferenceTimeMs)} ms",
+                modifier = Modifier.weight(1f),
+                accent = MaterialTheme.colorScheme.tertiary,
+            )
+            CVioMetricTile(
+                label = "Avg FPS",
+                value = BenchmarkUtils.fpsText(metrics.averageFps),
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Text(
+            text = "Correct runs ${metrics.correctRuns}/${metrics.evaluatedRuns} | ${BenchmarkUtils.speedText(metrics.averageSpeed)} average speed",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
