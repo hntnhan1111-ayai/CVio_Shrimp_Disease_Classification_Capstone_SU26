@@ -34,8 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import rs.smobile.shrimpdisease.ui.components.AppLogoImage
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
-import rs.smobile.shrimpdisease.ui.components.ShrimpIllustration
 import rs.smobile.shrimpdisease.ui.theme.CVioPrimaryFixed
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainer
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerHigh
@@ -186,10 +186,10 @@ private fun ScanningShrimpVisual() {
                             )
                         ),
                 )
-                ShrimpIllustration(
+                AppLogoImage(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(44.dp),
+                        .padding(58.dp),
                 )
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val y = size.height * scanProgress

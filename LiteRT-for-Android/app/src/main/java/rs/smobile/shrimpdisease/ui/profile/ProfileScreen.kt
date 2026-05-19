@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
 import rs.smobile.shrimpdisease.profile.FarmerProfileUpdate
+import rs.smobile.shrimpdisease.ui.components.AppBrandLogo
 import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.CVioIconBubble
 import rs.smobile.shrimpdisease.ui.components.DataPermissionToggle
@@ -105,12 +106,7 @@ private fun ProfileTopBar(profileUiState: FarmerProfileUiState) {
             containerColor = CVioSurfaceContainerHighest,
             contentColor = MaterialTheme.colorScheme.primary,
         )
-        Text(
-            text = "AquaPulse",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-        )
+        AppBrandLogo()
         CVioIconBubble(
             label = "N",
             size = 40.dp,

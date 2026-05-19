@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.auth.AuthRole
+import rs.smobile.shrimpdisease.ui.components.AppLogoMark
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainer
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
@@ -72,22 +73,9 @@ fun AuthScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "AP",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
+                    AppLogoMark(size = 72.dp, padding = 8.dp)
                     Text(
-                        text = "AquaPulse",
+                        text = "CVio",
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -184,7 +172,7 @@ fun AuthScreen(
                         text = if (registerMode) {
                             "Already have an account? Login"
                         } else {
-                            "New to AquaPulse? Create farmer account"
+                            "Create farmer account"
                         },
                         modifier = Modifier.clickable { registerMode = !registerMode },
                         style = MaterialTheme.typography.bodyMedium,

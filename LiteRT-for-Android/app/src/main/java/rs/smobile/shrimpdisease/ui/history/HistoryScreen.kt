@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.data.HistoryFilter
 import rs.smobile.shrimpdisease.data.HistoryUiState
+import rs.smobile.shrimpdisease.ui.components.AppBrandLogo
 import rs.smobile.shrimpdisease.ui.components.BenchmarkSummaryCard
 import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.EmptyState
@@ -173,12 +174,7 @@ private fun HistoryTopBar() {
                 fontWeight = FontWeight.Bold,
             )
         }
-        Text(
-            text = "AquaPulse",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-        )
+        AppBrandLogo()
         Box(
             modifier = Modifier
                 .size(40.dp)
