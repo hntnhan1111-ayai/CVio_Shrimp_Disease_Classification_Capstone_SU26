@@ -120,3 +120,4 @@ app.*.symbols
 
 # Models
 LiteRT-for-Android/app/src/main/assets/convnext_tiny_in22k_sim_float16.tflite
+LiteRT-for-Android/app/src/main/assets/convnext_tiny_in22k_sim_float32.tflite
