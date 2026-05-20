@@ -63,6 +63,10 @@ class PredictionLogRepository @Inject constructor(
 
     fun getAllLogs(): List<PredictionLogItem> = _logs.value
 
+    fun getLogsForOwner(ownerId: String): List<PredictionLogItem> {
+        return readLogs(ownerId)
+    }
+
     fun clearLogs() {
         val owner = ownerId ?: return publish(emptyList())
         preferences.edit()

@@ -19,6 +19,8 @@ import rs.smobile.shrimpdisease.classifier.ClassificationResult
 import rs.smobile.shrimpdisease.classifier.ModelDefaults
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.classifier.ShrimpClassifier
+import rs.smobile.shrimpdisease.data.AdminDashboardRepository
+import rs.smobile.shrimpdisease.data.AdminDashboardUiState
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.data.HistoryFilter
 import rs.smobile.shrimpdisease.data.HistoryUiState
@@ -66,6 +68,7 @@ class MainViewModel @Inject constructor(
     private val predictionLogRepository: PredictionLogRepository,
     private val authRepository: AuthRepository,
     private val farmerProfileRepository: FarmerProfileRepository,
+    private val adminDashboardRepository: AdminDashboardRepository,
 ) : ViewModel() {
 
     private val _inputState = MutableStateFlow(InferenceInputUiState())
@@ -89,6 +92,9 @@ class MainViewModel @Inject constructor(
     private val _selectedGroundTruthLabel = MutableStateFlow<String?>(null)
     val selectedGroundTruthLabel: StateFlow<String?> = _selectedGroundTruthLabel
 
+    private val _adminDashboardUiState = MutableStateFlow(AdminDashboardUiState())
+    val adminDashboardUiState: StateFlow<AdminDashboardUiState> = _adminDashboardUiState
+
     val logs: StateFlow<List<PredictionLogItem>> = predictionLogRepository.logs
     val benchmarkMetrics: StateFlow<BenchmarkMetrics> = predictionLogRepository.benchmarkMetrics
     val historyUiState: StateFlow<HistoryUiState> = predictionLogRepository.historyUiState
@@ -102,11 +108,13 @@ class MainViewModel @Inject constructor(
     init {
         predictionLogRepository.setOwner(authRepository.session.value.user?.id)
         farmerProfileRepository.setUser(authRepository.session.value.user)
+        refreshAdminDashboard()
         viewModelScope.launch {
             authRepository.session.collect { session ->
                 loggedResultTimestamps.clear()
                 predictionLogRepository.setOwner(session.user?.id)
                 farmerProfileRepository.setUser(session.user)
+                refreshAdminDashboard()
             }
         }
     }
@@ -197,6 +205,7 @@ class MainViewModel @Inject constructor(
     fun clearLogs() {
         predictionLogRepository.clearLogs()
         loggedResultTimestamps.clear()
+        refreshAdminDashboard()
     }
 
     fun setHistoryFilter(filter: HistoryFilter) {
@@ -207,12 +216,15 @@ class MainViewModel @Inject constructor(
         val updated = farmerProfileRepository.updateProfile(update)
         if (updated) {
             authRepository.updateDisplayName(farmerProfileRepository.profile.value.displayName)
+            refreshAdminDashboard()
         }
         return updated
     }
 
     fun setFarmerDataPermission(enabled: Boolean): Boolean {
-        return farmerProfileRepository.setDataPermissionEnabled(enabled)
+        val updated = farmerProfileRepository.setDataPermissionEnabled(enabled)
+        if (updated) refreshAdminDashboard()
+        return updated
     }
 
     fun exportLogs(context: Context, uri: Uri): Boolean {
@@ -224,7 +236,7 @@ class MainViewModel @Inject constructor(
         account: String,
         password: String,
     ): AuthResult {
-        return authRepository.login(role, account, password)
+        return authRepository.login(role, account, password).also { refreshAdminDashboard() }
     }
 
     fun register(
@@ -232,12 +244,33 @@ class MainViewModel @Inject constructor(
         account: String,
         password: String,
     ): AuthResult {
-        return authRepository.register(role, account, password)
+        return authRepository.register(role, account, password).also { refreshAdminDashboard() }
     }
 
     fun logout() {
         authRepository.logout()
         clearInput()
+        refreshAdminDashboard()
+    }
+
+    fun refreshAdminDashboard() {
+        _adminDashboardUiState.value = adminDashboardRepository.loadDashboard()
+    }
+
+    fun markAdminDataReviewed(itemId: String): Boolean {
+        val updated = adminDashboardRepository.markReviewed(itemId)
+        refreshAdminDashboard()
+        return updated
+    }
+
+    fun excludeAdminDataFromTraining(itemId: String): Boolean {
+        val updated = adminDashboardRepository.excludeFromTraining(itemId)
+        refreshAdminDashboard()
+        return updated
+    }
+
+    fun exportAdminMetadata(context: Context, uri: Uri): Boolean {
+        return adminDashboardRepository.exportMetadata(context, uri)
     }
 
     fun loadModel(modelFile: String) {
@@ -309,6 +342,8 @@ class MainViewModel @Inject constructor(
         )
         if (!saved) {
             loggedResultTimestamps.remove(result.timestamp)
+        } else {
+            refreshAdminDashboard()
         }
         return saved
     }

@@ -50,6 +50,10 @@ class FarmerProfileRepository @Inject constructor(
         return true
     }
 
+    fun getProfileForUser(user: AuthUser): FarmerProfileUiState {
+        return readProfile(user)
+    }
+
     private fun readProfile(user: AuthUser): FarmerProfileUiState {
         val json = preferences.getString(keyFor(user.id), null)
         if (json.isNullOrBlank()) return defaultProfile(user)

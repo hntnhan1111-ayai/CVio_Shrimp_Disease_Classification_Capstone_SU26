@@ -112,6 +112,10 @@ class AuthRepository @Inject constructor(
         return AuthResult.Success(authUser)
     }
 
+    fun getUsers(): List<AuthUser> {
+        return readUsers().map { user -> user.toAuthUser() }
+    }
+
     fun clearError() {
         _session.value = _session.value.copy(errorMessage = null)
     }

@@ -416,18 +416,18 @@ private fun DiagnosisResultContent(
             )
         }
 
-        ResultActions(
-            onSaveResult = onSaveResult,
-            onScanAnother = onScanAnother,
-            onHome = onHome,
-            onHistory = onHistory,
-        )
-
         GroundTruthCard(
             labels = labels,
             selectedGroundTruthLabel = selectedGroundTruthLabel,
             resultCorrectness = result.isCorrect,
             onGroundTruthSelected = onGroundTruthSelected,
+        )
+
+        ResultActions(
+            onSaveResult = onSaveResult,
+            onScanAnother = onScanAnother,
+            onHome = onHome,
+            onHistory = onHistory,
         )
 
         DiagnosisDetailsCard(

@@ -59,6 +59,7 @@ fun AppNavHost(
     val farmerProfileUiState by viewModel.farmerProfileUiState.collectAsStateWithLifecycle()
     val selectedGroundTruthLabel by viewModel.selectedGroundTruthLabel.collectAsStateWithLifecycle()
     val authSession by viewModel.authSession.collectAsStateWithLifecycle()
+    val adminDashboardUiState by viewModel.adminDashboardUiState.collectAsStateWithLifecycle()
 
     var selectedAuthRole by remember { mutableStateOf(AuthRole.Farmer) }
 
@@ -103,6 +104,18 @@ fun AppNavHost(
         Toast.makeText(
             context,
             if (exported) "Logs exported" else "Export failed",
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    val exportAdminMetadataLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val exported = viewModel.exportAdminMetadata(context, uri)
+        Toast.makeText(
+            context,
+            if (exported) "Admin metadata exported" else "Metadata export failed",
             Toast.LENGTH_SHORT,
         ).show()
     }
@@ -152,6 +165,9 @@ fun AppNavHost(
             Screen.Home.route,
             Screen.History.route,
             Screen.Profile.route,
+            Screen.AdminDashboard.route,
+            Screen.AdminUsers.route,
+            Screen.AdminData.route,
         ),
         showBottomBar = showChrome && currentRoute in topLevelRoutes && !isFocusedCapture,
         onNavigate = { item ->
@@ -327,23 +343,34 @@ fun AppNavHost(
             }
 
             composable(Screen.AdminDashboard.route) {
-                AdminDashboardScreen()
+                AdminDashboardScreen(
+                    uiState = adminDashboardUiState,
+                    currentUserName = authSession.user?.displayName,
+                    onRefresh = viewModel::refreshAdminDashboard,
+                )
             }
 
             composable(Screen.AdminUsers.route) {
-                AdminUsersScreen()
+                AdminUsersScreen(
+                    users = adminDashboardUiState.users,
+                    currentUserName = authSession.user?.displayName,
+                )
             }
 
             composable(Screen.AdminData.route) {
                 AdminDataControlScreen(
-                    onMarkReviewed = {
+                    dataItems = adminDashboardUiState.dataItems,
+                    currentUserName = authSession.user?.displayName,
+                    onMarkReviewed = { item ->
+                        viewModel.markAdminDataReviewed(item.id)
                         Toast.makeText(context, "Marked as reviewed", Toast.LENGTH_SHORT).show()
                     },
-                    onExcludeFromTraining = {
+                    onExcludeFromTraining = { item ->
+                        viewModel.excludeAdminDataFromTraining(item.id)
                         Toast.makeText(context, "Excluded from training dataset", Toast.LENGTH_SHORT).show()
                     },
                     onExportMetadata = {
-                        Toast.makeText(context, "Metadata export queued", Toast.LENGTH_SHORT).show()
+                        exportAdminMetadataLauncher.launch("aquapulse_admin_metadata.csv")
                     },
                 )
             }
