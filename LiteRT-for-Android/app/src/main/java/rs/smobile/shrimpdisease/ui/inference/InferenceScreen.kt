@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,11 +54,14 @@ import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.CVioSectionHeader
 import rs.smobile.shrimpdisease.ui.components.CompactInfoRow
 import rs.smobile.shrimpdisease.ui.components.EmptyState
+import rs.smobile.shrimpdisease.ui.components.MetricsCard
 import rs.smobile.shrimpdisease.ui.components.PermissionCard
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
 import rs.smobile.shrimpdisease.ui.components.ResultStatusBadge
 import rs.smobile.shrimpdisease.ui.components.ResultStatusKind
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpIconButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.components.TopPredictionList
 import rs.smobile.shrimpdisease.ui.theme.CVioPrimaryFixed
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
@@ -91,6 +97,9 @@ fun InferenceScreen(
     onSaveResult: () -> Unit,
     onHome: () -> Unit,
     onHistory: () -> Unit,
+    showBackButton: Boolean = false,
+    onBack: (() -> Unit)? = null,
+    enableGroundTruthSelection: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val result = classificationState.result
@@ -98,14 +107,20 @@ fun InferenceScreen(
         CaptureUploadContent(
             inputState = inputState,
             classificationState = classificationState,
+            labels = labels,
+            selectedGroundTruthLabel = selectedGroundTruthLabel,
             cameraPermissionGranted = cameraPermissionGranted,
             onRequestCameraPermission = onRequestCameraPermission,
             onOpenCamera = onOpenCamera,
             onSnapshot = onSnapshot,
             onFrameObserved = onFrameObserved,
             onCameraError = onCameraError,
+            onGroundTruthSelected = onGroundTruthSelected,
             onSelectAnotherImage = onSelectAnotherImage,
             onRunInference = onRunInference,
+            showBackButton = showBackButton,
+            onBack = onBack,
+            enableGroundTruthSelection = enableGroundTruthSelection,
             modifier = modifier,
         )
     } else {
@@ -113,6 +128,7 @@ fun InferenceScreen(
             inputState = inputState,
             result = result,
             modelInfo = modelInfo,
+            benchmarkMetrics = benchmarkMetrics,
             runtimeDelegateName = runtimeDelegateName,
             debugInfoEnabled = debugInfoEnabled,
             cameraFps = cameraFps,
@@ -120,6 +136,8 @@ fun InferenceScreen(
             onScanAnother = onOpenCamera,
             onHome = onHome,
             onHistory = onHistory,
+            showBackButton = showBackButton,
+            onBack = onBack,
             modifier = modifier,
         )
     }
@@ -323,14 +341,20 @@ private fun fallbackHotspots(statusKind: ResultStatusKind): List<HeatmapHotspot>
 private fun CaptureUploadContent(
     inputState: InferenceInputUiState,
     classificationState: ClassificationUiState,
+    labels: List<String>,
+    selectedGroundTruthLabel: String?,
     cameraPermissionGranted: Boolean,
     onRequestCameraPermission: () -> Unit,
     onOpenCamera: () -> Unit,
     onSnapshot: (Bitmap) -> Unit,
     onFrameObserved: () -> Unit,
     onCameraError: (String) -> Unit,
+    onGroundTruthSelected: (String?) -> Unit,
     onSelectAnotherImage: () -> Unit,
     onRunInference: () -> Unit,
+    showBackButton: Boolean,
+    onBack: (() -> Unit)?,
+    enableGroundTruthSelection: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var retakeRequested by remember { mutableStateOf(false) }
@@ -344,6 +368,11 @@ private fun CaptureUploadContent(
             .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        InlineBackButton(
+            visible = showBackButton,
+            onBack = onBack,
+        )
+
         CapturePreview(
             inputState = inputState,
             showCamera = showCamera,
@@ -373,6 +402,14 @@ private fun CaptureUploadContent(
         }
 
         if (hasImage) {
+            if (enableGroundTruthSelection) {
+                GroundTruthSelectorCard(
+                    labels = labels,
+                    selectedGroundTruthLabel = selectedGroundTruthLabel,
+                    onGroundTruthSelected = onGroundTruthSelected,
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -502,6 +539,44 @@ private fun CapturePreview(
 }
 
 @Composable
+private fun GroundTruthSelectorCard(
+    labels: List<String>,
+    selectedGroundTruthLabel: String?,
+    onGroundTruthSelected: (String?) -> Unit,
+) {
+    CVioCard(containerColor = CVioSurfaceContainerLowest, tonalElevation = 2.dp) {
+        CVioSectionHeader(
+            title = "Nhãn thực tế",
+            subtitle = "Admin có thể chọn nhãn đúng sau khi chụp hoặc chọn ảnh để tính độ chính xác.",
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilterChip(
+                selected = selectedGroundTruthLabel == null,
+                onClick = { onGroundTruthSelected(null) },
+                label = { Text("Không chọn") },
+            )
+            labels.forEach { label ->
+                FilterChip(
+                    selected = selectedGroundTruthLabel == label,
+                    onClick = { onGroundTruthSelected(label) },
+                    label = {
+                        Text(
+                            text = DiseaseTextUtils.displayLabel(label),
+                            maxLines = 1,
+                        )
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun TipsCard() {
     CVioCard(containerColor = CVioSurfaceContainerLowest, tonalElevation = 3.dp) {
         Text(
@@ -541,6 +616,7 @@ private fun DiagnosisResultContent(
     inputState: InferenceInputUiState,
     result: ClassificationResult,
     modelInfo: ModelInfo,
+    benchmarkMetrics: BenchmarkMetrics,
     runtimeDelegateName: String,
     debugInfoEnabled: Boolean,
     cameraFps: Double?,
@@ -548,6 +624,8 @@ private fun DiagnosisResultContent(
     onScanAnother: () -> Unit,
     onHome: () -> Unit,
     onHistory: () -> Unit,
+    showBackButton: Boolean,
+    onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -557,6 +635,11 @@ private fun DiagnosisResultContent(
             .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        InlineBackButton(
+            visible = showBackButton,
+            onBack = onBack,
+        )
+
         ResultOverviewCard(inputState = inputState, result = result)
 
         ResultActions(
@@ -564,6 +647,11 @@ private fun DiagnosisResultContent(
             onScanAnother = onScanAnother,
             onHome = onHome,
             onHistory = onHistory,
+        )
+
+        MetricsCard(
+            result = result,
+            benchmarkMetrics = benchmarkMetrics,
         )
 
         DiagnosisDetailsCard(
@@ -583,6 +671,24 @@ private fun DiagnosisResultContent(
             )
         }
     }
+}
+
+@Composable
+private fun InlineBackButton(
+    visible: Boolean,
+    onBack: (() -> Unit)?,
+) {
+    if (!visible || onBack == null) return
+
+    ShrimpIconButton(
+        icon = ShrimpNavIcon.Back,
+        contentDescription = "Quay lại",
+        onClick = onBack,
+        modifier = Modifier
+            .size(44.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(CVioSurfaceContainerLowest),
+    )
 }
 
 @Composable

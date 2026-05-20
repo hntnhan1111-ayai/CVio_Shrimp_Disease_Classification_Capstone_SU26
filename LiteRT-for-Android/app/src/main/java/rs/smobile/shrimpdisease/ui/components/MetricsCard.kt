@@ -29,8 +29,8 @@ fun MetricsCard(
         )
         MetricTileRow {
             CVioMetricTile(
-                label = "AI xử lý",
-                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "Chưa có",
+                label = "Thời gian xử lý",
+                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "N/A",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
@@ -43,7 +43,7 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "Tốc độ",
-                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "Chưa có",
+                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "N/A",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
@@ -56,28 +56,22 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "FPS",
-                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "Chưa có",
+                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "N/A",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
-                label = "Độ đúng",
-                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
+                label = "FPS TB",
+                value = BenchmarkUtils.fpsText(benchmarkMetrics.averageFps),
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
         }
         MetricTileRow {
             CVioMetricTile(
-                label = "Ngưỡng",
-                value = result?.threshold?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
+                label = "Độ chính xác",
+                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.primary,
-            )
-            CVioMetricTile(
-                label = "Kappa",
-                value = "Chưa có",
-                modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

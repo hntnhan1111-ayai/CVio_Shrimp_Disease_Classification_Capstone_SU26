@@ -75,6 +75,59 @@ class PredictionLogRepository @Inject constructor(
         publish(emptyList())
     }
 
+    fun clearLogsForOwner(ownerId: String): Boolean {
+        preferences.edit()
+            .remove(keyFor(ownerId))
+            .apply()
+        if (this.ownerId == ownerId) {
+            publish(emptyList())
+        }
+        return true
+    }
+
+    fun updateLogForOwner(
+        ownerId: String,
+        logId: Long,
+        predictedClass: String,
+        confidence: Float,
+    ): Boolean {
+        val logs = readLogs(ownerId)
+        var updated = false
+        val updatedLogs = logs.map { log ->
+            if (log.id == logId) {
+                updated = true
+                log.copy(
+                    predictedClass = predictedClass.trim().ifBlank { log.predictedClass },
+                    confidence = confidence.coerceIn(0f, 1f),
+                )
+            } else {
+                log
+            }
+        }
+        if (!updated) return false
+
+        writeLogs(ownerId, updatedLogs)
+        if (this.ownerId == ownerId) {
+            publish(updatedLogs)
+        }
+        return true
+    }
+
+    fun deleteLogForOwner(
+        ownerId: String,
+        logId: Long,
+    ): Boolean {
+        val logs = readLogs(ownerId)
+        val updatedLogs = logs.filterNot { log -> log.id == logId }
+        if (updatedLogs.size == logs.size) return false
+
+        writeLogs(ownerId, updatedLogs)
+        if (this.ownerId == ownerId) {
+            publish(updatedLogs)
+        }
+        return true
+    }
+
     fun getBenchmarkMetrics(): BenchmarkMetrics {
         return _benchmarkMetrics.value
     }
@@ -213,7 +266,7 @@ class PredictionLogRepository @Inject constructor(
     }
 
     private companion object {
-        private const val PREFERENCES_NAME = "aquapulse_prediction_logs"
+        private const val PREFERENCES_NAME = "cvio_prediction_logs"
         private const val KEY_LOGS_PREFIX = "logs_"
         private const val MAX_LOG_ITEMS = 200
         private const val ONE_WEEK_MS = 7L * 24L * 60L * 60L * 1000L

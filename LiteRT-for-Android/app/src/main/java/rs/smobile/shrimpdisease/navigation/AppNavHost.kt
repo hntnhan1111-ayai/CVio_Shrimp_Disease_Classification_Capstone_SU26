@@ -127,7 +127,7 @@ fun AppNavHost(
         val exported = viewModel.exportAdminMetadata(context, uri)
         Toast.makeText(
             context,
-            if (exported) "Admin metadata exported" else "Metadata export failed",
+            if (exported) "Đã xuất metadata quản trị" else "Xuất metadata thất bại",
             Toast.LENGTH_SHORT,
         ).show()
     }
@@ -394,6 +394,7 @@ fun AppNavHost(
                     availableModels = availableModels,
                     settingsState = settingsState,
                     benchmarkMetrics = benchmarkMetrics,
+                    currentResult = classificationState.result,
                     isLoading = classificationState.isLoading,
                     errorMessage = classificationState.errorMessage,
                     onSelectModel = viewModel::loadModel,
@@ -411,11 +412,11 @@ fun AppNavHost(
                     adminInferenceLogsUiState = adminInferenceLogsUiState,
                     onAdminModelConfigSave = { update ->
                         viewModel.saveAdminModelConfig(update)
-                        Toast.makeText(context, "Model configuration saved", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Đã lưu cấu hình mô hình", Toast.LENGTH_SHORT).show()
                     },
                     onAdminModelDeploy = { modelFile ->
                         viewModel.deployAdminModel(modelFile)
-                        Toast.makeText(context, "Model deployment queued", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Đã triển khai mô hình", Toast.LENGTH_SHORT).show()
                     },
                     onLogout = {
                         viewModel.logout()
@@ -429,6 +430,18 @@ fun AppNavHost(
                     uiState = adminDashboardUiState,
                     currentUserName = authSession.user?.displayName,
                     onRefresh = viewModel::refreshAdminDashboard,
+                    onOpenSettings = {
+                        navController.navigateTopLevel(Screen.Settings, Screen.AdminDashboard.route)
+                    },
+                    onOpenUsers = {
+                        navController.navigateTopLevel(Screen.AdminUsers, Screen.AdminDashboard.route)
+                    },
+                    onOpenData = {
+                        navController.navigateTopLevel(Screen.AdminData, Screen.AdminDashboard.route)
+                    },
+                    onOpenInference = {
+                        navController.navigateTopLevel(Screen.AdminInference, Screen.AdminDashboard.route)
+                    },
                 )
             }
 
@@ -441,7 +454,7 @@ fun AppNavHost(
                             is AuthResult.Success -> {
                                 Toast.makeText(
                                     context,
-                                    "User created",
+                                    "Đã tạo người dùng",
                                     Toast.LENGTH_SHORT,
                                 ).show()
                                 true
@@ -452,6 +465,34 @@ fun AppNavHost(
                                 false
                             }
                         }
+                    },
+                    onUpdateUser = { userId, input ->
+                        when (val result = viewModel.updateAdminUser(userId, input)) {
+                            is AuthResult.Success -> {
+                                Toast.makeText(context, "Đã cập nhật người dùng", Toast.LENGTH_SHORT).show()
+                                true
+                            }
+
+                            is AuthResult.Error -> {
+                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                                false
+                            }
+                        }
+                    },
+                    onDeleteUser = { user ->
+                        val deleted = viewModel.deleteAdminUser(user.id)
+                        Toast.makeText(
+                            context,
+                            if (deleted) "Đã xóa người dùng" else "Không xóa được người dùng",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        deleted
+                    },
+                    onHome = {
+                        navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
+                    },
+                    onSettings = {
+                        navController.navigateTopLevel(Screen.Settings, Screen.AdminDashboard.route)
                     },
                 )
             }
@@ -495,6 +536,11 @@ fun AppNavHost(
                     },
                     onHome = { navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route) },
                     onHistory = { navController.navigate(Screen.History.route) },
+                    showBackButton = true,
+                    onBack = {
+                        navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
+                    },
+                    enableGroundTruthSelection = true,
                 )
             }
 
@@ -502,16 +548,49 @@ fun AppNavHost(
                 AdminDataControlScreen(
                     dataItems = adminDashboardUiState.dataItems,
                     currentUserName = authSession.user?.displayName,
+                    onCreateData = { input ->
+                        val created = viewModel.createAdminData(input)
+                        Toast.makeText(
+                            context,
+                            if (created) "Đã thêm dữ liệu" else "Không thêm được dữ liệu",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        created
+                    },
+                    onUpdateData = { item, input ->
+                        val updated = viewModel.updateAdminData(item.id, input)
+                        Toast.makeText(
+                            context,
+                            if (updated) "Đã cập nhật dữ liệu" else "Không cập nhật được dữ liệu",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        updated
+                    },
+                    onDeleteData = { item ->
+                        val deleted = viewModel.deleteAdminData(item.id)
+                        Toast.makeText(
+                            context,
+                            if (deleted) "Đã xóa dữ liệu" else "Không xóa được dữ liệu",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        deleted
+                    },
                     onMarkReviewed = { item ->
                         viewModel.markAdminDataReviewed(item.id)
-                        Toast.makeText(context, "Marked as reviewed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Đã đánh dấu duyệt", Toast.LENGTH_SHORT).show()
                     },
                     onExcludeFromTraining = { item ->
                         viewModel.excludeAdminDataFromTraining(item.id)
-                        Toast.makeText(context, "Excluded from training dataset", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Đã loại khỏi tập huấn luyện", Toast.LENGTH_SHORT).show()
                     },
                     onExportMetadata = {
-                        exportAdminMetadataLauncher.launch("aquapulse_admin_metadata.csv")
+                        exportAdminMetadataLauncher.launch("cvio_admin_metadata.csv")
+                    },
+                    onHome = {
+                        navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
+                    },
+                    onSettings = {
+                        navController.navigateTopLevel(Screen.Settings, Screen.AdminDashboard.route)
                     },
                 )
             }
@@ -574,9 +653,9 @@ private fun NavHostController.navigateHomeFromInference() {
 
 private fun screenTitleForRoute(route: String): String {
     return when (route) {
-        Screen.Welcome.route -> "AquaPulse"
+        Screen.Welcome.route -> "CVio"
         Screen.Auth.route -> "Đăng nhập"
-        Screen.Home.route -> "AquaScan AI"
+        Screen.Home.route -> "CVio AI"
         Screen.Inference.route -> "Chụp ảnh"
         Screen.History.route -> Screen.History.title
         Screen.Profile.route -> Screen.Profile.title
@@ -585,7 +664,7 @@ private fun screenTitleForRoute(route: String): String {
         Screen.AdminUsers.route -> Screen.AdminUsers.title
         Screen.AdminInference.route -> Screen.AdminInference.title
         Screen.AdminData.route -> Screen.AdminData.title
-        else -> "AquaScan AI"
+        else -> "CVio AI"
     }
 }
 

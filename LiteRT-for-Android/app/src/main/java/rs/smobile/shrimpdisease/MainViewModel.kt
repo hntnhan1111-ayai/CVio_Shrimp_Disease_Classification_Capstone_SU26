@@ -20,12 +20,14 @@ import rs.smobile.shrimpdisease.classifier.ModelDefaults
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.classifier.ShrimpClassifier
 import rs.smobile.shrimpdisease.data.AdminCreateUserInput
+import rs.smobile.shrimpdisease.data.AdminDataMutationInput
 import rs.smobile.shrimpdisease.data.AdminDashboardRepository
 import rs.smobile.shrimpdisease.data.AdminDashboardUiState
 import rs.smobile.shrimpdisease.data.AdminDiagnosisUiState
 import rs.smobile.shrimpdisease.data.AdminInferenceLogsUiState
 import rs.smobile.shrimpdisease.data.AdminModelConfigUiState
 import rs.smobile.shrimpdisease.data.AdminModelConfigUpdate
+import rs.smobile.shrimpdisease.data.AdminUpdateUserInput
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.data.HistoryFilter
 import rs.smobile.shrimpdisease.data.HistoryUiState
@@ -134,6 +136,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun setGalleryImage(uri: Uri, bitmap: Bitmap) {
+        _selectedGroundTruthLabel.value = null
         _inputState.value = InferenceInputUiState(
             imageUri = uri,
             bitmap = bitmap,
@@ -144,6 +147,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun startCameraInput() {
+        _selectedGroundTruthLabel.value = null
         _inputState.value = InferenceInputUiState(
             source = InferenceSource.SNAPSHOT,
             isCameraActive = true,
@@ -152,6 +156,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun setCameraSnapshot(bitmap: Bitmap) {
+        _selectedGroundTruthLabel.value = null
         _inputState.value = InferenceInputUiState(
             bitmap = bitmap,
             source = InferenceSource.SNAPSHOT,
@@ -303,6 +308,42 @@ class MainViewModel @Inject constructor(
         val result = adminDashboardRepository.createUser(input)
         if (result is AuthResult.Success) refreshAdminDashboard()
         return result
+    }
+
+    fun updateAdminUser(
+        userId: String,
+        input: AdminUpdateUserInput,
+    ): AuthResult {
+        val result = adminDashboardRepository.updateUser(userId, input)
+        if (result is AuthResult.Success) refreshAdminDashboard()
+        return result
+    }
+
+    fun deleteAdminUser(userId: String): Boolean {
+        val deleted = adminDashboardRepository.deleteUser(userId)
+        if (deleted) refreshAdminDashboard()
+        return deleted
+    }
+
+    fun createAdminData(input: AdminDataMutationInput): Boolean {
+        val created = adminDashboardRepository.createDataItem(input)
+        if (created) refreshAdminDashboard()
+        return created
+    }
+
+    fun updateAdminData(
+        itemId: String,
+        input: AdminDataMutationInput,
+    ): Boolean {
+        val updated = adminDashboardRepository.updateDataItem(itemId, input)
+        if (updated) refreshAdminDashboard()
+        return updated
+    }
+
+    fun deleteAdminData(itemId: String): Boolean {
+        val deleted = adminDashboardRepository.deleteDataItem(itemId)
+        if (deleted) refreshAdminDashboard()
+        return deleted
     }
 
     fun markAdminDataReviewed(itemId: String): Boolean {

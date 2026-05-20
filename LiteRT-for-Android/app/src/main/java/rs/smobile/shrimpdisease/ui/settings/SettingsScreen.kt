@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.RuntimeDelegate
 import rs.smobile.shrimpdisease.SettingsUiState
+import rs.smobile.shrimpdisease.classifier.ClassificationResult
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.data.AdminInferenceLogItem
 import rs.smobile.shrimpdisease.data.AdminInferenceLogKind
@@ -50,6 +51,7 @@ import rs.smobile.shrimpdisease.ui.components.CVioMetricTile
 import rs.smobile.shrimpdisease.ui.components.CVioStatusChip
 import rs.smobile.shrimpdisease.ui.components.CompactInfoRow
 import rs.smobile.shrimpdisease.ui.components.DataPermissionToggle
+import rs.smobile.shrimpdisease.ui.components.MetricsCard
 import rs.smobile.shrimpdisease.ui.components.ModelSelector
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
 import rs.smobile.shrimpdisease.ui.components.SettingsSectionCard
@@ -69,6 +71,7 @@ fun SettingsScreen(
     availableModels: List<String>,
     settingsState: SettingsUiState,
     benchmarkMetrics: BenchmarkMetrics,
+    currentResult: ClassificationResult? = null,
     isLoading: Boolean,
     errorMessage: String?,
     onSelectModel: (String) -> Unit,
@@ -96,6 +99,7 @@ fun SettingsScreen(
             modelConfig = adminModelConfigUiState,
             inferenceLogs = adminInferenceLogsUiState,
             benchmarkMetrics = benchmarkMetrics,
+            currentResult = currentResult,
             userDisplayName = userDisplayName,
             onLogout = onLogout,
             onSaveConfig = onAdminModelConfigSave,
@@ -225,6 +229,10 @@ fun SettingsScreen(
         }
 
         BenchmarkSummaryCard(metrics = benchmarkMetrics)
+        MetricsCard(
+            result = currentResult,
+            benchmarkMetrics = benchmarkMetrics,
+        )
 
         SecondaryActionButton(
             text = "Xóa lịch sử kiểm tra",
@@ -267,6 +275,7 @@ private fun AdminSettingsContent(
     modelConfig: AdminModelConfigUiState,
     inferenceLogs: AdminInferenceLogsUiState,
     benchmarkMetrics: BenchmarkMetrics,
+    currentResult: ClassificationResult?,
     userDisplayName: String?,
     onLogout: (() -> Unit)?,
     onSaveConfig: (AdminModelConfigUpdate) -> Unit,
@@ -307,14 +316,14 @@ private fun AdminSettingsContent(
 
         if (onLogout != null) {
             SettingsSectionCard(
-                title = "Account",
-                subtitle = "Signed in as Admin",
+                title = "Tài khoản",
+                subtitle = "Đang đăng nhập với quyền quản trị",
                 containerColor = CVioSurfaceContainerLow,
             ) {
-                CompactInfoRow("Name", userDisplayName ?: "Admin")
-                CompactInfoRow("Role", "Admin")
+                CompactInfoRow("Tên", userDisplayName ?: "Quản trị viên")
+                CompactInfoRow("Vai trò", "Quản trị")
                 SecondaryActionButton(
-                    text = "Logout",
+                    text = "Đăng xuất",
                     onClick = onLogout,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -354,6 +363,10 @@ private fun AdminSettingsContent(
         )
 
         BenchmarkSummaryCard(metrics = benchmarkMetrics)
+        MetricsCard(
+            result = currentResult,
+            benchmarkMetrics = benchmarkMetrics,
+        )
     }
 }
 
@@ -366,13 +379,13 @@ private fun AdminSettingsTopBar(userDisplayName: String?) {
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "MarineCare AI Admin",
+                text = "CVio Admin",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = userDisplayName ?: "System Administrator",
+                text = userDisplayName ?: "Quản trị hệ thống",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -384,7 +397,7 @@ private fun AdminSettingsTopBar(userDisplayName: String?) {
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             Text(
-                text = "A",
+                text = "CV",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontWeight = FontWeight.Bold,
@@ -412,15 +425,9 @@ private fun ModelConfigurationSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Model Configuration",
+                text = "Cấu hình mô hình",
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "M",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -441,7 +448,7 @@ private fun ModelConfigurationSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "ACTIVE DEPLOYMENT",
+                        text = "ĐANG TRIỂN KHAI",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         fontWeight = FontWeight.Bold,
@@ -484,12 +491,12 @@ private fun ModelConfigurationSection(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = "Deployed: ${modelConfig.deployedDateText}",
+                            text = "Triển khai: ${modelConfig.deployedDateText}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         CVioStatusChip(
-                            text = "Status: ${modelConfig.statusText}",
+                            text = "Trạng thái: ${modelConfig.statusText}",
                             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.42f),
                             contentColor = MaterialTheme.colorScheme.secondary,
                         )
@@ -499,16 +506,26 @@ private fun ModelConfigurationSection(
         }
 
         Text(
-            text = "AVAILABLE REVISIONS",
+            text = "PHIÊN BẢN CÓ SẴN",
             modifier = Modifier.padding(horizontal = 8.dp),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        modelConfig.availableRevisions.forEach { revision ->
-            ModelRevisionCard(
-                revision = revision,
-                onDeployModel = onDeployModel,
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            modelConfig.availableRevisions.forEach { revision ->
+                ConfigPill(
+                    label = "${revision.displayName} ${revision.version}",
+                    selected = revision.isActive,
+                    onClick = {
+                        if (!revision.isActive) onDeployModel(revision.modelFile)
+                    },
+                )
+            }
         }
 
         Card(
@@ -522,7 +539,7 @@ private fun ModelConfigurationSection(
                 verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
                 Text(
-                    text = "Runtime Parameters",
+                    text = "Tham số chạy",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
@@ -534,7 +551,7 @@ private fun ModelConfigurationSection(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Inference Threshold",
+                            text = "Ngưỡng tin cậy",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -551,7 +568,7 @@ private fun ModelConfigurationSection(
                         valueRange = 0f..1f,
                     )
                     Text(
-                        text = "Confidence score required to flag health anomalies.",
+                        text = "Điểm tin cậy tối thiểu để ghi nhận dấu hiệu bất thường.",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -559,7 +576,7 @@ private fun ModelConfigurationSection(
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "Batch Size",
+                        text = "Tốc độ xử lý",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -590,13 +607,13 @@ private fun ModelConfigurationSection(
                 ) {
                     Column {
                         Text(
-                            text = "Auto-Scaling",
+                            text = "Tự động mở rộng",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "Load based",
+                            text = "Theo tải xử lý",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -656,7 +673,7 @@ private fun ModelRevisionCard(
                 )
             }
             ConfigPill(
-                label = if (revision.isActive) "Active" else "Deploy",
+                label = if (revision.isActive) "Đang dùng" else "Triển khai",
                 selected = revision.isActive,
                 onClick = {
                     if (!revision.isActive) onDeployModel(revision.modelFile)
@@ -703,7 +720,7 @@ private fun PrimarySaveButton(onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Save Changes",
+            text = "Lưu thay đổi",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimary,
             fontWeight = FontWeight.Bold,
@@ -726,13 +743,13 @@ private fun InferenceLogsSection(
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "Inference Logs",
+                text = "Nhật ký kiểm tra",
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Real-time health monitoring & diagnostic data.",
+                text = "Theo dõi kết quả kiểm tra và dữ liệu chẩn đoán.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -740,13 +757,13 @@ private fun InferenceLogsSection(
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             InferenceStatCard(
-                label = "Avg. Inference Time",
+                label = "Thời gian TB",
                 value = inferenceLogs.averageInferenceTimeText,
                 accent = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
             InferenceStatCard(
-                label = "Success Rate",
+                label = "Tỷ lệ đạt ngưỡng",
                 value = inferenceLogs.successRateText,
                 accent = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f),
@@ -761,7 +778,7 @@ private fun InferenceLogsSection(
             shape = RoundedCornerShape(999.dp),
             leadingIcon = {
                 Text(
-                    text = "S",
+                    text = "T",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     fontWeight = FontWeight.Bold,
@@ -769,7 +786,7 @@ private fun InferenceLogsSection(
             },
             placeholder = {
                 Text(
-                    text = "Search by Farmer ID",
+                    text = "Tìm theo mã, tên hoặc kết quả",
                     color = MaterialTheme.colorScheme.outline,
                 )
             },
@@ -783,14 +800,14 @@ private fun InferenceLogsSection(
         ) {
             listOf("All", "Healthy", "Disease", "Warning").forEach { result ->
                 ConfigPill(
-                    label = result,
+                    label = displayResultFilter(result),
                     selected = selectedResult == result,
                     onClick = { onResultSelected(result) },
                 )
             }
             modelFilters.forEach { model ->
                 ConfigPill(
-                    label = model,
+                    label = displayModelFilter(model),
                     selected = selectedModel == model,
                     onClick = { onModelSelected(model) },
                 )
@@ -799,8 +816,8 @@ private fun InferenceLogsSection(
 
         if (visibleLogs.isEmpty()) {
             SettingsSectionCard(
-                title = "No logs found",
-                subtitle = "Saved diagnosis results will appear here.",
+                title = "Không có nhật ký",
+                subtitle = "Kết quả kiểm tra đã lưu sẽ xuất hiện tại đây.",
                 containerColor = CVioSurfaceContainerLow,
             ) {}
         } else {
@@ -810,7 +827,7 @@ private fun InferenceLogsSection(
         }
 
         Text(
-            text = "Showing ${visibleLogs.size} of ${inferenceLogs.logs.size} logs",
+            text = "Đang hiển thị ${visibleLogs.size}/${inferenceLogs.logs.size} nhật ký",
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
@@ -899,12 +916,12 @@ private fun InferenceLogCard(log: AdminInferenceLogItem) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 LogMetric(
-                    label = "Confidence",
+                    label = "Độ tin cậy",
                     value = log.confidenceText,
                     modifier = Modifier.weight(1f),
                 )
                 LogMetric(
-                    label = "Time",
+                    label = "Thời gian",
                     value = log.inferenceTimeText,
                     modifier = Modifier.weight(1f),
                     alignEnd = true,
@@ -961,6 +978,23 @@ private fun displayRoleName(role: String): String {
         "Farmer" -> "Nông dân"
         "Admin" -> "Quản trị"
         else -> role
+    }
+}
+
+private fun displayResultFilter(filter: String): String {
+    return when (filter) {
+        "All" -> "Tất cả"
+        "Healthy" -> "Khỏe"
+        "Disease" -> "Có bệnh"
+        "Warning" -> "Cần xem lại"
+        else -> filter
+    }
+}
+
+private fun displayModelFilter(filter: String): String {
+    return when (filter) {
+        "All Models" -> "Tất cả mô hình"
+        else -> filter
     }
 }
 

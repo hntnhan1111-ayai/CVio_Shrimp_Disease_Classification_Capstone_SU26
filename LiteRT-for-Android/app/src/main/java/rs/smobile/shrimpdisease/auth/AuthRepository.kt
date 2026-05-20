@@ -135,6 +135,57 @@ class AuthRepository @Inject constructor(
         return AuthResult.Success(authUser)
     }
 
+    fun updateManagedFarmer(
+        userId: String,
+        account: String,
+        displayName: String,
+    ): AuthResult {
+        val normalizedAccount = account.normalizedAccount()
+        if (normalizedAccount.isBlank()) return AuthResult.Error("Cần nhập email hoặc số điện thoại.")
+
+        val cleanDisplayName = displayName.trim()
+        if (cleanDisplayName.isBlank()) return AuthResult.Error("Cần nhập tên hiển thị.")
+
+        val users = readUsers()
+        val existing = users.firstOrNull { user -> user.id == userId && user.role == AuthRole.Farmer }
+            ?: return AuthResult.Error("Không tìm thấy người dùng.")
+        if (users.any { user -> user.id != userId && user.account == normalizedAccount }) {
+            return AuthResult.Error("Tài khoản này đã được đăng ký.")
+        }
+
+        val updatedUsers = users.map { user ->
+            if (user.id == userId) {
+                existing.copy(
+                    account = normalizedAccount,
+                    displayName = cleanDisplayName,
+                )
+            } else {
+                user
+            }
+        }
+        writeUsers(updatedUsers)
+
+        val updatedUser = updatedUsers.first { user -> user.id == userId }.toAuthUser()
+        if (_session.value.user?.id == userId) {
+            _session.value = AuthSession(user = updatedUser)
+        }
+        return AuthResult.Success(updatedUser)
+    }
+
+    fun deleteManagedUser(userId: String): Boolean {
+        val users = readUsers()
+        val updatedUsers = users.filterNot { user ->
+            user.id == userId && user.role == AuthRole.Farmer
+        }
+        if (updatedUsers.size == users.size) return false
+
+        writeUsers(updatedUsers)
+        if (_session.value.user?.id == userId) {
+            logout()
+        }
+        return true
+    }
+
     fun getUsers(): List<AuthUser> {
         return readUsers().map { user -> user.toAuthUser() }
     }
@@ -152,7 +203,7 @@ class AuthRepository @Inject constructor(
             id = DEFAULT_ADMIN_ID,
             account = DEFAULT_ADMIN_ACCOUNT,
             role = AuthRole.Admin,
-            displayName = "AquaPulse Admin",
+            displayName = "CVio Admin",
             salt = salt,
             passwordHash = hashPassword(DEFAULT_ADMIN_PASSWORD, salt),
             createdAt = System.currentTimeMillis(),
@@ -267,10 +318,10 @@ class AuthRepository @Inject constructor(
     }
 
     companion object {
-        const val DEFAULT_ADMIN_ACCOUNT = "admin@aquapulse.local"
+        const val DEFAULT_ADMIN_ACCOUNT = "admin@cvio.local"
         const val DEFAULT_ADMIN_PASSWORD = "Admin@123"
 
-        private const val PREFERENCES_NAME = "aquapulse_auth"
+        private const val PREFERENCES_NAME = "cvio_auth"
         private const val KEY_USERS = "users"
         private const val KEY_SESSION_USER_ID = "session_user_id"
         private const val DEFAULT_ADMIN_ID = "default-admin"

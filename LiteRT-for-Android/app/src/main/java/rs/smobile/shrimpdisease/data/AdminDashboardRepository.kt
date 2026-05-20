@@ -12,6 +12,7 @@ import rs.smobile.shrimpdisease.profile.FarmerProfileRepository
 import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import rs.smobile.shrimpdisease.utils.DateTimeUtils
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Calendar
 import java.util.Locale
@@ -50,8 +51,11 @@ class AdminDashboardRepository @Inject constructor(
 
         val reviewedIds = readIdSet(KEY_REVIEWED_IDS)
         val excludedIds = readIdSet(KEY_EXCLUDED_IDS)
-        val dataItems = permittedLogs
+        val deletedDataIds = readIdSet(KEY_DELETED_DATA_IDS)
+        val correctedLabels = readCorrectionMap()
+        val logDataItems = permittedLogs
             .sortedByDescending { (_, log) -> log.timestamp }
+            .filter { (farmer, log) -> !deletedDataIds.contains(dataItemId(farmer.id, log.id)) }
             .map { (farmer, log) ->
                 val profile = profiles.getValue(farmer)
                 val itemId = dataItemId(farmer.id, log.id)
@@ -61,7 +65,7 @@ class AdminDashboardRepository @Inject constructor(
                     logId = log.id,
                     farmerName = profile.displayName,
                     pond = profile.farmLocation,
-                    label = log.predictedClass,
+                    label = correctedLabels[itemId] ?: log.predictedClass,
                     permissionStatus = "Allowed",
                     reviewed = reviewedIds.contains(itemId),
                     excluded = excludedIds.contains(itemId),
@@ -69,11 +73,15 @@ class AdminDashboardRepository @Inject constructor(
                     timestamp = log.timestamp,
                 )
             }
+        val manualDataItems = readManualDataItems()
+            .filterNot { item -> deletedDataIds.contains(item.id) }
+        val dataItems = (logDataItems + manualDataItems)
+            .sortedByDescending { item -> item.timestamp }
 
         return AdminDashboardUiState(
             totalFarmers = farmers.size,
-            totalDiseaseChecks = allLogs.size,
-            imagesProcessed = permittedLogs.size,
+            totalDiseaseChecks = allLogs.size + manualDataItems.size,
+            imagesProcessed = dataItems.size,
             activeAlerts = dataItems.count { item ->
                 !item.reviewed && !item.excluded && item.label.isDiseaseLabel()
             },
@@ -102,6 +110,8 @@ class AdminDashboardRepository @Inject constructor(
                     diseaseCheckCount = logs.size,
                     lastActive = lastActiveText(user, logs, now),
                     farmLocation = profile.farmLocation,
+                    phoneNumber = profile.phoneNumber,
+                    email = profile.email,
                     dataPermissionEnabled = profile.dataPermissionEnabled,
                 )
             },
@@ -121,16 +131,61 @@ class AdminDashboardRepository @Inject constructor(
                 profile = FarmerProfileUiState(
                     userId = result.user.id,
                     displayName = input.displayName.trim().ifBlank { result.user.displayName },
-                    farmLocation = input.farmLocation.trim().ifBlank { "Coastal pond" },
-                    phoneNumber = input.phoneNumber.trim().ifBlank { "Not set" },
+                    farmLocation = input.farmLocation.trim().ifBlank { "Ao nuôi ven biển" },
+                    phoneNumber = input.phoneNumber.trim().ifBlank { "Chưa cập nhật" },
                     email = input.email.trim().ifBlank {
-                        result.user.account.takeIf { account -> account.contains("@") } ?: "Not set"
+                        result.user.account.takeIf { account -> account.contains("@") } ?: "Chưa cập nhật"
                     },
                     dataPermissionEnabled = true,
                 ),
             )
         }
         return result
+    }
+
+    fun updateUser(
+        userId: String,
+        input: AdminUpdateUserInput,
+    ): AuthResult {
+        val result = authRepository.updateManagedFarmer(
+            userId = userId,
+            account = input.account,
+            displayName = input.displayName,
+        )
+        if (result is AuthResult.Success) {
+            farmerProfileRepository.saveProfileForUser(
+                user = result.user,
+                profile = FarmerProfileUiState(
+                    userId = result.user.id,
+                    displayName = input.displayName.trim().ifBlank { result.user.displayName },
+                    farmLocation = input.farmLocation.trim().ifBlank { "Ao nuôi ven biển" },
+                    phoneNumber = input.phoneNumber.trim().ifBlank { "Chưa cập nhật" },
+                    email = input.email.trim().ifBlank {
+                        result.user.account.takeIf { account -> account.contains("@") } ?: "Chưa cập nhật"
+                    },
+                    dataPermissionEnabled = input.dataPermissionEnabled,
+                ),
+            )
+        }
+        return result
+    }
+
+    fun deleteUser(userId: String): Boolean {
+        val deleted = authRepository.deleteManagedUser(userId)
+        if (!deleted) return false
+
+        farmerProfileRepository.deleteProfileForUser(userId)
+        predictionLogRepository.clearLogsForOwner(userId)
+        readIdSet(KEY_REVIEWED_IDS)
+            .filterNot { itemId -> itemId.startsWith("$userId-") }
+            .let { ids -> preferences.edit().putStringSet(KEY_REVIEWED_IDS, ids.toSet()).apply() }
+        readIdSet(KEY_EXCLUDED_IDS)
+            .filterNot { itemId -> itemId.startsWith("$userId-") }
+            .let { ids -> preferences.edit().putStringSet(KEY_EXCLUDED_IDS, ids.toSet()).apply() }
+        readIdSet(KEY_DELETED_DATA_IDS)
+            .filterNot { itemId -> itemId.startsWith("$userId-") }
+            .let { ids -> preferences.edit().putStringSet(KEY_DELETED_DATA_IDS, ids.toSet()).apply() }
+        return true
     }
 
     fun loadDiagnosis(): AdminDiagnosisUiState {
@@ -186,8 +241,8 @@ class AdminDashboardRepository @Inject constructor(
             activeModelFile = activeFile,
             activeModelName = displayModelName(activeFile),
             activeVersion = versionForModel(activeFile),
-            deployedDateText = preferences.getString(KEY_MODEL_DEPLOYED_DATE, null) ?: "Local deployment",
-            statusText = "Healthy",
+            deployedDateText = preferences.getString(KEY_MODEL_DEPLOYED_DATE, null) ?: "Triển khai cục bộ",
+            statusText = "Ổn định",
             threshold = stored.threshold,
             batchSize = stored.batchSize,
             autoScalingEnabled = stored.autoScalingEnabled,
@@ -284,6 +339,87 @@ class AdminDashboardRepository @Inject constructor(
         return true
     }
 
+    fun createDataItem(input: AdminDataMutationInput): Boolean {
+        val timestamp = System.currentTimeMillis()
+        val item = AdminDataReviewItem(
+            id = manualDataItemId(timestamp),
+            ownerId = ADMIN_OWNER_ID,
+            logId = timestamp,
+            farmerName = input.farmerName.trim().ifBlank { "Dữ liệu Admin" },
+            pond = input.pond.trim().ifBlank { "Ao chưa đặt tên" },
+            label = input.label.trim().ifBlank { "Chưa xác định" },
+            permissionStatus = input.permissionStatus.trim().ifBlank { "Allowed" },
+            reviewed = false,
+            excluded = false,
+            confidence = input.confidence.coerceIn(0f, 1f),
+            timestamp = timestamp,
+            isManual = true,
+        )
+        writeManualDataItems(readManualDataItems(includeState = false) + item)
+        return true
+    }
+
+    fun updateDataItem(
+        itemId: String,
+        input: AdminDataMutationInput,
+    ): Boolean {
+        val manualItems = readManualDataItems(includeState = false)
+        val manualIndex = manualItems.indexOfFirst { item -> item.id == itemId }
+        if (manualIndex >= 0) {
+            val updated = manualItems.toMutableList()
+            val current = updated[manualIndex]
+            updated[manualIndex] = current.copy(
+                farmerName = input.farmerName.trim().ifBlank { current.farmerName },
+                pond = input.pond.trim().ifBlank { current.pond },
+                label = input.label.trim().ifBlank { current.label },
+                permissionStatus = input.permissionStatus.trim().ifBlank { current.permissionStatus },
+                confidence = input.confidence.coerceIn(0f, 1f),
+            )
+            writeManualDataItems(updated)
+            return true
+        }
+
+        val currentItem = loadDashboard().dataItems.firstOrNull { item -> item.id == itemId } ?: return false
+        val user = authRepository.getUsers().firstOrNull { user -> user.id == currentItem.ownerId }
+        if (user != null) {
+            val profile = farmerProfileRepository.getProfileForUser(user)
+            farmerProfileRepository.saveProfileForUser(
+                user = user,
+                profile = profile.copy(
+                    displayName = input.farmerName.trim().ifBlank { profile.displayName },
+                    farmLocation = input.pond.trim().ifBlank { profile.farmLocation },
+                    dataPermissionEnabled = input.permissionStatus != "Disabled",
+                ),
+            )
+        }
+        predictionLogRepository.updateLogForOwner(
+            ownerId = currentItem.ownerId,
+            logId = currentItem.logId,
+            predictedClass = input.label,
+            confidence = input.confidence,
+        )
+        val correctedLabels = readCorrectionMap().toMutableMap()
+        correctedLabels[itemId] = input.label.trim().ifBlank { currentItem.label }
+        writeCorrectionMap(correctedLabels)
+        updateIdSet(KEY_REVIEWED_IDS, itemId, enabled = true)
+        return true
+    }
+
+    fun deleteDataItem(itemId: String): Boolean {
+        val manualItems = readManualDataItems(includeState = false)
+        if (manualItems.any { item -> item.id == itemId }) {
+            writeManualDataItems(manualItems.filterNot { item -> item.id == itemId })
+            removeDataItemState(itemId)
+            return true
+        }
+
+        val currentItem = loadDashboard().dataItems.firstOrNull { item -> item.id == itemId } ?: return false
+        predictionLogRepository.deleteLogForOwner(currentItem.ownerId, currentItem.logId)
+        updateIdSet(KEY_DELETED_DATA_IDS, itemId, enabled = true)
+        removeDataItemState(itemId)
+        return true
+    }
+
     fun exportMetadata(context: Context, uri: Uri): Boolean {
         val items = loadDashboard().dataItems
         return try {
@@ -336,9 +472,9 @@ class AdminDashboardRepository @Inject constructor(
             farmerName = profile.displayName,
             timestampText = DateTimeUtils.formatTimestamp(log.timestamp),
             resultLabel = when (status) {
-                DiagnosisHistoryStatus.Healthy -> "Healthy"
-                DiagnosisHistoryStatus.DiseaseDetected -> "${log.predictedClass} detected"
-                DiagnosisHistoryStatus.LowConfidence -> "Warning"
+                DiagnosisHistoryStatus.Healthy -> "Khỏe"
+                DiagnosisHistoryStatus.DiseaseDetected -> "Phát hiện ${log.predictedClass}"
+                DiagnosisHistoryStatus.LowConfidence -> "Cần xem lại"
             },
             confidenceText = String.format(Locale.US, "%.1f%%", log.confidence * 100f),
             inferenceTimeText = BenchmarkUtils.latencyText(log.inferenceTimeMs),
@@ -372,7 +508,7 @@ class AdminDashboardRepository @Inject constructor(
             ownerId = user.id,
             logId = log.id,
             specimenId = specimenIdFor(log.id),
-            farmerId = "AQ-${user.id.takeLast(6).uppercase()}",
+            farmerId = "CV-${user.id.takeLast(6).uppercase()}",
             farmerName = profile.displayName,
             farmLocation = profile.farmLocation,
             imageUri = log.imageUri,
@@ -548,7 +684,7 @@ class AdminDashboardRepository @Inject constructor(
             .split(" ")
             .filter { token -> token.isNotBlank() }
             .joinToString(" ") { token -> token.replaceFirstChar { char -> char.uppercase() } }
-            .ifBlank { "AquaNet" }
+            .ifBlank { "CVioNet" }
     }
 
     private fun versionForModel(modelFile: String): String {
@@ -564,10 +700,10 @@ class AdminDashboardRepository @Inject constructor(
     private fun releaseLabelForModel(modelFile: String): String {
         val normalized = modelFile.lowercase()
         return when {
-            "float16" in normalized -> "Optimized release"
-            "float32" in normalized -> "Stable release"
-            "dynamic" in normalized -> "Mobile quantized"
-            else -> "Packaged model"
+            "float16" in normalized -> "Bản tối ưu"
+            "float32" in normalized -> "Bản ổn định"
+            "dynamic" in normalized -> "Bản lượng tử hóa"
+            else -> "Mô hình đóng gói"
         }
     }
 
@@ -583,22 +719,22 @@ class AdminDashboardRepository @Inject constructor(
                 val status = DiagnosisHistoryStatus.from(log)
                 when (status) {
                     DiagnosisHistoryStatus.DiseaseDetected -> AdminActivityItem(
-                        title = "High Mortality Alert",
+                        title = "Cảnh báo bệnh cần xử lý",
                         subtitle = "${profile.farmLocation} - ${log.predictedClass}",
                         relativeTime = relativeTime(log.timestamp, now),
                         kind = AdminActivityKind.Alert,
                     )
 
                     DiagnosisHistoryStatus.LowConfidence -> AdminActivityItem(
-                        title = "Low Confidence Review",
-                        subtitle = "${profile.farmLocation} needs a clearer image",
+                        title = "Cần xem lại ảnh",
+                        subtitle = "${profile.farmLocation} cần ảnh rõ hơn",
                         relativeTime = relativeTime(log.timestamp, now),
                         kind = AdminActivityKind.Diagnosis,
                     )
 
                     DiagnosisHistoryStatus.Healthy -> AdminActivityItem(
-                        title = "Diagnosis Completed",
-                        subtitle = "${profile.farmLocation} - Healthy result",
+                        title = "Đã hoàn tất kiểm tra",
+                        subtitle = "${profile.farmLocation} - Kết quả khỏe",
                         relativeTime = relativeTime(log.timestamp, now),
                         kind = AdminActivityKind.Diagnosis,
                     )
@@ -609,8 +745,8 @@ class AdminDashboardRepository @Inject constructor(
         val userActivities = farmers.map { farmer ->
             val profile = profiles.getValue(farmer)
             AdminActivityItem(
-                title = "New Farmer Registered",
-                subtitle = "${profile.displayName} joined ${profile.farmLocation}",
+                title = "Nông dân mới được tạo",
+                subtitle = "${profile.displayName} tham gia ${profile.farmLocation}",
                 relativeTime = relativeTime(farmer.createdAt, now),
                 kind = AdminActivityKind.User,
             ) to farmer.createdAt
@@ -618,15 +754,14 @@ class AdminDashboardRepository @Inject constructor(
 
         val activities = (logActivities + userActivities)
             .sortedByDescending { (_, timestamp) -> timestamp }
-            .take(MAX_RECENT_ACTIVITIES)
             .map { (activity, _) -> activity }
 
         return activities.ifEmpty {
             listOf(
                 AdminActivityItem(
-                    title = "Model Sync Complete",
-                    subtitle = "Diagnostic model is ready for on-device checks",
-                    relativeTime = "Now",
+                    title = "Đồng bộ mô hình hoàn tất",
+                    subtitle = "Mô hình chẩn đoán đã sẵn sàng để kiểm tra trên thiết bị",
+                    relativeTime = "Bây giờ",
                     kind = AdminActivityKind.Sync,
                 )
             )
@@ -668,10 +803,10 @@ class AdminDashboardRepository @Inject constructor(
     private fun relativeTime(timestamp: Long, now: Long): String {
         val elapsed = (now - timestamp).coerceAtLeast(0L)
         return when {
-            elapsed < ONE_MINUTE_MS -> "Just now"
-            elapsed < ONE_HOUR_MS -> "${elapsed / ONE_MINUTE_MS}m ago"
-            elapsed < ONE_DAY_MS -> "${elapsed / ONE_HOUR_MS}h ago"
-            elapsed < ONE_WEEK_MS -> "${elapsed / ONE_DAY_MS}d ago"
+            elapsed < ONE_MINUTE_MS -> "Vừa xong"
+            elapsed < ONE_HOUR_MS -> "${elapsed / ONE_MINUTE_MS} phút trước"
+            elapsed < ONE_DAY_MS -> "${elapsed / ONE_HOUR_MS} giờ trước"
+            elapsed < ONE_WEEK_MS -> "${elapsed / ONE_DAY_MS} ngày trước"
             else -> DateTimeUtils.formatTimestamp(timestamp).substringBefore(" ")
         }
     }
@@ -689,13 +824,13 @@ class AdminDashboardRepository @Inject constructor(
     private fun dayLabel(timestamp: Long): String {
         val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
         return when (calendar.get(Calendar.DAY_OF_WEEK)) {
-            Calendar.MONDAY -> "M"
-            Calendar.TUESDAY -> "T"
-            Calendar.WEDNESDAY -> "W"
-            Calendar.THURSDAY -> "T"
-            Calendar.FRIDAY -> "F"
-            Calendar.SATURDAY -> "S"
-            else -> "S"
+            Calendar.MONDAY -> "T2"
+            Calendar.TUESDAY -> "T3"
+            Calendar.WEDNESDAY -> "T4"
+            Calendar.THURSDAY -> "T5"
+            Calendar.FRIDAY -> "T6"
+            Calendar.SATURDAY -> "T7"
+            else -> "CN"
         }
     }
 
@@ -731,6 +866,61 @@ class AdminDashboardRepository @Inject constructor(
             .apply()
     }
 
+    private fun readManualDataItems(includeState: Boolean = true): List<AdminDataReviewItem> {
+        val json = preferences.getString(KEY_MANUAL_DATA_ITEMS, null) ?: return emptyList()
+        val reviewedIds = if (includeState) readIdSet(KEY_REVIEWED_IDS) else emptySet()
+        val excludedIds = if (includeState) readIdSet(KEY_EXCLUDED_IDS) else emptySet()
+        return runCatching {
+            val array = JSONArray(json)
+            List(array.length()) { index ->
+                val item = array.getJSONObject(index)
+                val id = item.getString("id")
+                AdminDataReviewItem(
+                    id = id,
+                    ownerId = ADMIN_OWNER_ID,
+                    logId = item.optLong("logId", item.optLong("timestamp")),
+                    farmerName = item.optString("farmerName", "Dữ liệu Admin"),
+                    pond = item.optString("pond", "Ao chưa đặt tên"),
+                    label = item.optString("label", "Chưa xác định"),
+                    permissionStatus = item.optString("permissionStatus", "Allowed"),
+                    reviewed = reviewedIds.contains(id),
+                    excluded = excludedIds.contains(id),
+                    confidence = item.optDouble("confidence", 0.0).toFloat().coerceIn(0f, 1f),
+                    timestamp = item.optLong("timestamp", System.currentTimeMillis()),
+                    isManual = true,
+                )
+            }
+        }.getOrElse { emptyList() }
+    }
+
+    private fun writeManualDataItems(items: List<AdminDataReviewItem>) {
+        val array = JSONArray()
+        items.forEach { item ->
+            array.put(
+                JSONObject()
+                    .put("id", item.id)
+                    .put("logId", item.logId)
+                    .put("farmerName", item.farmerName)
+                    .put("pond", item.pond)
+                    .put("label", item.label)
+                    .put("permissionStatus", item.permissionStatus)
+                    .put("confidence", item.confidence.toDouble())
+                    .put("timestamp", item.timestamp)
+            )
+        }
+        preferences.edit()
+            .putString(KEY_MANUAL_DATA_ITEMS, array.toString())
+            .apply()
+    }
+
+    private fun removeDataItemState(itemId: String) {
+        updateIdSet(KEY_REVIEWED_IDS, itemId, enabled = false)
+        updateIdSet(KEY_EXCLUDED_IDS, itemId, enabled = false)
+        val correctedLabels = readCorrectionMap().toMutableMap()
+        correctedLabels.remove(itemId)
+        writeCorrectionMap(correctedLabels)
+    }
+
     private fun AdminDataReviewItem.toCsvRow(): String {
         return listOf(
             id,
@@ -764,6 +954,10 @@ class AdminDashboardRepository @Inject constructor(
         return "$ownerId-$logId"
     }
 
+    private fun manualDataItemId(timestamp: Long): String {
+        return "manual-$timestamp"
+    }
+
     private fun specimenIdFor(logId: Long): String {
         return "#${logId.toString().takeLast(4)}-${(logId % 26 + 'A'.code).toInt().toChar()}"
     }
@@ -776,10 +970,13 @@ class AdminDashboardRepository @Inject constructor(
 
     private companion object {
         private const val TAG = "AdminDashboardRepo"
-        private const val PREFERENCES_NAME = "aquapulse_admin_dashboard"
+        private const val PREFERENCES_NAME = "cvio_admin_dashboard"
+        private const val ADMIN_OWNER_ID = "admin"
         private const val KEY_REVIEWED_IDS = "reviewed_ids"
         private const val KEY_EXCLUDED_IDS = "excluded_ids"
+        private const val KEY_DELETED_DATA_IDS = "deleted_data_ids"
         private const val KEY_CORRECTED_LABELS = "corrected_labels"
+        private const val KEY_MANUAL_DATA_ITEMS = "manual_data_items"
         private const val KEY_ACTIVE_MODEL_FILE = "active_model_file"
         private const val KEY_MODEL_DEPLOYED_DATE = "model_deployed_date"
         private const val KEY_MODEL_THRESHOLD = "model_threshold"
@@ -787,7 +984,6 @@ class AdminDashboardRepository @Inject constructor(
         private const val KEY_MODEL_AUTO_SCALING = "model_auto_scaling"
         private const val DEFAULT_BATCH_SIZE = "32 frames/s"
         private const val ALL_MODELS_FILTER = "All Models"
-        private const val MAX_RECENT_ACTIVITIES = 3
         private const val MAX_FLAGGED_DIAGNOSES = 5
         private const val MAX_REGIONS = 3
         private const val CRITICAL_REGION_CASES = 4

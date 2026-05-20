@@ -33,10 +33,10 @@ data class AdminDiagnosisUiState(
 
 data class AdminModelConfigUiState(
     val activeModelFile: String = "",
-    val activeModelName: String = "AquaNet",
+    val activeModelName: String = "CVioNet",
     val activeVersion: String = "v1.0",
     val deployedDateText: String = "Local deployment",
-    val statusText: String = "Healthy",
+    val statusText: String = "Ổn định",
     val threshold: Float = 0.85f,
     val batchSize: String = "32 frames/s",
     val autoScalingEnabled: Boolean = true,
@@ -162,6 +162,8 @@ data class AdminUserSummary(
     val diseaseCheckCount: Int,
     val lastActive: String,
     val farmLocation: String,
+    val phoneNumber: String = "",
+    val email: String = "",
     val dataPermissionEnabled: Boolean,
 )
 
@@ -172,6 +174,15 @@ data class AdminCreateUserInput(
     val farmLocation: String,
     val phoneNumber: String,
     val email: String,
+)
+
+data class AdminUpdateUserInput(
+    val displayName: String,
+    val account: String,
+    val farmLocation: String,
+    val phoneNumber: String,
+    val email: String,
+    val dataPermissionEnabled: Boolean,
 )
 
 data class AdminDataReviewItem(
@@ -186,10 +197,19 @@ data class AdminDataReviewItem(
     val excluded: Boolean,
     val confidence: Float,
     val timestamp: Long,
+    val isManual: Boolean = false,
+)
+
+data class AdminDataMutationInput(
+    val farmerName: String,
+    val pond: String,
+    val label: String,
+    val permissionStatus: String,
+    val confidence: Float,
 )
 
 fun emptyAdminChartPoints(): List<AdminChartPoint> {
-    return listOf("M", "T", "W", "T", "F", "S", "S").map { label ->
+    return listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN").map { label ->
         AdminChartPoint(label = label, value = 0)
     }
 }

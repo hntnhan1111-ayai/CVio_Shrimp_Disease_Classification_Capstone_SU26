@@ -81,6 +81,17 @@ class FarmerProfileRepository @Inject constructor(
         return true
     }
 
+    fun deleteProfileForUser(userId: String): Boolean {
+        preferences.edit()
+            .remove(keyFor(userId))
+            .apply()
+        if (currentUser?.id == userId) {
+            _profile.value = FarmerProfileUiState()
+            currentUser = null
+        }
+        return true
+    }
+
     private fun readProfile(user: AuthUser): FarmerProfileUiState {
         val json = preferences.getString(keyFor(user.id), null)
         if (json.isNullOrBlank()) return defaultProfile(user)
@@ -140,7 +151,7 @@ class FarmerProfileRepository @Inject constructor(
     }
 
     private companion object {
-        private const val PREFERENCES_NAME = "aquapulse_farmer_profiles"
+        private const val PREFERENCES_NAME = "cvio_farmer_profiles"
         private const val KEY_PROFILE_PREFIX = "profile_"
     }
 }

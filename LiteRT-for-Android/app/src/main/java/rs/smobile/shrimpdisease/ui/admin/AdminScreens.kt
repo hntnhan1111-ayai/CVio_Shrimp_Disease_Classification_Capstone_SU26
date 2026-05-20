@@ -26,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,8 +48,10 @@ import rs.smobile.shrimpdisease.data.AdminActivityItem
 import rs.smobile.shrimpdisease.data.AdminActivityKind
 import rs.smobile.shrimpdisease.data.AdminChartPoint
 import rs.smobile.shrimpdisease.data.AdminCreateUserInput
+import rs.smobile.shrimpdisease.data.AdminDataMutationInput
 import rs.smobile.shrimpdisease.data.AdminDashboardUiState
 import rs.smobile.shrimpdisease.data.AdminDataReviewItem
+import rs.smobile.shrimpdisease.data.AdminUpdateUserInput
 import rs.smobile.shrimpdisease.data.AdminUserSummary
 import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.CVioSectionHeader
@@ -56,6 +59,9 @@ import rs.smobile.shrimpdisease.ui.components.CVioStatusChip
 import rs.smobile.shrimpdisease.ui.components.EmptyState
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpIconButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpLineIcon
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 import rs.smobile.shrimpdisease.ui.theme.DiseaseRed
@@ -68,8 +74,14 @@ fun AdminDashboardScreen(
     uiState: AdminDashboardUiState,
     currentUserName: String?,
     onRefresh: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenUsers: () -> Unit,
+    onOpenData: () -> Unit,
+    onOpenInference: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showAllActivities by rememberSaveable { mutableStateOf(false) }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -77,7 +89,9 @@ fun AdminDashboardScreen(
         item {
             AdminTopBar(
                 currentUserName = currentUserName,
-                onTrailingClick = onRefresh,
+                navigationIcon = ShrimpNavIcon.Profile,
+                navigationContentDescription = "Mở cài đặt quản trị",
+                onNavigationClick = onOpenSettings,
             )
         }
 
@@ -87,13 +101,13 @@ fun AdminDashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "Admin Dashboard",
+                    text = "Bảng điều khiển",
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "System Overview & Analytics",
+                    text = "Tổng quan hệ thống và số liệu vận hành",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -107,36 +121,40 @@ fun AdminDashboardScreen(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     DashboardStatCard(
-                        label = "Total Farmers",
+                        label = "Người dùng",
                         value = compactNumber(uiState.totalFarmers),
-                        icon = "U",
+                        icon = ShrimpNavIcon.Users,
                         trend = uiState.farmersTrend,
+                        onClick = onOpenUsers,
                         modifier = Modifier.weight(1f),
                     )
                     DashboardStatCard(
-                        label = "Total Checks",
+                        label = "Lượt kiểm tra",
                         value = compactNumber(uiState.totalDiseaseChecks),
-                        icon = "C",
+                        icon = ShrimpNavIcon.Inference,
                         accent = MaterialTheme.colorScheme.secondary,
                         trend = uiState.checksTrend,
+                        onClick = onOpenData,
                         modifier = Modifier.weight(1f),
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     DashboardStatCard(
-                        label = "Images Processed",
+                        label = "Ảnh đã xử lý",
                         value = compactNumber(uiState.imagesProcessed),
-                        icon = "IMG",
+                        icon = ShrimpNavIcon.Data,
                         accent = MaterialTheme.colorScheme.primary,
+                        onClick = onOpenData,
                         modifier = Modifier.weight(1f),
                     )
                     DashboardStatCard(
-                        label = "Active Alerts",
+                        label = "Cảnh báo",
                         value = compactNumber(uiState.activeAlerts),
-                        icon = "!",
+                        icon = ShrimpNavIcon.Diagnose,
                         accent = MaterialTheme.colorScheme.error,
-                        trend = if (uiState.activeAlerts > 0) "Requires Action" else "Clear",
+                        trend = if (uiState.activeAlerts > 0) "Cần xử lý" else "Ổn định",
                         trendIsWarning = uiState.activeAlerts > 0,
+                        onClick = onOpenInference,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -152,7 +170,10 @@ fun AdminDashboardScreen(
 
         item {
             RecentActivityCard(
-                activities = uiState.recentActivities,
+                activities = if (showAllActivities) uiState.recentActivities else uiState.recentActivities.take(3),
+                totalActivityCount = uiState.recentActivities.size,
+                showAll = showAllActivities,
+                onViewAllClick = { showAllActivities = !showAllActivities },
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
         }
@@ -164,6 +185,10 @@ fun AdminUsersScreen(
     users: List<AdminUserSummary>,
     currentUserName: String?,
     onCreateUser: (AdminCreateUserInput) -> Boolean,
+    onUpdateUser: (String, AdminUpdateUserInput) -> Boolean,
+    onDeleteUser: (AdminUserSummary) -> Boolean,
+    onHome: () -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -193,7 +218,15 @@ fun AdminUsersScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                AdminTopBar(currentUserName = currentUserName)
+                AdminTopBar(
+                    currentUserName = currentUserName,
+                    navigationIcon = ShrimpNavIcon.Home,
+                    navigationContentDescription = "Về bảng điều khiển",
+                    onNavigationClick = onHome,
+                    trailingIcon = ShrimpNavIcon.Settings,
+                    trailingContentDescription = "Mở cài đặt",
+                    onTrailingClick = onSettings,
+                )
             }
             item {
                 Column(
@@ -210,15 +243,10 @@ fun AdminUsersScreen(
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                text = "User Management",
+                                text = "Quản lý người dùng",
                                 style = MaterialTheme.typography.displayLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = "Manage aquaculture farmers and field technicians.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -243,8 +271,8 @@ fun AdminUsersScreen(
                         containerColor = CVioSurfaceContainerLow,
                     ) {
                         EmptyState(
-                            title = "No matching users",
-                            message = "Try another name, email, pond, or status.",
+                            title = "Không tìm thấy người dùng",
+                            message = "Thử tìm theo tên, tài khoản, ao nuôi hoặc trạng thái khác.",
                         )
                     }
                 }
@@ -294,6 +322,16 @@ fun AdminUsersScreen(
         UserDetailsDialog(
             user = user,
             onDismiss = { selectedUser = null },
+            onUpdateUser = { input ->
+                if (onUpdateUser(user.id, input)) {
+                    selectedUser = null
+                }
+            },
+            onDeleteUser = {
+                if (onDeleteUser(user)) {
+                    selectedUser = null
+                }
+            },
         )
     }
 }
@@ -302,34 +340,60 @@ fun AdminUsersScreen(
 fun AdminDataControlScreen(
     dataItems: List<AdminDataReviewItem>,
     currentUserName: String?,
+    onCreateData: (AdminDataMutationInput) -> Boolean,
+    onUpdateData: (AdminDataReviewItem, AdminDataMutationInput) -> Boolean,
+    onDeleteData: (AdminDataReviewItem) -> Boolean,
     onMarkReviewed: (AdminDataReviewItem) -> Unit,
     onExcludeFromTraining: (AdminDataReviewItem) -> Unit,
     onExportMetadata: () -> Unit,
+    onHome: () -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var editingItem by remember { mutableStateOf<AdminDataReviewItem?>(null) }
+    var deletingItem by remember { mutableStateOf<AdminDataReviewItem?>(null) }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            AdminTopBar(currentUserName = currentUserName)
+            AdminTopBar(
+                currentUserName = currentUserName,
+                navigationIcon = ShrimpNavIcon.Home,
+                navigationContentDescription = "Về bảng điều khiển",
+                onNavigationClick = onHome,
+                trailingIcon = ShrimpNavIcon.Settings,
+                trailingContentDescription = "Mở cài đặt",
+                onTrailingClick = onSettings,
+            )
         }
         item {
             CVioSectionHeader(
-                title = "Data Control",
-                subtitle = "Review permitted image data before model improvement workflows.",
+                title = "Quản lý dữ liệu",
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
         }
         item {
-            PrimaryActionButton(
-                text = "Export metadata",
-                onClick = onExportMetadata,
-                enabled = dataItems.isNotEmpty(),
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                PrimaryActionButton(
+                    text = "Thêm dữ liệu",
+                    onClick = { showCreateDialog = true },
+                    modifier = Modifier.weight(1f),
+                )
+                SecondaryActionButton(
+                    text = "Xuất metadata",
+                    onClick = onExportMetadata,
+                    enabled = dataItems.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
 
         if (dataItems.isEmpty()) {
@@ -339,8 +403,8 @@ fun AdminDataControlScreen(
                     containerColor = CVioSurfaceContainerLow,
                 ) {
                     EmptyState(
-                        title = "No permitted data yet",
-                        message = "Farmer diagnosis logs with data permission enabled will appear here.",
+                        title = "Chưa có dữ liệu",
+                        message = "Dữ liệu được nông dân cho phép hoặc dữ liệu Admin thêm mới sẽ xuất hiện tại đây.",
                     )
                 }
             }
@@ -350,10 +414,52 @@ fun AdminDataControlScreen(
                     item = item,
                     onMarkReviewed = onMarkReviewed,
                     onExcludeFromTraining = onExcludeFromTraining,
+                    onEdit = { editingItem = item },
+                    onDelete = { deletingItem = item },
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )
             }
         }
+    }
+
+    if (showCreateDialog) {
+        DataMutationDialog(
+            title = "Thêm dữ liệu",
+            confirmText = "Tạo",
+            onDismiss = { showCreateDialog = false },
+            onSubmit = { input ->
+                if (onCreateData(input)) {
+                    showCreateDialog = false
+                }
+            },
+        )
+    }
+
+    editingItem?.let { item ->
+        DataMutationDialog(
+            title = "Cập nhật dữ liệu",
+            confirmText = "Lưu",
+            item = item,
+            onDismiss = { editingItem = null },
+            onSubmit = { input ->
+                if (onUpdateData(item, input)) {
+                    editingItem = null
+                }
+            },
+        )
+    }
+
+    deletingItem?.let { item ->
+        ConfirmDeleteDialog(
+            title = "Xóa dữ liệu",
+            message = "Bạn có chắc muốn xóa dữ liệu của ${item.farmerName} tại ${item.pond}?",
+            onDismiss = { deletingItem = null },
+            onConfirm = {
+                if (onDeleteData(item)) {
+                    deletingItem = null
+                }
+            },
+        )
     }
 }
 
@@ -361,6 +467,11 @@ fun AdminDataControlScreen(
 private fun AdminTopBar(
     currentUserName: String?,
     modifier: Modifier = Modifier,
+    navigationIcon: ShrimpNavIcon? = null,
+    navigationContentDescription: String = "",
+    onNavigationClick: (() -> Unit)? = null,
+    trailingIcon: ShrimpNavIcon? = null,
+    trailingContentDescription: String = "",
     onTrailingClick: (() -> Unit)? = null,
 ) {
     Row(
@@ -375,47 +486,60 @@ private fun AdminTopBar(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(CVioSurfaceContainerLow),
-                contentAlignment = Alignment.Center,
-            ) {
+            if (navigationIcon != null && onNavigationClick != null) {
+                ShrimpIconButton(
+                    icon = navigationIcon,
+                    contentDescription = navigationContentDescription,
+                    onClick = onNavigationClick,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(CVioSurfaceContainerLow),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(CVioSurfaceContainerLow),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = initialsFor(currentUserName ?: "Admin"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = initialsFor(currentUserName ?: "Admin"),
-                    style = MaterialTheme.typography.labelMedium,
+                    text = "CVio",
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
+                if (!currentUserName.isNullOrBlank()) {
+                    Text(
+                        text = currentUserName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            Text(
-                text = "AquaPulse",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
         }
 
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(CVioSurfaceContainerLowest)
-                .then(
-                    if (onTrailingClick == null) {
-                        Modifier
-                    } else {
-                        Modifier.clickable(onClick = onTrailingClick)
-                    }
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = if (onTrailingClick == null) "N" else "R",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
+        if (trailingIcon != null && onTrailingClick != null) {
+            ShrimpIconButton(
+                icon = trailingIcon,
+                contentDescription = trailingContentDescription,
+                onClick = onTrailingClick,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(CVioSurfaceContainerLowest),
             )
         }
     }
@@ -442,7 +566,7 @@ private fun SearchUsersField(
         },
         placeholder = {
             Text(
-                text = "Search users...",
+                text = "Tìm người dùng...",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.outline,
             )
@@ -527,7 +651,7 @@ private fun UserBentoCard(
                         )
                     }
                     CVioStatusChip(
-                        text = user.status,
+                        text = displayUserStatus(user.status),
                         containerColor = if (isActive) {
                             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
                         } else {
@@ -550,13 +674,13 @@ private fun UserBentoCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     UserMetricBlock(
-                        label = "Checks Count",
+                        label = "Lượt kiểm tra",
                         value = user.diseaseCheckCount.toString(),
                         active = isActive,
                         modifier = Modifier.weight(1f),
                     )
                     UserMetricBlock(
-                        label = "Last Active",
+                        label = "Hoạt động cuối",
                         value = user.lastActive,
                         active = isActive,
                         modifier = Modifier.weight(1f),
@@ -570,7 +694,7 @@ private fun UserBentoCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "View Details",
+                        text = "Xem chi tiết",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Bold,
@@ -607,13 +731,13 @@ private fun UserMetricBlock(
         )
         Text(
             text = value,
-            style = if (label == "Checks Count") {
+            style = if (label == "Lượt kiểm tra") {
                 MaterialTheme.typography.headlineSmall
             } else {
                 MaterialTheme.typography.bodyMedium
             },
             color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (label == "Checks Count") FontWeight.Bold else FontWeight.Medium,
+            fontWeight = if (label == "Lượt kiểm tra") FontWeight.Bold else FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -656,13 +780,13 @@ private fun AddUserCard(
                 )
             }
             Text(
-                text = "Add New User",
+                text = "Thêm người dùng",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Register a new farmer or technician to the system.",
+                text = "Tạo tài khoản nông dân hoặc kỹ thuật viên mới.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -682,11 +806,11 @@ private fun EmptyUsersCard(
         containerColor = CVioSurfaceContainerLow,
     ) {
         EmptyState(
-            title = "No farmers yet",
-            message = "Create the first farmer account for this admin console.",
+            title = "Chưa có nông dân",
+            message = "Tạo tài khoản đầu tiên cho trang quản trị.",
         )
         PrimaryActionButton(
-            text = "Add New User",
+            text = "Thêm người dùng",
             onClick = onAddUser,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -710,7 +834,7 @@ private fun AddUserDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Add New User",
+                text = "Thêm người dùng",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -720,7 +844,7 @@ private fun AddUserDialog(
                 OutlinedTextField(
                     value = displayName,
                     onValueChange = { displayName = it },
-                    label = { Text("Full name") },
+                    label = { Text("Họ và tên") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -730,7 +854,7 @@ private fun AddUserDialog(
                         account = it
                         if (email.isBlank() && it.contains("@")) email = it
                     },
-                    label = { Text("Login email or phone") },
+                    label = { Text("Email hoặc số điện thoại đăng nhập") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
@@ -738,7 +862,7 @@ private fun AddUserDialog(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Temporary password") },
+                    label = { Text("Mật khẩu tạm thời") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
@@ -746,7 +870,7 @@ private fun AddUserDialog(
                 OutlinedTextField(
                     value = farmLocation,
                     onValueChange = { farmLocation = it },
-                    label = { Text("Farm location") },
+                    label = { Text("Vị trí ao nuôi") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -754,7 +878,7 @@ private fun AddUserDialog(
                     OutlinedTextField(
                         value = phoneNumber,
                         onValueChange = { phoneNumber = it },
-                        label = { Text("Phone") },
+                        label = { Text("Số điện thoại") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.weight(1f),
@@ -769,7 +893,7 @@ private fun AddUserDialog(
                     )
                 }
                 Text(
-                    text = "Password must be at least 6 characters.",
+                    text = "Mật khẩu cần ít nhất 6 ký tự.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -791,12 +915,266 @@ private fun AddUserDialog(
                     )
                 },
             ) {
-                Text("Create")
+                Text("Tạo")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Hủy")
+            }
+        },
+    )
+}
+
+@Composable
+private fun EditUserDialog(
+    user: AdminUserSummary,
+    onDismiss: () -> Unit,
+    onUpdateUser: (AdminUpdateUserInput) -> Unit,
+) {
+    var displayName by rememberSaveable(user.id) { mutableStateOf(user.name) }
+    var account by rememberSaveable(user.id) { mutableStateOf(user.account) }
+    var farmLocation by rememberSaveable(user.id) { mutableStateOf(user.farmLocation) }
+    var phoneNumber by rememberSaveable(user.id) { mutableStateOf(user.phoneNumber) }
+    var email by rememberSaveable(user.id) { mutableStateOf(user.email) }
+    var dataPermissionEnabled by rememberSaveable(user.id) { mutableStateOf(user.dataPermissionEnabled) }
+    val canSubmit = displayName.isNotBlank() && account.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Cập nhật người dùng",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = displayName,
+                    onValueChange = { displayName = it },
+                    label = { Text("Họ và tên") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = account,
+                    onValueChange = {
+                        account = it
+                        if (email.isBlank() && it.contains("@")) email = it
+                    },
+                    label = { Text("Email hoặc số điện thoại đăng nhập") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = farmLocation,
+                    onValueChange = { farmLocation = it },
+                    label = { Text("Vị trí ao nuôi") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = { phoneNumber = it },
+                        label = { Text("Số điện thoại") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Cho phép dùng dữ liệu",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Switch(
+                        checked = dataPermissionEnabled,
+                        onCheckedChange = { dataPermissionEnabled = it },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSubmit,
+                onClick = {
+                    onUpdateUser(
+                        AdminUpdateUserInput(
+                            displayName = displayName,
+                            account = account,
+                            farmLocation = farmLocation,
+                            phoneNumber = phoneNumber,
+                            email = email,
+                            dataPermissionEnabled = dataPermissionEnabled,
+                        )
+                    )
+                },
+            ) {
+                Text("Lưu")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        },
+    )
+}
+
+@Composable
+private fun DataMutationDialog(
+    title: String,
+    confirmText: String,
+    onDismiss: () -> Unit,
+    onSubmit: (AdminDataMutationInput) -> Unit,
+    item: AdminDataReviewItem? = null,
+) {
+    var farmerName by rememberSaveable(item?.id) { mutableStateOf(item?.farmerName.orEmpty()) }
+    var pond by rememberSaveable(item?.id) { mutableStateOf(item?.pond.orEmpty()) }
+    var label by rememberSaveable(item?.id) { mutableStateOf(item?.label.orEmpty()) }
+    var permissionStatus by rememberSaveable(item?.id) {
+        mutableStateOf(item?.permissionStatus ?: "Allowed")
+    }
+    var confidenceText by rememberSaveable(item?.id) {
+        mutableStateOf(item?.confidence?.let { value -> String.format(Locale.US, "%.2f", value) } ?: "")
+    }
+    val confidence = confidenceText.trim().toFloatOrNull()?.let { value ->
+        if (value > 1f) value / 100f else value
+    }?.coerceIn(0f, 1f) ?: 0f
+    val canSubmit = farmerName.isNotBlank() && pond.isNotBlank() && label.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = farmerName,
+                    onValueChange = { farmerName = it },
+                    label = { Text("Tên nông dân") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = pond,
+                    onValueChange = { pond = it },
+                    label = { Text("Ao nuôi / khu vực") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text("Nhãn bệnh") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = confidenceText,
+                    onValueChange = { confidenceText = it },
+                    label = { Text("Độ tin cậy (0-1 hoặc %)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Cho phép dùng dữ liệu",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Switch(
+                        checked = permissionStatus != "Disabled",
+                        onCheckedChange = { checked ->
+                            permissionStatus = if (checked) "Allowed" else "Disabled"
+                        },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSubmit,
+                onClick = {
+                    onSubmit(
+                        AdminDataMutationInput(
+                            farmerName = farmerName,
+                            pond = pond,
+                            label = label,
+                            permissionStatus = permissionStatus,
+                            confidence = confidence,
+                        )
+                    )
+                },
+            ) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmDeleteDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Xóa")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
             }
         },
     )
@@ -806,7 +1184,12 @@ private fun AddUserDialog(
 private fun UserDetailsDialog(
     user: AdminUserSummary,
     onDismiss: () -> Unit,
+    onUpdateUser: (AdminUpdateUserInput) -> Unit,
+    onDeleteUser: () -> Unit,
 ) {
+    var showEditDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -844,22 +1227,49 @@ private fun UserDetailsDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                DetailLine(label = "Status", value = user.status)
-                DetailLine(label = "Checks Count", value = user.diseaseCheckCount.toString())
-                DetailLine(label = "Last Active", value = user.lastActive)
-                DetailLine(label = "Farm Location", value = user.farmLocation)
+                DetailLine(label = "Trạng thái", value = displayUserStatus(user.status))
+                DetailLine(label = "Lượt kiểm tra", value = user.diseaseCheckCount.toString())
+                DetailLine(label = "Hoạt động cuối", value = user.lastActive)
+                DetailLine(label = "Vị trí ao nuôi", value = user.farmLocation)
+                DetailLine(label = "Số điện thoại", value = user.phoneNumber.ifBlank { "Chưa cập nhật" })
+                DetailLine(label = "Email", value = user.email.ifBlank { "Chưa cập nhật" })
                 DetailLine(
-                    label = "Data Permission",
-                    value = if (user.dataPermissionEnabled) "Allowed" else "Disabled",
+                    label = "Quyền dữ liệu",
+                    value = if (user.dataPermissionEnabled) "Được phép" else "Tắt",
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close")
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                TextButton(onClick = { showDeleteDialog = true }) {
+                    Text("Xóa")
+                }
+                TextButton(onClick = { showEditDialog = true }) {
+                    Text("Sửa")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Đóng")
+                }
             }
         },
     )
+
+    if (showEditDialog) {
+        EditUserDialog(
+            user = user,
+            onDismiss = { showEditDialog = false },
+            onUpdateUser = onUpdateUser,
+        )
+    }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            title = "Xóa người dùng",
+            message = "Bạn có chắc muốn xóa ${user.name}? Lịch sử kiểm tra của người dùng này cũng sẽ bị xóa khỏi máy.",
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = onDeleteUser,
+        )
+    }
 }
 
 @Composable
@@ -896,14 +1306,15 @@ private fun DetailLine(
 private fun DashboardStatCard(
     label: String,
     value: String,
-    icon: String,
+    icon: ShrimpNavIcon,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     accent: Color = MaterialTheme.colorScheme.primary,
     trend: String? = null,
     trendIsWarning: Boolean = false,
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -919,12 +1330,10 @@ private fun DashboardStatCard(
                     .background(accent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = icon,
-                    style = MaterialTheme.typography.labelSmall,
+                ShrimpLineIcon(
+                    icon = icon,
+                    modifier = Modifier.size(20.dp),
                     color = accent,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
                 )
             }
 
@@ -971,7 +1380,7 @@ private fun DiagnosisVolumeCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Diagnosis Volume",
+                text = "Lượt kiểm tra theo ngày",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
@@ -1060,6 +1469,9 @@ private fun WeeklyBarChart(points: List<AdminChartPoint>) {
 @Composable
 private fun RecentActivityCard(
     activities: List<AdminActivityItem>,
+    totalActivityCount: Int,
+    showAll: Boolean,
+    onViewAllClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -1078,25 +1490,33 @@ private fun RecentActivityCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Recent System Activity",
+                    text = "Hoạt động hệ thống gần đây",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "View All",
+                    text = if (showAll) "Thu gọn" else "Xem tất cả ($totalActivityCount)",
+                    modifier = Modifier.clickable(onClick = onViewAllClick),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
             }
-            activities.forEachIndexed { index, activity ->
-                ActivityRow(activity = activity)
-                if (index != activities.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 72.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-                    )
+            if (activities.isEmpty()) {
+                EmptyState(
+                    title = "Chưa có hoạt động",
+                    message = "Các lượt kiểm tra và thay đổi người dùng sẽ hiển thị tại đây.",
+                )
+            } else {
+                activities.forEachIndexed { index, activity ->
+                    ActivityRow(activity = activity)
+                    if (index != activities.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 72.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                        )
+                    }
                 }
             }
         }
@@ -1192,7 +1612,7 @@ private fun UserSummaryCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = "${user.diseaseCheckCount} checks | Last active ${user.lastActive}",
+                    text = "${user.diseaseCheckCount} lượt | Hoạt động cuối ${user.lastActive}",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
@@ -1207,7 +1627,7 @@ private fun UserSummaryCard(
                 )
             }
             CVioStatusChip(
-                text = user.status,
+                text = displayUserStatus(user.status),
                 containerColor = if (user.status == "Active") {
                     MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
                 } else {
@@ -1224,6 +1644,8 @@ private fun DataReviewCard(
     item: AdminDataReviewItem,
     onMarkReviewed: (AdminDataReviewItem) -> Unit,
     onExcludeFromTraining: (AdminDataReviewItem) -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     CVioCard(modifier = modifier) {
@@ -1251,7 +1673,7 @@ private fun DataReviewCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = "${item.farmerName} | ${String.format(Locale.US, "%.1f%%", item.confidence * 100f)} confidence",
+                    text = "${item.farmerName} | Độ tin cậy ${String.format(Locale.US, "%.1f%%", item.confidence * 100f)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 1,
@@ -1263,19 +1685,19 @@ private fun DataReviewCard(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 CVioStatusChip(
-                    text = item.permissionStatus,
+                    text = displayPermissionStatus(item.permissionStatus),
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
                     contentColor = HealthyGreen,
                 )
                 if (item.excluded) {
                     CVioStatusChip(
-                        text = "Excluded",
+                        text = "Đã loại",
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = DiseaseRed,
                     )
                 } else if (item.reviewed) {
                     CVioStatusChip(
-                        text = "Reviewed",
+                        text = "Đã duyệt",
                         containerColor = CVioSurfaceContainerLow,
                         contentColor = MaterialTheme.colorScheme.primary,
                     )
@@ -1285,15 +1707,27 @@ private fun DataReviewCard(
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SecondaryActionButton(
-                text = if (item.reviewed) "Reviewed" else "Mark reviewed",
+                text = if (item.reviewed) "Đã duyệt" else "Đánh dấu duyệt",
                 onClick = { onMarkReviewed(item) },
                 enabled = !item.reviewed,
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
-                text = if (item.excluded) "Excluded" else "Exclude",
+                text = if (item.excluded) "Đã loại" else "Loại khỏi train",
                 onClick = { onExcludeFromTraining(item) },
                 enabled = !item.excluded,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            SecondaryActionButton(
+                text = "Sửa",
+                onClick = onEdit,
+                modifier = Modifier.weight(1f),
+            )
+            SecondaryActionButton(
+                text = "Xóa",
+                onClick = onDelete,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -1330,6 +1764,22 @@ private fun compactNumber(value: Int): String {
 private fun compactNumber(value: Float, suffix: String): String {
     val formatted = String.format(Locale.US, "%.1f", value).removeSuffix(".0")
     return "$formatted$suffix"
+}
+
+private fun displayUserStatus(status: String): String {
+    return when (status) {
+        "Active" -> "Đang hoạt động"
+        "Inactive" -> "Tạm ngưng"
+        else -> status
+    }
+}
+
+private fun displayPermissionStatus(status: String): String {
+    return when (status) {
+        "Allowed" -> "Được phép"
+        "Disabled" -> "Tắt"
+        else -> status
+    }
 }
 
 private fun initialsFor(name: String): String {
