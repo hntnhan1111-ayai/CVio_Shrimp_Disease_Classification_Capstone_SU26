@@ -36,6 +36,7 @@ import rs.smobile.shrimpdisease.ui.theme.HealthyGreen
 import rs.smobile.shrimpdisease.ui.theme.WarningOrange
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import rs.smobile.shrimpdisease.utils.DateTimeUtils
+import rs.smobile.shrimpdisease.utils.DiseaseTextUtils
 
 @Composable
 fun PredictionLogItemCard(
@@ -89,7 +90,7 @@ fun PredictionLogItemCard(
                         )
                     }
                     Text(
-                        text = item.predictedClass,
+                        text = DiseaseTextUtils.displayLabel(item.predictedClass),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.headlineSmall,
@@ -174,7 +175,7 @@ private fun PredictionThumbnail(
         item.thumbnail != null -> {
             Image(
                 bitmap = item.thumbnail.asImageBitmap(),
-                contentDescription = "Prediction thumbnail",
+                        contentDescription = "Ảnh kết quả kiểm tra",
                 modifier = modifier,
                 contentScale = ContentScale.Crop,
             )
@@ -183,7 +184,7 @@ private fun PredictionThumbnail(
         item.imageUri != null -> {
             AsyncImage(
                 model = item.imageUri,
-                contentDescription = "Prediction thumbnail",
+                contentDescription = "Ảnh kết quả kiểm tra",
                 modifier = modifier,
                 contentScale = ContentScale.Crop,
             )
@@ -196,7 +197,7 @@ private fun PredictionThumbnail(
             ) {
                 if (status.kind == HistoryStatusKind.LowConfidence) {
                     Text(
-                        text = "No image",
+                        text = "Không có ảnh",
                         style = MaterialTheme.typography.labelSmall,
                         color = WarningOrange,
                         fontWeight = FontWeight.Bold,
@@ -215,12 +216,13 @@ private fun PredictionThumbnail(
 
 @Composable
 private fun rememberHistoryStatus(item: PredictionLogItem): HistoryStatus {
-    val isHealthy = item.predictedClass.contains("healthy", ignoreCase = true)
+    val isHealthy = DiseaseTextUtils.isHealthy(item.predictedClass)
+    val displayLabel = DiseaseTextUtils.displayLabel(item.predictedClass)
     return when {
         !item.isAboveThreshold -> HistoryStatus(
-            label = "Blurry Image",
+            label = "Ảnh chưa rõ",
             metricPrefix = "",
-            metricText = "Please Retake",
+            metricText = "Nên chụp lại",
             kind = HistoryStatusKind.LowConfidence,
             containerColor = WarningOrange.copy(alpha = 0.16f),
             contentColor = WarningOrange,
@@ -229,9 +231,9 @@ private fun rememberHistoryStatus(item: PredictionLogItem): HistoryStatus {
         )
 
         isHealthy -> HistoryStatus(
-            label = "Healthy",
+            label = "Tôm khỏe",
             metricPrefix = "",
-            metricText = "${BenchmarkUtils.confidenceText(item.confidence)} Confidence",
+            metricText = "${BenchmarkUtils.confidenceText(item.confidence)} độ tin cậy",
             kind = HistoryStatusKind.Healthy,
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
             contentColor = HealthyGreen,
@@ -240,9 +242,9 @@ private fun rememberHistoryStatus(item: PredictionLogItem): HistoryStatus {
         )
 
         else -> HistoryStatus(
-            label = "${item.predictedClass} Detected",
+            label = "Phát hiện $displayLabel",
             metricPrefix = "",
-            metricText = "${BenchmarkUtils.confidenceText(item.confidence)} Confidence",
+            metricText = "${BenchmarkUtils.confidenceText(item.confidence)} độ tin cậy",
             kind = HistoryStatusKind.Disease,
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = DiseaseRed,

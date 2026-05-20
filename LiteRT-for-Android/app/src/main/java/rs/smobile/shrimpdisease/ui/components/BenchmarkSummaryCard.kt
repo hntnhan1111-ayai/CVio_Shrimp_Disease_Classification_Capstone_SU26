@@ -19,7 +19,7 @@ fun BenchmarkSummaryCard(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Benchmark Summary",
+            text = "Tóm tắt kiểm tra",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
@@ -28,13 +28,13 @@ fun BenchmarkSummaryCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CVioMetricTile(
-                label = "Runs",
+                label = "Số lần",
                 value = metrics.totalRuns.toString(),
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
-                label = "Accuracy",
-                value = metrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A",
+                label = "Độ đúng",
+                value = metrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
@@ -44,19 +44,19 @@ fun BenchmarkSummaryCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CVioMetricTile(
-                label = "Avg time",
+                label = "Thời gian TB",
                 value = "${BenchmarkUtils.decimalText(metrics.averageInferenceTimeMs)} ms",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.tertiary,
             )
             CVioMetricTile(
-                label = "Avg FPS",
+                label = "FPS TB",
                 value = BenchmarkUtils.fpsText(metrics.averageFps),
                 modifier = Modifier.weight(1f),
             )
         }
         Text(
-            text = "Correct runs ${metrics.correctRuns}/${metrics.evaluatedRuns} | ${BenchmarkUtils.speedText(metrics.averageSpeed)} average speed",
+            text = "Đúng ${metrics.correctRuns}/${metrics.evaluatedRuns} lần | Tốc độ TB ${BenchmarkUtils.speedText(metrics.averageSpeed)}",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

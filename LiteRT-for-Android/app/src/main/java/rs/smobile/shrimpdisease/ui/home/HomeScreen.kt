@@ -2,6 +2,7 @@ package rs.smobile.shrimpdisease.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,21 +22,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.data.PredictionLogItem
 import rs.smobile.shrimpdisease.ui.components.CVioCard
-import rs.smobile.shrimpdisease.ui.components.CVioIconBubble
 import rs.smobile.shrimpdisease.ui.components.CVioStatusChip
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
 import rs.smobile.shrimpdisease.ui.components.ShrimpIllustration
+import rs.smobile.shrimpdisease.ui.components.ShrimpIconButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpLineIcon
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.components.SoftChartPlaceholder
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainer
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
@@ -43,6 +48,7 @@ import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 import rs.smobile.shrimpdisease.ui.theme.HealthyGreen
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import rs.smobile.shrimpdisease.utils.DateTimeUtils
+import rs.smobile.shrimpdisease.utils.DiseaseTextUtils
 
 @Composable
 fun HomeScreen(
@@ -52,6 +58,8 @@ fun HomeScreen(
     onSelectImage: () -> Unit,
     onOpenCamera: () -> Unit,
     onChooseModel: () -> Unit,
+    onOpenProfile: () -> Unit,
+    onViewAllHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -59,7 +67,7 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        FarmerHeader()
+        FarmerHeader(onOpenProfile = onOpenProfile)
 
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
@@ -85,13 +93,16 @@ fun HomeScreen(
                 )
             }
 
-            RecentCheckups(logs = logs.take(2))
+            RecentCheckups(
+                logs = logs.take(2),
+                onViewAllHistory = onViewAllHistory,
+            )
         }
     }
 }
 
 @Composable
-private fun FarmerHeader() {
+private fun FarmerHeader(onOpenProfile: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
@@ -115,22 +126,25 @@ private fun FarmerHeader() {
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Hello, Farmer",
+                        text = "Chào bà con",
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "Check shrimp health today",
+                        text = "Kiểm tra sức khỏe tôm hôm nay ngay nào",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                CVioIconBubble(
-                    label = "F",
-                    size = 48.dp,
-                    containerColor = CVioSurfaceContainerLowest,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                ShrimpIconButton(
+                    icon = ShrimpNavIcon.Profile,
+                    contentDescription = "Mở hồ sơ",
+                    onClick = onOpenProfile,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(CVioSurfaceContainerLowest),
                 )
             }
         }
@@ -156,14 +170,14 @@ private fun DiagnosisCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CVioIconBubble(
-                        label = "AI",
+                    HomeIconBubble(
+                        icon = ShrimpNavIcon.Diagnose,
                         size = 44.dp,
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                     Text(
-                        text = "Start shrimp diagnosis",
+                        text = "Bắt đầu kiểm tra tôm",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
@@ -187,12 +201,12 @@ private fun DiagnosisCard(
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     PrimaryActionButton(
-                        text = "Take Photo",
+                        text = "Chụp ảnh",
                         onClick = onOpenCamera,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     SecondaryActionButton(
-                        text = "Choose from Gallery",
+                        text = "Chọn ảnh có sẵn",
                         onClick = onSelectImage,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -213,26 +227,26 @@ private fun ModelReadyCard(
         containerColor = CVioSurfaceContainerLowest,
         tonalElevation = 3.dp,
     ) {
-        CVioIconBubble(
-            label = "M",
+        HomeIconBubble(
+            icon = ShrimpNavIcon.Models,
             size = 48.dp,
             containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.22f),
             contentColor = MaterialTheme.colorScheme.tertiary,
         )
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "AI model ready",
+                text = "AI đã sẵn sàng",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "On-device detection",
+                text = "Kiểm tra ngay trên máy",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "${modelInfo.labelsCount} classes",
+                text = "${modelInfo.labelsCount} loại nhận biết",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelSmall,
@@ -241,7 +255,7 @@ private fun ModelReadyCard(
             )
         }
         SecondaryActionButton(
-            text = "Choose model",
+            text = "Chọn mô hình",
             onClick = onChooseModel,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -259,7 +273,7 @@ private fun WeeklyScansCard(
         tonalElevation = 3.dp,
     ) {
         Text(
-            text = "Weekly Scans",
+            text = "Lượt kiểm tra tuần này",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
@@ -278,7 +292,10 @@ private fun WeeklyScansCard(
 }
 
 @Composable
-private fun RecentCheckups(logs: List<PredictionLogItem>) {
+private fun RecentCheckups(
+    logs: List<PredictionLogItem>,
+    onViewAllHistory: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -286,13 +303,14 @@ private fun RecentCheckups(logs: List<PredictionLogItem>) {
             verticalAlignment = Alignment.Bottom,
         ) {
             Text(
-                text = "Recent checkups",
+                text = "Lần kiểm tra gần đây",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "View all",
+                text = "Xem tất cả",
+                modifier = Modifier.clickable(onClick = onViewAllHistory),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -302,12 +320,12 @@ private fun RecentCheckups(logs: List<PredictionLogItem>) {
         if (logs.isEmpty()) {
             CVioCard(containerColor = CVioSurfaceContainerLow) {
                 Text(
-                    text = "No saved checkups yet",
+                    text = "Chưa có lần kiểm tra nào",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Take a photo or choose from gallery to start your first shrimp health check.",
+                    text = "Chụp ảnh hoặc chọn ảnh có sẵn để bắt đầu kiểm tra sức khỏe tôm.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -322,6 +340,7 @@ private fun RecentCheckups(logs: List<PredictionLogItem>) {
 
 @Composable
 private fun RecentCheckupCard(item: PredictionLogItem) {
+    val displayLabel = DiseaseTextUtils.displayLabel(item.predictedClass)
     CVioCard(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -339,7 +358,7 @@ private fun RecentCheckupCard(item: PredictionLogItem) {
                     verticalAlignment = Alignment.Top,
                 ) {
                     CVioStatusChip(
-                        text = if (item.isAboveThreshold) item.predictedClass else "Warning",
+                        text = if (item.isAboveThreshold) displayLabel else "Cần chụp lại",
                         containerColor = if (item.isAboveThreshold) {
                             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
                         } else {
@@ -360,7 +379,7 @@ private fun RecentCheckupCard(item: PredictionLogItem) {
                     )
                 }
                 Text(
-                    text = item.predictedClass,
+                    text = displayLabel,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium,
@@ -368,7 +387,7 @@ private fun RecentCheckupCard(item: PredictionLogItem) {
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "${BenchmarkUtils.confidenceText(item.confidence)} Confidence",
+                    text = "${BenchmarkUtils.confidenceText(item.confidence)} độ tin cậy",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (item.isAboveThreshold) {
                         MaterialTheme.colorScheme.primary
@@ -391,7 +410,7 @@ private fun CheckupThumbnail(item: PredictionLogItem) {
         item.thumbnail != null -> {
             Image(
                 bitmap = item.thumbnail.asImageBitmap(),
-                contentDescription = "Checkup thumbnail",
+                contentDescription = "Ảnh lần kiểm tra",
                 modifier = modifier,
                 contentScale = ContentScale.Crop,
             )
@@ -400,7 +419,7 @@ private fun CheckupThumbnail(item: PredictionLogItem) {
         item.imageUri != null -> {
             AsyncImage(
                 model = item.imageUri,
-                contentDescription = "Checkup thumbnail",
+                contentDescription = "Ảnh lần kiểm tra",
                 modifier = modifier,
                 contentScale = ContentScale.Crop,
             )
@@ -411,5 +430,28 @@ private fun CheckupThumbnail(item: PredictionLogItem) {
                 ShrimpIllustration(modifier = Modifier.fillMaxSize().padding(8.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun HomeIconBubble(
+    icon: ShrimpNavIcon,
+    size: Dp,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(999.dp))
+            .background(containerColor),
+        contentAlignment = Alignment.Center,
+    ) {
+        ShrimpLineIcon(
+            icon = icon,
+            modifier = Modifier.size(size * 0.54f),
+            color = contentColor,
+        )
     }
 }

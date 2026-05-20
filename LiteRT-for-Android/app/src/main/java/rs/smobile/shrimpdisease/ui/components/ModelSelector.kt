@@ -30,7 +30,7 @@ fun ModelSelector(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = selectedModel.ifBlank { "No model selected" },
+                text = selectedModel.ifBlank { "Chưa chọn mô hình" },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )

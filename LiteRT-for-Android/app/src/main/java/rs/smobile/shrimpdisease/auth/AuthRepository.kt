@@ -30,7 +30,6 @@ class AuthRepository @Inject constructor(
     }
 
     fun login(
-        role: AuthRole,
         account: String,
         password: String,
     ): AuthResult {
@@ -39,11 +38,11 @@ class AuthRepository @Inject constructor(
         if (validationError != null) return AuthResult.Error(validationError)
 
         val record = readUsers().firstOrNull {
-            it.account == normalizedAccount && it.role == role
-        } ?: return AuthResult.Error("Account not found for ${role.name.lowercase()} role.")
+            it.account == normalizedAccount
+        } ?: return AuthResult.Error("Không tìm thấy tài khoản. Vui lòng kiểm tra email hoặc số điện thoại.")
 
         if (record.passwordHash != hashPassword(password, record.salt)) {
-            return AuthResult.Error("Invalid password.")
+            return AuthResult.Error("Mật khẩu chưa đúng.")
         }
 
         saveSession(record.id)
@@ -53,28 +52,23 @@ class AuthRepository @Inject constructor(
     }
 
     fun register(
-        role: AuthRole,
         account: String,
         password: String,
     ): AuthResult {
-        if (role == AuthRole.Admin) {
-            return AuthResult.Error("Admin accounts must be created by the system administrator.")
-        }
-
         val normalizedAccount = account.normalizedAccount()
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
         val users = readUsers()
         if (users.any { it.account == normalizedAccount }) {
-            return AuthResult.Error("This account is already registered.")
+            return AuthResult.Error("Tài khoản này đã được đăng ký.")
         }
 
         val salt = generateSalt()
         val record = StoredUser(
             id = UUID.randomUUID().toString(),
             account = normalizedAccount,
-            role = role,
+            role = AuthRole.Farmer,
             displayName = displayNameFor(normalizedAccount),
             salt = salt,
             passwordHash = hashPassword(password, salt),
@@ -87,6 +81,35 @@ class AuthRepository @Inject constructor(
         return AuthResult.Success(user)
     }
 
+    fun createManagedFarmer(
+        account: String,
+        password: String,
+        displayName: String,
+    ): AuthResult {
+        val normalizedAccount = account.normalizedAccount()
+        val validationError = validateCredentials(normalizedAccount, password)
+        if (validationError != null) return AuthResult.Error(validationError)
+
+        val users = readUsers()
+        if (users.any { it.account == normalizedAccount }) {
+            return AuthResult.Error("Tài khoản này đã được đăng ký.")
+        }
+
+        val cleanDisplayName = displayName.trim().ifBlank { displayNameFor(normalizedAccount) }
+        val salt = generateSalt()
+        val record = StoredUser(
+            id = UUID.randomUUID().toString(),
+            account = normalizedAccount,
+            role = AuthRole.Farmer,
+            displayName = cleanDisplayName,
+            salt = salt,
+            passwordHash = hashPassword(password, salt),
+            createdAt = System.currentTimeMillis(),
+        )
+        writeUsers(users + record)
+        return AuthResult.Success(record.toAuthUser())
+    }
+
     fun logout() {
         preferences.edit()
             .remove(KEY_SESSION_USER_ID)
@@ -95,9 +118,9 @@ class AuthRepository @Inject constructor(
     }
 
     fun updateDisplayName(displayName: String): AuthResult {
-        val currentUser = _session.value.user ?: return AuthResult.Error("No active session.")
+        val currentUser = _session.value.user ?: return AuthResult.Error("Chưa đăng nhập.")
         val cleanName = displayName.trim()
-        if (cleanName.isBlank()) return AuthResult.Error("Display name is required.")
+        if (cleanName.isBlank()) return AuthResult.Error("Cần nhập tên hiển thị.")
 
         val users = readUsers()
         val updatedUsers = users.map { user ->
@@ -106,7 +129,7 @@ class AuthRepository @Inject constructor(
         writeUsers(updatedUsers)
 
         val updatedUser = updatedUsers.firstOrNull { it.id == currentUser.id }
-            ?: return AuthResult.Error("Account not found.")
+            ?: return AuthResult.Error("Không tìm thấy tài khoản.")
         val authUser = updatedUser.toAuthUser()
         _session.value = AuthSession(user = authUser)
         return AuthResult.Success(authUser)
@@ -169,9 +192,9 @@ class AuthRepository @Inject constructor(
     }
 
     private fun validateCredentials(account: String, password: String): String? {
-        if (account.isBlank()) return "Email or phone number is required."
+        if (account.isBlank()) return "Cần nhập email hoặc số điện thoại."
         if (password.length < MIN_PASSWORD_LENGTH) {
-            return "Password must be at least $MIN_PASSWORD_LENGTH characters."
+            return "Mật khẩu cần ít nhất $MIN_PASSWORD_LENGTH ký tự."
         }
         return null
     }
@@ -196,7 +219,7 @@ class AuthRepository @Inject constructor(
     }
 
     private fun displayNameFor(account: String): String {
-        return account.substringBefore("@").ifBlank { "Shrimp Farmer" }
+        return account.substringBefore("@").ifBlank { "Nông dân nuôi tôm" }
             .replaceFirstChar { char -> char.uppercase() }
     }
 

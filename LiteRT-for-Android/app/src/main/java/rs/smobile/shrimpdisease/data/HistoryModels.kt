@@ -17,10 +17,10 @@ enum class DiagnosisHistoryStatus {
 }
 
 enum class HistoryFilter(val label: String) {
-    All("All"),
-    Healthy("Healthy"),
-    Disease("Disease Detected"),
-    LowConfidence("Low Confidence");
+    All("Tất cả"),
+    Healthy("Tôm khỏe"),
+    Disease("Có dấu hiệu bệnh"),
+    LowConfidence("Ảnh chưa rõ");
 
     fun matches(item: PredictionLogItem): Boolean {
         return when (this) {

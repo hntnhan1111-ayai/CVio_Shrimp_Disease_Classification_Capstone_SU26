@@ -27,7 +27,7 @@ fun InferenceActionPanel(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Actions",
+            text = "Thao tác",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
         )
@@ -39,7 +39,7 @@ fun InferenceActionPanel(
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 Text(
-                    text = "Analyzing shrimp image...",
+                    text = "Đang phân tích ảnh tôm...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -47,7 +47,7 @@ fun InferenceActionPanel(
         }
 
         PrimaryActionButton(
-            text = if (hasResult) "Run Inference Again" else "Run Inference",
+            text = if (hasResult) "Kiểm tra lại" else "Bắt đầu kiểm tra",
             enabled = hasImage && !isLoading,
             onClick = onRunInference,
             modifier = Modifier.fillMaxWidth(),
@@ -58,20 +58,20 @@ fun InferenceActionPanel(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             SecondaryActionButton(
-                text = "Save Result",
+                text = "Lưu kết quả",
                 enabled = hasResult,
                 onClick = onSaveResult,
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
-                text = "History",
+                text = "Lịch sử",
                 onClick = onHistory,
                 modifier = Modifier.weight(1f),
             )
         }
 
         SecondaryActionButton(
-            text = "Home",
+            text = "Trang chủ",
             onClick = onGoHome,
             modifier = Modifier.fillMaxWidth(),
         )

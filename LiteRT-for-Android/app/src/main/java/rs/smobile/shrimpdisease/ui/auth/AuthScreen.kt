@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,28 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import rs.smobile.shrimpdisease.auth.AuthRole
 import rs.smobile.shrimpdisease.ui.components.AppLogoMark
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
-import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainer
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 
 @Composable
 fun AuthScreen(
-    selectedRole: AuthRole = AuthRole.Farmer,
-    onRoleSelected: (AuthRole) -> Unit,
-    onLogin: (AuthRole, String, String) -> Unit,
-    onRegister: (AuthRole, String, String) -> Unit,
+    onLogin: (String, String) -> Unit,
+    onRegister: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var role by remember(selectedRole) { mutableStateOf(selectedRole) }
     var account by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
@@ -73,18 +66,12 @@ fun AuthScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    AppLogoMark(size = 72.dp, padding = 8.dp)
-                    Text(
-                        text = "CVio",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    AppLogoMark(size = 88.dp, padding = 2.dp)
                     Text(
                         text = if (registerMode) {
-                            "Create a farmer account to start diagnosis"
+                            "Tạo tài khoản nông dân mới"
                         } else {
-                            "Sign in to continue to your dashboard"
+                            "Đăng nhập bằng email đã đăng ký"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -92,21 +79,13 @@ fun AuthScreen(
                     )
                 }
 
-                RoleSelector(
-                    selectedRole = role,
-                    onRoleSelected = { selected ->
-                        role = selected
-                        onRoleSelected(selected)
-                    },
-                )
-
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     OutlinedTextField(
                         value = account,
                         onValueChange = { account = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(text = "Email or Phone Number") },
-                        placeholder = { Text(text = "Enter your details") },
+                        label = { Text(text = "Email hoặc số điện thoại") },
+                        placeholder = { Text(text = "Nhập email hoặc số điện thoại") },
                         singleLine = true,
                         shape = RoundedCornerShape(24.dp),
                     )
@@ -117,13 +96,13 @@ fun AuthScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "Password",
+                                text = "Mật khẩu",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (!registerMode) {
                                 TextButton(onClick = { }) {
-                                    Text(text = "Forgot?")
+                                    Text(text = "Quên?")
                                 }
                             }
                         }
@@ -131,7 +110,7 @@ fun AuthScreen(
                             value = password,
                             onValueChange = { password = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(text = "Enter your password") },
+                            placeholder = { Text(text = "Nhập mật khẩu") },
                             singleLine = true,
                             shape = RoundedCornerShape(24.dp),
                             visualTransformation = if (showPassword) {
@@ -141,7 +120,7 @@ fun AuthScreen(
                             },
                             trailingIcon = {
                                 TextButton(onClick = { showPassword = !showPassword }) {
-                                    Text(text = if (showPassword) "Hide" else "Show")
+                                    Text(text = if (showPassword) "Ẩn" else "Hiện")
                                 }
                             },
                         )
@@ -149,12 +128,12 @@ fun AuthScreen(
                 }
 
                 PrimaryActionButton(
-                    text = if (registerMode) "Create account" else "Login",
+                    text = if (registerMode) "Tạo tài khoản" else "Đăng nhập",
                     onClick = {
                         if (registerMode) {
-                            onRegister(role, account, password)
+                            onRegister(account, password)
                         } else {
-                            onLogin(role, account, password)
+                            onLogin(account, password)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -170,9 +149,9 @@ fun AuthScreen(
                 ) {
                     Text(
                         text = if (registerMode) {
-                            "Already have an account? Login"
+                            "Đã có tài khoản? Đăng nhập"
                         } else {
-                            "Create farmer account"
+                            "Tạo tài khoản nông dân mới"
                         },
                         modifier = Modifier.clickable { registerMode = !registerMode },
                         style = MaterialTheme.typography.bodyMedium,
@@ -181,51 +160,6 @@ fun AuthScreen(
                         textAlign = TextAlign.Center,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RoleSelector(
-    selectedRole: AuthRole,
-    onRoleSelected: (AuthRole) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(999.dp))
-            .background(CVioSurfaceContainer)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        AuthRole.values().forEach { role ->
-            val selected = selectedRole == role
-            Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(999.dp))
-                    .clickable { onRoleSelected(role) },
-                shape = RoundedCornerShape(999.dp),
-                color = if (selected) {
-                    CVioSurfaceContainerLowest
-                } else {
-                    Color.Transparent
-                },
-                shadowElevation = if (selected) 2.dp else 0.dp,
-            ) {
-                Text(
-                    text = role.name,
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                )
             }
         }
     }

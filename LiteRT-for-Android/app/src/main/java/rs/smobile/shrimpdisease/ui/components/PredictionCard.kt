@@ -31,7 +31,7 @@ fun PredictionCard(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Scan Result",
+            text = "Kết quả kiểm tra",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -39,7 +39,7 @@ fun PredictionCard(
             isLoading -> {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 Text(
-                    text = "Analyzing shrimp image...",
+                    text = "Đang phân tích ảnh tôm...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -47,7 +47,7 @@ fun PredictionCard(
 
             errorMessage != null -> {
                 ResultStatusBadge(
-                    text = "Analysis failed",
+                    text = "Phân tích chưa thành công",
                     kind = ResultStatusKind.Disease,
                 )
                 Text(
@@ -80,7 +80,7 @@ fun PredictionCard(
                         )
                     }
                     ConfidenceScoreCard(
-                        label = "Confidence",
+                        label = "Độ tin cậy",
                         value = BenchmarkUtils.confidenceText(result.confidence),
                         accent = statusAccent,
                         modifier = Modifier.weight(0.78f),
@@ -105,7 +105,7 @@ fun PredictionCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "What this means",
+                        text = "Ý nghĩa kết quả",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
@@ -122,7 +122,7 @@ fun PredictionCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     CVioMetricTile(
-                        label = "Time",
+                        label = "Thời gian",
                         value = BenchmarkUtils.latencyText(result.inferenceTimeMs),
                         modifier = Modifier.weight(1f),
                     )
@@ -135,13 +135,13 @@ fun PredictionCard(
                 }
 
                 Text(
-                    text = "Model ${result.modelName} | Threshold ${BenchmarkUtils.confidenceText(result.threshold)}",
+                    text = "Mô hình ${result.modelName} | Ngưỡng ${BenchmarkUtils.confidenceText(result.threshold)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 result.groundTruthLabel?.let { groundTruth ->
                     Text(
-                        text = "Ground truth $groundTruth | ${correctnessText(result.isCorrect)}",
+                        text = "Nhãn kiểm tra $groundTruth | ${correctnessText(result.isCorrect)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -150,7 +150,7 @@ fun PredictionCard(
 
             else -> {
                 Text(
-                    text = "Run inference to see a shrimp health assessment.",
+                    text = "Hãy kiểm tra ảnh để xem đánh giá sức khỏe tôm.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -180,17 +180,17 @@ private fun ClassificationResult.statusAccent(): Color {
 private fun ClassificationResult.statusText(): String {
     val label = displayPredictionText().lowercase()
     return when {
-        !isAboveThreshold -> "Low confidence"
-        "healthy" in label -> "Status: Healthy"
-        else -> "Disease detected"
+        !isAboveThreshold -> "Ảnh chưa đủ rõ"
+        "healthy" in label -> "Tình trạng: Khỏe"
+        else -> "Phát hiện dấu hiệu bệnh"
     }
 }
 
 private fun resultExplanation(result: ClassificationResult): String {
     return if (result.isAboveThreshold) {
-        "The AI classified this sample as ${result.predictedClass}. Use this as field triage and confirm with pond conditions before treatment decisions."
+        "AI dự đoán mẫu này là ${result.predictedClass}. Bà con nên xem đây là gợi ý ban đầu và đối chiếu thêm tình trạng ao."
     } else {
-        "The top prediction is below the confidence threshold. Retake the image with better lighting or inspect the top-3 prediction breakdown."
+        "Dự đoán cao nhất chưa đủ tin cậy. Bà con nên chụp lại ảnh rõ hơn trước khi đánh giá."
     }
 }
 
@@ -198,14 +198,14 @@ private fun ClassificationResult.displayPredictionText(): String {
     return if (isAboveThreshold) {
         predictedClass
     } else {
-        "$rawTop1Label / Unknown"
+        "$rawTop1Label / Chưa rõ"
     }
 }
 
 private fun correctnessText(isCorrect: Boolean?): String {
     return when (isCorrect) {
-        true -> "Correct"
-        false -> "Incorrect"
-        null -> "N/A"
+        true -> "Đúng"
+        false -> "Chưa đúng"
+        null -> "Chưa có"
     }
 }

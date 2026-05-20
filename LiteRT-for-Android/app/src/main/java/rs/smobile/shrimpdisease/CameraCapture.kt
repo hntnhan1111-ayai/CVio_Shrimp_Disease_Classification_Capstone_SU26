@@ -86,7 +86,7 @@ fun CameraCaptureCard(
             if (capturedBitmap != null) {
                 Image(
                     bitmap = capturedBitmap.asImageBitmap(),
-                    contentDescription = "Captured shrimp image",
+                    contentDescription = "Ảnh tôm đã chụp",
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
@@ -99,7 +99,7 @@ fun CameraCaptureCard(
                         .weight(1f),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "Camera is inactive")
+                    Text(text = "Máy ảnh chưa bật")
                 }
             } else {
                 CameraPreview(
@@ -127,12 +127,12 @@ fun CameraCaptureCard(
                             if (snapshot != null) {
                                 onSnapshot(snapshot)
                             } else {
-                                onError("Camera preview is not ready yet.")
+                                onError("Máy ảnh chưa sẵn sàng.")
                             }
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                    Text(text = "Take Photo")
+                    Text(text = "Chụp ảnh")
                     }
                     OutlinedButton(
                         enabled = enabled,
@@ -141,7 +141,7 @@ fun CameraCaptureCard(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                    Text(text = "Clear")
+                    Text(text = "Xóa")
                     }
                 } else {
                     OutlinedButton(
@@ -152,7 +152,7 @@ fun CameraCaptureCard(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(text = "Retake")
+                        Text(text = "Chụp lại")
                     }
                 }
             }
@@ -218,10 +218,10 @@ private fun CameraPreview(
                         if (bitmap != null) {
                             onFrameBitmap(bitmap)
                         } else {
-                            onError("Could not convert camera frame to bitmap.")
+                            onError("Không xử lý được khung hình camera.")
                         }
                     } catch (error: Throwable) {
-                        onError(error.message ?: "Camera analyzer failed.")
+                        onError(error.message ?: "Máy ảnh phân tích bị lỗi.")
                     } finally {
                         imageProxy.close()
                     }
@@ -235,7 +235,7 @@ private fun CameraPreview(
                     analysis,
                 )
             } catch (error: Throwable) {
-                onError(error.message ?: "Unable to start camera.")
+                onError(error.message ?: "Không mở được máy ảnh.")
             }
         }
 

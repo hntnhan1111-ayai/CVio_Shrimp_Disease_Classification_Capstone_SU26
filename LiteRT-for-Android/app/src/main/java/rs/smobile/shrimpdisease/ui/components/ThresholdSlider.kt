@@ -30,7 +30,7 @@ fun ThresholdSlider(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Confidence threshold",
+                text = "Ngưỡng tin cậy",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )

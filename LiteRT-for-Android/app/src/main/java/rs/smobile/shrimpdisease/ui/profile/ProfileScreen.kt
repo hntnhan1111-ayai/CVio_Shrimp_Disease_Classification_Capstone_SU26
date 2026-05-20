@@ -2,6 +2,9 @@ package rs.smobile.shrimpdisease.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,16 +33,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
 import rs.smobile.shrimpdisease.profile.FarmerProfileUpdate
 import rs.smobile.shrimpdisease.ui.components.AppBrandLogo
 import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.CVioIconBubble
 import rs.smobile.shrimpdisease.ui.components.DataPermissionToggle
+import rs.smobile.shrimpdisease.ui.components.ShrimpIconButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpLineIcon
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerHigh
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerHighest
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
@@ -49,6 +59,9 @@ import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 fun ProfileScreen(
     profileUiState: FarmerProfileUiState,
     onDataPermissionChanged: (Boolean) -> Unit,
+    onBackHome: () -> Unit,
+    onSettings: () -> Unit,
+    onUpdateAvatar: () -> Unit,
     onSaveProfile: (FarmerProfileUpdate) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -71,7 +84,10 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        ProfileTopBar(profileUiState = profileUiState)
+        ProfileTopBar(
+            onBackHome = onBackHome,
+            onSettings = onSettings,
+        )
 
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
@@ -80,6 +96,7 @@ fun ProfileScreen(
             ProfileIdentityCard(
                 profileUiState = profileUiState,
                 onEditProfile = { showEditProfile = true },
+                onUpdateAvatar = onUpdateAvatar,
             )
             DataPermissionsCard(
                 checked = profileUiState.dataPermissionEnabled,
@@ -91,7 +108,10 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileTopBar(profileUiState: FarmerProfileUiState) {
+private fun ProfileTopBar(
+    onBackHome: () -> Unit,
+    onSettings: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,18 +120,16 @@ private fun ProfileTopBar(profileUiState: FarmerProfileUiState) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CVioIconBubble(
-            label = profileUiState.initials.take(2),
-            size = 40.dp,
-            containerColor = CVioSurfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.primary,
+        ShrimpIconButton(
+            icon = ShrimpNavIcon.Back,
+            contentDescription = "Về trang chủ",
+            onClick = onBackHome,
         )
         AppBrandLogo()
-        CVioIconBubble(
-            label = "N",
-            size = 40.dp,
-            containerColor = CVioSurfaceContainerLowest,
-            contentColor = MaterialTheme.colorScheme.primary,
+        ShrimpIconButton(
+            icon = ShrimpNavIcon.Settings,
+            contentDescription = "Mở cài đặt",
+            onClick = onSettings,
         )
     }
 }
@@ -120,6 +138,7 @@ private fun ProfileTopBar(profileUiState: FarmerProfileUiState) {
 private fun ProfileIdentityCard(
     profileUiState: FarmerProfileUiState,
     onEditProfile: () -> Unit,
+    onUpdateAvatar: () -> Unit,
 ) {
     CVioCard(tonalElevation = 3.dp) {
         Column(
@@ -128,12 +147,28 @@ private fun ProfileIdentityCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(contentAlignment = Alignment.BottomEnd) {
-                CVioIconBubble(
-                    label = profileUiState.initials.take(2),
-                    size = 96.dp,
-                    containerColor = CVioSurfaceContainerHighest,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                )
+                val avatarModifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .clickable(onClick = onUpdateAvatar)
+
+                if (profileUiState.avatarUri != null) {
+                    AsyncImage(
+                        model = profileUiState.avatarUri,
+                        contentDescription = "Ảnh đại diện",
+                        modifier = avatarModifier,
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    CVioIconBubble(
+                        label = profileUiState.initials.take(2),
+                        modifier = avatarModifier,
+                        size = 96.dp,
+                        containerColor = CVioSurfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .size(34.dp)
@@ -143,27 +178,27 @@ private fun ProfileIdentityCard(
                             width = 2.dp,
                             color = CVioSurfaceContainerLowest,
                             shape = RoundedCornerShape(999.dp),
-                        ),
+                        )
+                        .clickable(onClick = onUpdateAvatar),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = "E",
-                        style = MaterialTheme.typography.labelMedium,
+                    ShrimpLineIcon(
+                        icon = ShrimpNavIcon.Camera,
+                        modifier = Modifier.size(18.dp),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
 
             Text(
-                text = profileUiState.displayName,
+                text = profileValueText(profileUiState.displayName),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = profileUiState.farmLocation,
+                text = profileValueText(profileUiState.farmLocation),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -177,8 +212,8 @@ private fun ProfileIdentityCard(
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                ProfileContactRow(label = "TEL", value = profileUiState.phoneNumber)
-                ProfileContactRow(label = "MAIL", value = profileUiState.email)
+                ProfileContactRow(icon = ShrimpNavIcon.Phone, value = profileUiState.phoneNumber)
+                ProfileContactRow(icon = ShrimpNavIcon.Email, value = profileUiState.email)
             }
 
             Button(
@@ -191,7 +226,7 @@ private fun ProfileIdentityCard(
                 ),
             ) {
                 Text(
-                    text = "Edit Profile",
+                    text = "Sửa hồ sơ",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -202,7 +237,7 @@ private fun ProfileIdentityCard(
 
 @Composable
 private fun ProfileContactRow(
-    label: String,
+    icon: ShrimpNavIcon,
     value: String,
 ) {
     Row(
@@ -210,14 +245,14 @@ private fun ProfileContactRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CVioIconBubble(
-            label = label,
+        ProfileIconBubble(
+            icon = icon,
             size = 34.dp,
             containerColor = CVioSurfaceContainerHigh,
             contentColor = MaterialTheme.colorScheme.outline,
         )
         Text(
-            text = value,
+            text = profileValueText(value),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
@@ -236,14 +271,14 @@ private fun DataPermissionsCard(
 ) {
     CVioCard(tonalElevation = 3.dp) {
         Text(
-            text = "Data Permissions",
+            text = "Quyền dữ liệu",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
         )
         DataPermissionToggle(
-            title = "AI Model Improvement",
-            message = "Allow my anonymized images to help improve the diagnostic accuracy of the aquaculture AI model.",
+            title = "Góp ảnh để cải thiện AI",
+            message = "Cho phép dùng ảnh đã ẩn danh để AI nhận biết bệnh tôm tốt hơn.",
             checked = checked,
             onCheckedChange = onCheckedChange,
         )
@@ -257,7 +292,7 @@ private fun DataPermissionsCard(
             ),
         ) {
             Text(
-                text = "Logout",
+                text = "Đăng xuất",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -271,49 +306,45 @@ private fun EditProfileDialog(
     onDismiss: () -> Unit,
     onSave: (FarmerProfileUpdate) -> Unit,
 ) {
-    var displayName by remember(profileUiState.userId) { mutableStateOf(profileUiState.displayName) }
-    var farmLocation by remember(profileUiState.userId) { mutableStateOf(profileUiState.farmLocation) }
-    var phoneNumber by remember(profileUiState.userId) { mutableStateOf(profileUiState.phoneNumber) }
-    var email by remember(profileUiState.userId) { mutableStateOf(profileUiState.email) }
+    var displayName by remember(profileUiState.userId) { mutableStateOf("") }
+    var farmLocation by remember(profileUiState.userId) { mutableStateOf("") }
+    var phoneNumber by remember(profileUiState.userId) { mutableStateOf("") }
+    var email by remember(profileUiState.userId) { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Edit Profile",
+                text = "Sửa hồ sơ",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
+                EditableProfileField(
                     value = displayName,
                     onValueChange = { displayName = it },
-                    label = { Text("Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Tên",
+                    holder = profileValueText(profileUiState.displayName).ifBlank { "Nhập họ tên" },
                 )
-                OutlinedTextField(
+                EditableProfileField(
                     value = farmLocation,
                     onValueChange = { farmLocation = it },
-                    label = { Text("Farm / location") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Ao/trại nuôi",
+                    holder = profileValueText(profileUiState.farmLocation).ifBlank { "Nhập vị trí ao hoặc trại nuôi" },
                 )
-                OutlinedTextField(
+                EditableProfileField(
                     value = phoneNumber,
                     onValueChange = { phoneNumber = it },
-                    label = { Text("Phone") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Số điện thoại",
+                    holder = profileValueText(profileUiState.phoneNumber).ifBlank { "Nhập số điện thoại" },
                 )
-                OutlinedTextField(
+                EditableProfileField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Email",
+                    holder = profileValueText(profileUiState.email).ifBlank { "Nhập email" },
                 )
             }
         },
@@ -322,21 +353,80 @@ private fun EditProfileDialog(
                 onClick = {
                     onSave(
                         FarmerProfileUpdate(
-                            displayName = displayName,
-                            farmLocation = farmLocation,
-                            phoneNumber = phoneNumber,
-                            email = email,
+                            displayName = displayName.ifBlank { profileUiState.displayName },
+                            farmLocation = farmLocation.ifBlank { profileUiState.farmLocation },
+                            phoneNumber = phoneNumber.ifBlank { profileUiState.phoneNumber },
+                            email = email.ifBlank { profileUiState.email },
+                            avatarUri = profileUiState.avatarUri,
                         )
                     )
                 },
             ) {
-                Text("Save")
+                Text("Lưu")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Hủy")
             }
         },
     )
+}
+
+@Composable
+private fun EditableProfileField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    holder: String,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = {
+            if (!focused && value.isBlank()) {
+                Text(holder)
+            }
+        },
+        interactionSource = interactionSource,
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun ProfileIconBubble(
+    icon: ShrimpNavIcon,
+    size: Dp,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(999.dp))
+            .background(containerColor),
+        contentAlignment = Alignment.Center,
+    ) {
+        ShrimpLineIcon(
+            icon = icon,
+            modifier = Modifier.size(size * 0.55f),
+            color = contentColor,
+        )
+    }
+}
+
+private fun profileValueText(value: String): String {
+    return when (value) {
+        "Not set" -> "Chưa cập nhật"
+        "Coastal pond" -> "Ao nuôi ven biển"
+        "Coastal View Farms, Block A" -> "Ao nuôi ven biển, khu A"
+        "Shrimp Farmer" -> "Nông dân nuôi tôm"
+        else -> value
+    }
 }

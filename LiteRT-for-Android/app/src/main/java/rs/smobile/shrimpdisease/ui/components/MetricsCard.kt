@@ -23,18 +23,18 @@ fun MetricsCard(
 ) {
     CVioCard(modifier = modifier) {
         Text(
-            text = "Performance Metrics",
+            text = "Số liệu xử lý",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
         )
         MetricTileRow {
             CVioMetricTile(
-                label = "Inference",
-                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "N/A",
+                label = "AI xử lý",
+                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
-                label = "Avg time",
+                label = "Thời gian TB",
                 value = "${BenchmarkUtils.decimalText(benchmarkMetrics.averageInferenceTimeMs)} ms",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.tertiary,
@@ -42,13 +42,13 @@ fun MetricsCard(
         }
         MetricTileRow {
             CVioMetricTile(
-                label = "Speed",
-                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "N/A",
+                label = "Tốc độ",
+                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
             CVioMetricTile(
-                label = "Avg speed",
+                label = "Tốc độ TB",
                 value = BenchmarkUtils.speedText(benchmarkMetrics.averageSpeed),
                 modifier = Modifier.weight(1f),
             )
@@ -56,26 +56,26 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "FPS",
-                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "N/A",
+                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
-                label = "Accuracy",
-                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A",
+                label = "Độ đúng",
+                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
         }
         MetricTileRow {
             CVioMetricTile(
-                label = "Threshold",
-                value = result?.threshold?.let(BenchmarkUtils::confidenceText) ?: "N/A",
+                label = "Ngưỡng",
+                value = result?.threshold?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.primary,
             )
             CVioMetricTile(
                 label = "Kappa",
-                value = "N/A",
+                value = "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.onSurfaceVariant,
             )

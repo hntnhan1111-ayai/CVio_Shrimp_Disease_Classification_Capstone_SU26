@@ -1,6 +1,8 @@
 package rs.smobile.shrimpdisease.ui.inference
 
 import android.graphics.Bitmap
+import android.graphics.Color as AndroidColor
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,11 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,10 +31,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import rs.smobile.shrimpdisease.CameraCaptureCard
@@ -47,11 +48,9 @@ import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.ui.components.CameraScanFrame
 import rs.smobile.shrimpdisease.ui.components.CVioCard
-import rs.smobile.shrimpdisease.ui.components.CVioMetricTile
 import rs.smobile.shrimpdisease.ui.components.CVioSectionHeader
 import rs.smobile.shrimpdisease.ui.components.CompactInfoRow
 import rs.smobile.shrimpdisease.ui.components.EmptyState
-import rs.smobile.shrimpdisease.ui.components.MetricsCard
 import rs.smobile.shrimpdisease.ui.components.PermissionCard
 import rs.smobile.shrimpdisease.ui.components.PrimaryActionButton
 import rs.smobile.shrimpdisease.ui.components.ResultStatusBadge
@@ -66,6 +65,7 @@ import rs.smobile.shrimpdisease.ui.theme.DiseaseRed
 import rs.smobile.shrimpdisease.ui.theme.HealthyGreen
 import rs.smobile.shrimpdisease.ui.theme.WarningOrange
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
+import rs.smobile.shrimpdisease.utils.DiseaseTextUtils
 import java.util.Locale
 
 @Composable
@@ -98,15 +98,12 @@ fun InferenceScreen(
         CaptureUploadContent(
             inputState = inputState,
             classificationState = classificationState,
-            labels = labels,
-            selectedGroundTruthLabel = selectedGroundTruthLabel,
             cameraPermissionGranted = cameraPermissionGranted,
             onRequestCameraPermission = onRequestCameraPermission,
             onOpenCamera = onOpenCamera,
             onSnapshot = onSnapshot,
             onFrameObserved = onFrameObserved,
             onCameraError = onCameraError,
-            onGroundTruthSelected = onGroundTruthSelected,
             onSelectAnotherImage = onSelectAnotherImage,
             onRunInference = onRunInference,
             modifier = modifier,
@@ -115,14 +112,10 @@ fun InferenceScreen(
         DiagnosisResultContent(
             inputState = inputState,
             result = result,
-            labels = labels,
-            selectedGroundTruthLabel = selectedGroundTruthLabel,
             modelInfo = modelInfo,
-            benchmarkMetrics = benchmarkMetrics,
             runtimeDelegateName = runtimeDelegateName,
             debugInfoEnabled = debugInfoEnabled,
             cameraFps = cameraFps,
-            onGroundTruthSelected = onGroundTruthSelected,
             onSaveResult = onSaveResult,
             onScanAnother = onOpenCamera,
             onHome = onHome,
@@ -132,19 +125,210 @@ fun InferenceScreen(
     }
 }
 
+private fun ClassificationResult.localizedPredictionText(): String {
+    return if (isAboveThreshold) {
+        DiseaseTextUtils.displayLabel(predictedClass)
+    } else {
+        "${DiseaseTextUtils.displayLabel(rawTop1Label)}"
+    }
+}
+
+private fun ClassificationResult.localizedStatusKind(): ResultStatusKind {
+    return when {
+        !isAboveThreshold -> ResultStatusKind.Warning
+        DiseaseTextUtils.isHealthy(predictedClass) -> ResultStatusKind.Healthy
+        DiseaseTextUtils.isUnclear(predictedClass) -> ResultStatusKind.Warning
+        else -> ResultStatusKind.Disease
+    }
+}
+
+private fun ClassificationResult.localizedStatusColor() = when (localizedStatusKind()) {
+    ResultStatusKind.Healthy -> HealthyGreen
+    ResultStatusKind.Disease -> DiseaseRed
+    ResultStatusKind.Warning -> WarningOrange
+    ResultStatusKind.Neutral -> DarkNavy
+}
+
+private fun localizedDiseaseAnalysis(result: ClassificationResult): String {
+    val prediction = result.localizedPredictionText()
+    val confidence = BenchmarkUtils.confidenceText(result.confidence)
+    return when (result.localizedStatusKind()) {
+        ResultStatusKind.Healthy -> "AI dự đoán mẫu là $prediction với độ tin cậy $confidence. Ảnh hiện tại không cho thấy dấu hiệu bệnh rõ ràng trong nhóm nhãn mà mô hình đang hỗ trợ."
+        ResultStatusKind.Disease -> {
+            val diseaseInfo = DiseaseTextUtils.diseaseInfo(result.predictedClass)
+                ?: "Bà con nên xem kết quả này là cảnh báo sớm, kiểm tra thêm tôm trong ao và theo dõi môi trường nước trước khi xử lý."
+            "AI dự đoán mẫu có dấu hiệu $prediction với độ tin cậy $confidence. $diseaseInfo"
+        }
+        ResultStatusKind.Warning -> "AI dự đoán $prediction nhưng ảnh hoặc độ tin cậy chưa đủ chắc chắn. Nên chụp lại ảnh rõ hơn, đủ sáng và đặt tôm ở giữa khung trước khi dùng kết quả để đánh giá ao."
+        ResultStatusKind.Neutral -> "Chưa có phân tích bệnh khả dụng cho kết quả này."
+    }
+}
+
+private data class HeatmapHotspot(
+    val xRatio: Float,
+    val yRatio: Float,
+    val strength: Float,
+)
+
+private fun buildImageHeatmapHotspots(
+    bitmap: Bitmap?,
+    result: ClassificationResult,
+): List<HeatmapHotspot> {
+    if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) {
+        return fallbackHotspots(result.localizedStatusKind())
+    }
+
+    val statusKind = result.localizedStatusKind()
+    val columns = 12
+    val rows = 12
+    val samples = mutableListOf<HeatmapSample>()
+    var totalBrightness = 0f
+
+    for (row in 0 until rows) {
+        for (column in 0 until columns) {
+            val x = ((column + 0.5f) * bitmap.width / columns)
+                .toInt()
+                .coerceIn(0, bitmap.width - 1)
+            val y = ((row + 0.5f) * bitmap.height / rows)
+                .toInt()
+                .coerceIn(0, bitmap.height - 1)
+            val pixel = bitmap.getPixel(x, y)
+            val red = AndroidColor.red(pixel) / 255f
+            val green = AndroidColor.green(pixel) / 255f
+            val blue = AndroidColor.blue(pixel) / 255f
+            val brightness = (red + green + blue) / 3f
+            val saturation = maxOf(red, green, blue) - minOf(red, green, blue)
+            val xRatio = (x + 0.5f) / bitmap.width
+            val yRatio = (y + 0.5f) / bitmap.height
+            val centrality = centralityScore(xRatio, yRatio)
+            samples += HeatmapSample(
+                xRatio = xRatio,
+                yRatio = yRatio,
+                brightness = brightness,
+                saturation = saturation,
+                centrality = centrality,
+            )
+            totalBrightness += brightness
+        }
+    }
+
+    val averageBrightness = totalBrightness / samples.size.coerceAtLeast(1)
+    val scored = samples.map { sample ->
+        val contrast = kotlin.math.abs(sample.brightness - averageBrightness)
+        val whiteSpotCue = sample.brightness * (1f - sample.saturation * 0.55f)
+        val score = when (statusKind) {
+            ResultStatusKind.Disease -> {
+                whiteSpotCue * 0.42f + contrast * 0.38f + sample.centrality * 0.2f
+            }
+
+            ResultStatusKind.Healthy -> {
+                sample.centrality * 0.46f +
+                    (1f - contrast).coerceIn(0f, 1f) * 0.28f +
+                    sample.saturation * 0.26f
+            }
+
+            ResultStatusKind.Warning, ResultStatusKind.Neutral -> {
+                sample.centrality * 0.5f + contrast * 0.3f + sample.brightness * 0.2f
+            }
+        }
+        sample to score
+    }.sortedByDescending { it.second }
+
+    val selected = mutableListOf<Pair<HeatmapSample, Float>>()
+    for (candidate in scored) {
+        val farEnough = selected.all { selectedSample ->
+            val dx = selectedSample.first.xRatio - candidate.first.xRatio
+            val dy = selectedSample.first.yRatio - candidate.first.yRatio
+            dx * dx + dy * dy > 0.0225f
+        }
+        if (farEnough) selected += candidate
+        if (selected.size == 5) break
+    }
+
+    val maxScore = selected.maxOfOrNull { it.second }?.takeIf { it > 0f } ?: 1f
+    return selected.ifEmpty { fallbackHotspots(statusKind).map { hotspot -> HeatmapSample(hotspot.xRatio, hotspot.yRatio, 0f, 0f, 0f) to hotspot.strength } }
+        .map { (sample, score) ->
+            HeatmapHotspot(
+                xRatio = sample.xRatio,
+                yRatio = sample.yRatio,
+                strength = (score / maxScore).coerceIn(0.35f, 1f),
+            )
+        }
+}
+
+private data class HeatmapSample(
+    val xRatio: Float,
+    val yRatio: Float,
+    val brightness: Float,
+    val saturation: Float,
+    val centrality: Float,
+)
+
+private fun centralityScore(
+    xRatio: Float,
+    yRatio: Float,
+): Float {
+    val dx = kotlin.math.abs(xRatio - 0.5f) / 0.5f
+    val dy = kotlin.math.abs(yRatio - 0.5f) / 0.5f
+    return (1f - (dx * dx + dy * dy) / 2f).coerceIn(0f, 1f)
+}
+
+private fun HeatmapHotspot.toCanvasOffset(
+    canvasWidth: Float,
+    canvasHeight: Float,
+    bitmap: Bitmap?,
+): Offset {
+    if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) {
+        return Offset(canvasWidth * xRatio, canvasHeight * yRatio)
+    }
+
+    val scale = maxOf(
+        canvasWidth / bitmap.width.toFloat(),
+        canvasHeight / bitmap.height.toFloat(),
+    )
+    val displayedWidth = bitmap.width * scale
+    val displayedHeight = bitmap.height * scale
+    val offsetX = (canvasWidth - displayedWidth) / 2f
+    val offsetY = (canvasHeight - displayedHeight) / 2f
+
+    return Offset(
+        x = offsetX + xRatio * displayedWidth,
+        y = offsetY + yRatio * displayedHeight,
+    )
+}
+
+private fun fallbackHotspots(statusKind: ResultStatusKind): List<HeatmapHotspot> {
+    return when (statusKind) {
+        ResultStatusKind.Healthy -> listOf(
+            HeatmapHotspot(0.52f, 0.52f, 0.92f),
+            HeatmapHotspot(0.34f, 0.38f, 0.62f),
+        )
+
+        ResultStatusKind.Disease -> listOf(
+            HeatmapHotspot(0.46f, 0.46f, 1f),
+            HeatmapHotspot(0.66f, 0.62f, 0.72f),
+            HeatmapHotspot(0.32f, 0.58f, 0.58f),
+        )
+
+        ResultStatusKind.Warning -> listOf(
+            HeatmapHotspot(0.5f, 0.5f, 0.86f),
+            HeatmapHotspot(0.68f, 0.38f, 0.56f),
+        )
+
+        ResultStatusKind.Neutral -> listOf(HeatmapHotspot(0.5f, 0.5f, 0.75f))
+    }
+}
+
 @Composable
 private fun CaptureUploadContent(
     inputState: InferenceInputUiState,
     classificationState: ClassificationUiState,
-    labels: List<String>,
-    selectedGroundTruthLabel: String?,
     cameraPermissionGranted: Boolean,
     onRequestCameraPermission: () -> Unit,
     onOpenCamera: () -> Unit,
     onSnapshot: (Bitmap) -> Unit,
     onFrameObserved: () -> Unit,
     onCameraError: (String) -> Unit,
-    onGroundTruthSelected: (String?) -> Unit,
     onSelectAnotherImage: () -> Unit,
     onRunInference: () -> Unit,
     modifier: Modifier = Modifier,
@@ -176,12 +360,12 @@ private fun CaptureUploadContent(
         if (!hasImage && !showCamera) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 PrimaryActionButton(
-                    text = "Open Camera",
+                    text = "Mở máy ảnh",
                     onClick = onOpenCamera,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 SecondaryActionButton(
-                    text = "Select from Gallery",
+                    text = "Chọn ảnh có sẵn",
                     onClick = onSelectAnotherImage,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -194,7 +378,7 @@ private fun CaptureUploadContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 SecondaryActionButton(
-                    text = if (inputState.source == InferenceSource.SNAPSHOT) "Retake" else "Choose Again",
+                    text = if (inputState.source == InferenceSource.SNAPSHOT) "Chụp lại" else "Chọn ảnh khác",
                     onClick = {
                         if (inputState.source == InferenceSource.SNAPSHOT) {
                             retakeRequested = true
@@ -206,7 +390,7 @@ private fun CaptureUploadContent(
                     modifier = Modifier.weight(1f),
                 )
                 PrimaryActionButton(
-                    text = if (classificationState.isLoading) "Analyzing..." else "Use This Image",
+                    text = if (classificationState.isLoading) "Đang phân tích..." else "Dùng ảnh này",
                     enabled = !classificationState.isLoading,
                     onClick = onRunInference,
                     modifier = Modifier.weight(1.65f),
@@ -217,7 +401,7 @@ private fun CaptureUploadContent(
         if (classificationState.errorMessage != null) {
             CVioCard(containerColor = MaterialTheme.colorScheme.errorContainer) {
                 Text(
-                    text = "Analysis failed",
+                    text = "Phân tích chưa thành công",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     fontWeight = FontWeight.Bold,
@@ -231,13 +415,6 @@ private fun CaptureUploadContent(
         }
 
         TipsCard()
-
-        GroundTruthCard(
-            labels = labels,
-            selectedGroundTruthLabel = selectedGroundTruthLabel,
-            resultCorrectness = null,
-            onGroundTruthSelected = onGroundTruthSelected,
-        )
     }
 }
 
@@ -254,9 +431,9 @@ private fun CapturePreview(
     if (showCamera) {
         if (!cameraPermissionGranted) {
             PermissionCard(
-                title = "Camera permission needed",
-                message = "Grant camera access to take a shrimp image snapshot.",
-                actionLabel = "Grant permission",
+                title = "Cần quyền máy ảnh",
+                message = "Cho phép dùng máy ảnh để chụp ảnh tôm.",
+                actionLabel = "Cho phép máy ảnh",
                 onAction = onRequestCameraPermission,
             )
         } else {
@@ -285,7 +462,7 @@ private fun CapturePreview(
                 inputState.bitmap != null -> {
                     Image(
                         bitmap = inputState.bitmap.asImageBitmap(),
-                        contentDescription = "Selected shrimp image",
+                        contentDescription = "Ảnh tôm đã chọn",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
@@ -294,7 +471,7 @@ private fun CapturePreview(
                 inputState.imageUri != null -> {
                     AsyncImage(
                         model = inputState.imageUri,
-                        contentDescription = "Selected shrimp image",
+                        contentDescription = "Ảnh tôm đã chọn",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
@@ -303,7 +480,7 @@ private fun CapturePreview(
                 else -> {
                     CameraScanFrame(
                         modifier = Modifier.fillMaxSize(),
-                        label = "Position shrimp within the frame for best results",
+                        label = "Đặt tôm vào giữa khung để AI dễ kiểm tra",
                     )
                 }
             }
@@ -328,14 +505,14 @@ private fun CapturePreview(
 private fun TipsCard() {
     CVioCard(containerColor = CVioSurfaceContainerLowest, tonalElevation = 3.dp) {
         Text(
-            text = "Tips for better analysis",
+            text = "Mẹo để AI kiểm tra tốt hơn",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
         )
-        TipRow("Place shrimp clearly in the center frame")
-        TipRow("Ensure good lighting without harsh shadows")
-        TipRow("Hold device steady to avoid blur")
+        TipRow("Đặt tôm rõ ở giữa khung hình")
+        TipRow("Chụp nơi đủ sáng, tránh bóng đổ mạnh")
+        TipRow("Giữ điện thoại chắc tay để ảnh không bị mờ")
     }
 }
 
@@ -363,14 +540,10 @@ private fun TipRow(text: String) {
 private fun DiagnosisResultContent(
     inputState: InferenceInputUiState,
     result: ClassificationResult,
-    labels: List<String>,
-    selectedGroundTruthLabel: String?,
     modelInfo: ModelInfo,
-    benchmarkMetrics: BenchmarkMetrics,
     runtimeDelegateName: String,
     debugInfoEnabled: Boolean,
     cameraFps: Double?,
-    onGroundTruthSelected: (String?) -> Unit,
     onSaveResult: () -> Unit,
     onScanAnother: () -> Unit,
     onHome: () -> Unit,
@@ -386,43 +559,6 @@ private fun DiagnosisResultContent(
     ) {
         ResultOverviewCard(inputState = inputState, result = result)
 
-        Text(
-            text = "Next Steps",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            NextStepCard(
-                title = if (result.statusKind() == ResultStatusKind.Disease) {
-                    "Isolate Sample"
-                } else {
-                    "Routine Water Check"
-                },
-                message = if (result.statusKind() == ResultStatusKind.Disease) {
-                    "Separate affected pond batch and confirm with field observations."
-                } else {
-                    "Continue daily DO, pH, and ammonia monitoring."
-                },
-                modifier = Modifier.weight(1f),
-            )
-            NextStepCard(
-                title = "Monitor Others",
-                message = "Observe feeding behavior and visible shell changes in nearby shrimp.",
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        GroundTruthCard(
-            labels = labels,
-            selectedGroundTruthLabel = selectedGroundTruthLabel,
-            resultCorrectness = result.isCorrect,
-            onGroundTruthSelected = onGroundTruthSelected,
-        )
-
         ResultActions(
             onSaveResult = onSaveResult,
             onScanAnother = onScanAnother,
@@ -432,12 +568,10 @@ private fun DiagnosisResultContent(
 
         DiagnosisDetailsCard(
             result = result,
-            modelInfo = modelInfo,
         )
 
-        AttentionMapCard()
+        AttentionMapCard(inputState = inputState, result = result)
         TopPredictionList(predictions = result.top3Predictions)
-        MetricsCard(result = result, benchmarkMetrics = benchmarkMetrics)
 
         if (debugInfoEnabled) {
             DebugInfoCard(
@@ -468,7 +602,7 @@ private fun ResultOverviewCard(
                 inputState.bitmap != null -> {
                     Image(
                         bitmap = inputState.bitmap.asImageBitmap(),
-                        contentDescription = "Scanned shrimp",
+                        contentDescription = "Ảnh tôm đã kiểm tra",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
@@ -477,7 +611,7 @@ private fun ResultOverviewCard(
                 inputState.imageUri != null -> {
                     AsyncImage(
                         model = inputState.imageUri,
-                        contentDescription = "Scanned shrimp",
+                        contentDescription = "Ảnh tôm đã kiểm tra",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
@@ -485,13 +619,13 @@ private fun ResultOverviewCard(
 
                 else -> {
                     EmptyState(
-                        title = "Image unavailable",
-                        message = "The scan result was generated without a displayable preview.",
+                        title = "Không hiển thị được ảnh",
+                        message = "Kết quả đã có nhưng không hiển thị được ảnh xem trước.",
                     )
                 }
             }
             ResultStatusBadge(
-                text = "View Heatmap",
+                text = "Xem vùng AI chú ý",
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(14.dp),
@@ -510,10 +644,10 @@ private fun ResultOverviewCard(
             ) {
                 ResultStatusBadge(
                     text = result.statusText(),
-                    kind = result.statusKind(),
+                    kind = result.localizedStatusKind(),
                 )
                 Text(
-                    text = result.displayPredictionText(),
+                    text = result.localizedPredictionText(),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
@@ -523,11 +657,11 @@ private fun ResultOverviewCard(
                 Text(
                     text = BenchmarkUtils.confidenceText(result.confidence),
                     style = MaterialTheme.typography.displayLarge,
-                    color = result.statusColor(),
+                    color = result.localizedStatusColor(),
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Confidence",
+                    text = "Độ tin cậy",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -537,65 +671,23 @@ private fun ResultOverviewCard(
         LinearProgressIndicator(
             progress = { result.confidence.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
-            color = result.statusColor(),
+            color = result.localizedStatusColor(),
             trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
         )
 
         CVioCard(containerColor = CVioSurfaceContainerLow, tonalElevation = 0.dp) {
             Text(
-                text = "What this means",
+                text = "Phân tích bệnh dự đoán",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = resultExplanation(result),
+                text = localizedDiseaseAnalysis(result),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun NextStepCard(
-    title: String,
-    message: String,
-    modifier: Modifier = Modifier,
-) {
-    CVioCard(
-        modifier = modifier,
-        containerColor = CVioSurfaceContainerLowest,
-        tonalElevation = 3.dp,
-    ) {
-        CVioIconBubbleForStep(title)
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun CVioIconBubbleForStep(title: String) {
-    val disease = title.contains("isolate", ignoreCase = true)
-    Box(
-        modifier = Modifier
-            .height(44.dp)
-            .fillMaxWidth(),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        ResultStatusBadge(
-            text = if (disease) "!" else "OK",
-            kind = if (disease) ResultStatusKind.Disease else ResultStatusKind.Healthy,
-        )
     }
 }
 
@@ -612,12 +704,12 @@ private fun ResultActions(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PrimaryActionButton(
-                text = "Save to History",
+                text = "Lưu vào lịch sử",
                 onClick = onSaveResult,
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
-                text = "Scan Another",
+                text = "Kiểm tra ảnh khác",
                 onClick = onScanAnother,
                 modifier = Modifier.weight(1f),
             )
@@ -627,12 +719,12 @@ private fun ResultActions(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SecondaryActionButton(
-                text = "Home",
+                text = "Trang chủ",
                 onClick = onHome,
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
-                text = "History",
+                text = "Lịch sử",
                 onClick = onHistory,
                 modifier = Modifier.weight(1f),
             )
@@ -643,7 +735,6 @@ private fun ResultActions(
 @Composable
 private fun DiagnosisDetailsCard(
     result: ClassificationResult,
-    modelInfo: ModelInfo,
 ) {
     CVioCard(containerColor = CVioSurfaceContainerLowest, tonalElevation = 3.dp) {
         Row(
@@ -653,177 +744,140 @@ private fun DiagnosisDetailsCard(
         ) {
             Column {
                 Text(
-                    text = "Diagnostic Report",
+                    text = "Báo cáo kiểm tra",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                 )
-                Text(
-                    text = "Sample #${result.timestamp.toString().takeLast(4)}",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                )
             }
             ResultStatusBadge(
-                text = when (result.statusKind()) {
-                    ResultStatusKind.Healthy -> "Low Risk"
-                    ResultStatusKind.Disease -> "High Risk"
-                    ResultStatusKind.Warning -> "Review"
-                    ResultStatusKind.Neutral -> "N/A"
+                text = when (result.localizedStatusKind()) {
+                    ResultStatusKind.Healthy -> "Nguy cơ thấp"
+                    ResultStatusKind.Disease -> "Nguy cơ cao"
+                    ResultStatusKind.Warning -> "Cần xem lại"
+                    ResultStatusKind.Neutral -> "Chưa có"
                 },
-                kind = result.statusKind(),
+                kind = result.localizedStatusKind(),
             )
         }
 
         Text(
-            text = "Primary Detection",
+            text = "Kết quả chính",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = result.displayPredictionText(),
+            text = result.localizedPredictionText(),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = resultExplanation(result),
+            text = localizedDiseaseAnalysis(result),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            CVioMetricTile(
-                label = "Model",
-                value = modelInfo.modelFamily,
-                modifier = Modifier.weight(1f),
-            )
-            CVioMetricTile(
-                label = "Time",
-                value = BenchmarkUtils.latencyText(result.inferenceTimeMs),
-                modifier = Modifier.weight(1f),
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            CVioMetricTile(
-                label = "Threshold",
-                value = BenchmarkUtils.confidenceText(result.threshold),
-                modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.tertiary,
-            )
-            CVioMetricTile(
-                label = "Input",
-                value = BenchmarkUtils.inputSizeText(modelInfo),
-                modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.secondary,
-            )
-        }
     }
 }
 
 @Composable
-private fun AttentionMapCard() {
+private fun AttentionMapCard(
+    inputState: InferenceInputUiState,
+    result: ClassificationResult,
+) {
+    val hasImage = inputState.bitmap != null || inputState.imageUri != null
+    val statusKind = result.localizedStatusKind()
+    val heatmapHotspots = remember(inputState.bitmap, result.predictedClass, result.confidence) {
+        buildImageHeatmapHotspots(inputState.bitmap, result)
+    }
+    val hotspotColor = when (statusKind) {
+        ResultStatusKind.Healthy -> HealthyGreen
+        ResultStatusKind.Disease -> DiseaseRed
+        ResultStatusKind.Warning -> WarningOrange
+        ResultStatusKind.Neutral -> MaterialTheme.colorScheme.primary
+    }
+
     CVioCard(containerColor = CVioSurfaceContainerLowest, tonalElevation = 3.dp) {
         CVioSectionHeader(
-            title = "Attention Map",
-            subtitle = "Heatmap is not available for this model.",
+            title = "Vùng AI chú ý",
+            subtitle = if (hasImage) {
+                "Đã tạo bản đồ nhiệt từ ảnh hiện tại và độ tin cậy của AI."
+            } else {
+                "Chưa có ảnh để tạo bản đồ nhiệt."
+            },
         )
-        CameraScanFrame(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.65f),
-            label = "Attention Map Overlay",
-        )
-    }
-}
-
-@Composable
-private fun GroundTruthCard(
-    labels: List<String>,
-    selectedGroundTruthLabel: String?,
-    resultCorrectness: Boolean?,
-    onGroundTruthSelected: (String?) -> Unit,
-) {
-    CVioCard(containerColor = CVioSurfaceContainerLow, tonalElevation = 2.dp) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+                .aspectRatio(1.65f)
+                .clip(RoundedCornerShape(24.dp))
+                .background(DarkNavy),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = "Ground truth",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Optional label for testing accuracy.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            ResultStatusBadge(
-                text = correctnessText(resultCorrectness),
-                kind = when (resultCorrectness) {
-                    true -> ResultStatusKind.Healthy
-                    false -> ResultStatusKind.Disease
-                    null -> ResultStatusKind.Neutral
-                },
-            )
-        }
-
-        if (labels.isEmpty()) {
-            Text(
-                text = "No labels loaded. Accuracy is N/A.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            var expanded by remember { mutableStateOf(false) }
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Text(
-                        text = selectedGroundTruthLabel ?: "No ground truth",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            when {
+                inputState.bitmap != null -> {
+                    Image(
+                        bitmap = inputState.bitmap.asImageBitmap(),
+                        contentDescription = "Ảnh gốc của bản đồ nhiệt",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
                     )
                 }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "No ground truth") },
-                        onClick = {
-                            expanded = false
-                            onGroundTruthSelected(null)
-                        },
+
+                inputState.imageUri != null -> {
+                    AsyncImage(
+                        model = inputState.imageUri,
+                        contentDescription = "Ảnh gốc của bản đồ nhiệt",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
                     )
-                    labels.forEach { label ->
-                        DropdownMenuItem(
-                            text = { Text(text = label) },
-                            onClick = {
-                                expanded = false
-                                onGroundTruthSelected(label)
-                            },
+                }
+
+                else -> {
+                    CameraScanFrame(
+                        modifier = Modifier.fillMaxSize(),
+                        label = "Bản đồ vùng AI chú ý",
+                    )
+                }
+            }
+
+            if (hasImage) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawRect(color = DarkNavy.copy(alpha = 0.12f))
+
+                    heatmapHotspots.forEachIndexed { index, hotspot ->
+                        val center = hotspot.toCanvasOffset(
+                            canvasWidth = size.width,
+                            canvasHeight = size.height,
+                            bitmap = inputState.bitmap,
+                        )
+                        val radius = size.minDimension * (0.18f + hotspot.strength * 0.22f)
+                        val alpha = (0.2f + hotspot.strength * 0.48f)
+                            .coerceIn(0.18f, 0.68f) * result.confidence.coerceIn(0.45f, 1f)
+                        val innerAlpha = if (index == 0) alpha else alpha * 0.82f
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    hotspotColor.copy(alpha = innerAlpha),
+                                    hotspotColor.copy(alpha = innerAlpha * 0.42f),
+                                    Color.Transparent,
+                                ),
+                                center = center,
+                                radius = radius,
+                            ),
+                            radius = radius,
+                            center = center,
                         )
                     }
                 }
+
+                ResultStatusBadge(
+                    text = "Đã tải bản đồ nhiệt",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp),
+                    kind = statusKind,
+                )
             }
         }
     }
@@ -839,25 +893,25 @@ private fun DebugInfoCard(
 ) {
     CVioCard(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f)) {
         CVioSectionHeader(
-            title = "Debug Info",
-            subtitle = "Compact technical diagnostics for research and testing.",
+            title = "Thông tin kỹ thuật",
+            subtitle = "Chỉ dùng khi cần kiểm tra kỹ thuật.",
         )
-        CompactInfoRow("Source", inputState.source?.displayName ?: "N/A")
-        CompactInfoRow("Image URI", inputState.imageUri?.toString() ?: "Camera snapshot / N/A")
-        CompactInfoRow("Model", modelInfo.modelFile)
-        CompactInfoRow("Delegate", runtimeDelegateName)
-        CompactInfoRow("Input size", BenchmarkUtils.inputSizeText(modelInfo))
-        CompactInfoRow("Input shape", BenchmarkUtils.shapeText(modelInfo.input.shape))
-        CompactInfoRow("Output shape", BenchmarkUtils.shapeText(modelInfo.output.shape))
-        CompactInfoRow("Threshold", BenchmarkUtils.confidenceText(result.threshold))
+        CompactInfoRow("Nguồn ảnh", inputState.source?.displayName ?: "Không có")
+        CompactInfoRow("Đường dẫn ảnh", inputState.imageUri?.toString() ?: "Ảnh chụp máy ảnh / Không có")
+        CompactInfoRow("Mô hình", modelInfo.modelFile)
+        CompactInfoRow("Cách chạy", runtimeDelegateName)
+        CompactInfoRow("Cỡ ảnh vào", BenchmarkUtils.inputSizeText(modelInfo))
+        CompactInfoRow("Dạng dữ liệu vào", BenchmarkUtils.shapeText(modelInfo.input.shape))
+        CompactInfoRow("Dạng kết quả", BenchmarkUtils.shapeText(modelInfo.output.shape))
+        CompactInfoRow("Ngưỡng tin cậy", BenchmarkUtils.confidenceText(result.threshold))
         CompactInfoRow(
-            "Camera FPS",
-            cameraFps?.let { String.format(Locale.US, "%.1f", it) } ?: "N/A",
+            "FPS máy ảnh",
+            cameraFps?.let { String.format(Locale.US, "%.1f", it) } ?: "Không có",
         )
-        CompactInfoRow("Preprocess", BenchmarkUtils.latencyText(result.preprocessingTimeMs))
-        CompactInfoRow("Model inference", BenchmarkUtils.latencyText(result.modelInferenceTimeMs))
-        CompactInfoRow("Postprocess", BenchmarkUtils.latencyText(result.postprocessingTimeMs))
-        CompactInfoRow("Total pipeline", BenchmarkUtils.latencyText(result.totalTimeMs))
+        CompactInfoRow("Chuẩn bị ảnh", BenchmarkUtils.latencyText(result.preprocessingTimeMs))
+        CompactInfoRow("AI xử lý", BenchmarkUtils.latencyText(result.modelInferenceTimeMs))
+        CompactInfoRow("Xử lý kết quả", BenchmarkUtils.latencyText(result.postprocessingTimeMs))
+        CompactInfoRow("Tổng thời gian", BenchmarkUtils.latencyText(result.totalTimeMs))
     }
 }
 
@@ -865,7 +919,7 @@ private fun ClassificationResult.displayPredictionText(): String {
     return if (isAboveThreshold) {
         predictedClass
     } else {
-        "$rawTop1Label / Unknown"
+        "$rawTop1Label"
     }
 }
 
@@ -880,10 +934,10 @@ private fun ClassificationResult.statusKind(): ResultStatusKind {
 
 private fun ClassificationResult.statusText(): String {
     return when (statusKind()) {
-        ResultStatusKind.Healthy -> "Status: Healthy"
-        ResultStatusKind.Disease -> "Disease detected"
-        ResultStatusKind.Warning -> "Low confidence"
-        ResultStatusKind.Neutral -> "N/A"
+        ResultStatusKind.Healthy -> "Tình trạng: Khỏe"
+        ResultStatusKind.Disease -> "Phát hiện dấu hiệu bệnh"
+        ResultStatusKind.Warning -> "Ảnh chưa đủ rõ"
+        ResultStatusKind.Neutral -> "Chưa có"
     }
 }
 
@@ -894,19 +948,13 @@ private fun ClassificationResult.statusColor() = when (statusKind()) {
     ResultStatusKind.Neutral -> DarkNavy
 }
 
-private fun resultExplanation(result: ClassificationResult): String {
+private fun diseaseAnalysis(result: ClassificationResult): String {
+    val prediction = result.displayPredictionText()
+    val confidence = BenchmarkUtils.confidenceText(result.confidence)
     return when (result.statusKind()) {
-        ResultStatusKind.Healthy -> "No visible disease signs detected in this shrimp image. Continue routine water quality monitoring and observe feeding behavior."
-        ResultStatusKind.Disease -> "The AI detected visual disease indicators. Treat this as field triage, isolate suspicious samples, and confirm with pond conditions before treatment decisions."
-        ResultStatusKind.Warning -> "The top prediction is below the confidence threshold. Retake the image with better lighting or inspect the top-3 confidence breakdown."
-        ResultStatusKind.Neutral -> "No diagnostic interpretation is available."
-    }
-}
-
-private fun correctnessText(isCorrect: Boolean?): String {
-    return when (isCorrect) {
-        true -> "Correct"
-        false -> "Incorrect"
-        null -> "Accuracy: N/A"
+        ResultStatusKind.Healthy -> "AI dự đoán mẫu là $prediction với độ tin cậy $confidence. Ảnh hiện tại không cho thấy dấu hiệu bệnh rõ ràng trong nhóm nhãn mà mô hình đang hỗ trợ."
+        ResultStatusKind.Disease -> "AI dự đoán mẫu có dấu hiệu $prediction với độ tin cậy $confidence. Kết quả này phản ánh các vùng ảnh có đặc trưng bất thường mà mô hình liên hệ với bệnh được dự đoán."
+        ResultStatusKind.Warning -> "AI dự đoán $prediction nhưng độ tin cậy chỉ đạt $confidence, thấp hơn ngưỡng cấu hình. Nên chụp lại ảnh rõ hơn trước khi dùng kết quả để đánh giá tình trạng ao."
+        ResultStatusKind.Neutral -> "Chưa có phân tích bệnh khả dụng cho kết quả này."
     }
 }

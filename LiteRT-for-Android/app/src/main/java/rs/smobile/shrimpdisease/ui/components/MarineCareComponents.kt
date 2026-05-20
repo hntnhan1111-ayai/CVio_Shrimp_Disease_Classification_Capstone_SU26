@@ -202,7 +202,7 @@ fun DiagnosisHeroCard(
                 contentColor = MaterialTheme.colorScheme.primary,
             ) {
                 Text(
-                    text = "On-device",
+                    text = "Trên máy",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -301,7 +301,7 @@ fun ShrimpIllustration(
 @Composable
 fun CameraScanFrame(
     modifier: Modifier = Modifier,
-    label: String = "Position shrimp within the frame for best results",
+    label: String = "Đặt tôm vào giữa khung để AI dễ kiểm tra",
     content: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     Box(

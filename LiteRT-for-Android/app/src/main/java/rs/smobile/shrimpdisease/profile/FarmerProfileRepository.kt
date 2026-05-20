@@ -33,10 +33,19 @@ class FarmerProfileRepository @Inject constructor(
         val user = currentUser ?: return false
         val updated = _profile.value.copy(
             displayName = update.displayName.trim().ifBlank { user.displayName },
-            farmLocation = update.farmLocation.trim().ifBlank { "Coastal pond" },
-            phoneNumber = update.phoneNumber.trim().ifBlank { "Not set" },
-            email = update.email.trim().ifBlank { "Not set" },
+            farmLocation = update.farmLocation.trim().ifBlank { "Ao nuôi ven biển" },
+            phoneNumber = update.phoneNumber.trim().ifBlank { "Chưa cập nhật" },
+            email = update.email.trim().ifBlank { "Chưa cập nhật" },
+            avatarUri = update.avatarUri,
         )
+        writeProfile(user.id, updated)
+        _profile.value = updated
+        return true
+    }
+
+    fun setAvatarUri(avatarUri: String?): Boolean {
+        val user = currentUser ?: return false
+        val updated = _profile.value.copy(avatarUri = avatarUri)
         writeProfile(user.id, updated)
         _profile.value = updated
         return true
@@ -54,6 +63,24 @@ class FarmerProfileRepository @Inject constructor(
         return readProfile(user)
     }
 
+    fun saveProfileForUser(
+        user: AuthUser,
+        profile: FarmerProfileUiState,
+    ): Boolean {
+        val normalizedProfile = profile.copy(
+            userId = user.id,
+            displayName = profile.displayName.trim().ifBlank { user.displayName },
+            farmLocation = profile.farmLocation.trim().ifBlank { "Ao nuôi ven biển" },
+            phoneNumber = profile.phoneNumber.trim().ifBlank { defaultPhone(user) },
+            email = profile.email.trim().ifBlank { defaultEmail(user) },
+        )
+        writeProfile(user.id, normalizedProfile)
+        if (currentUser?.id == user.id) {
+            _profile.value = normalizedProfile
+        }
+        return true
+    }
+
     private fun readProfile(user: AuthUser): FarmerProfileUiState {
         val json = preferences.getString(keyFor(user.id), null)
         if (json.isNullOrBlank()) return defaultProfile(user)
@@ -63,9 +90,10 @@ class FarmerProfileRepository @Inject constructor(
             FarmerProfileUiState(
                 userId = user.id,
                 displayName = profile.optString("displayName", user.displayName).ifBlank { user.displayName },
-                farmLocation = profile.optString("farmLocation", "Coastal pond").ifBlank { "Coastal pond" },
-                phoneNumber = profile.optString("phoneNumber", defaultPhone(user)).ifBlank { "Not set" },
-                email = profile.optString("email", defaultEmail(user)).ifBlank { "Not set" },
+                farmLocation = profile.optString("farmLocation", "Ao nuôi ven biển").ifBlank { "Ao nuôi ven biển" },
+                phoneNumber = profile.optString("phoneNumber", defaultPhone(user)).ifBlank { "Chưa cập nhật" },
+                email = profile.optString("email", defaultEmail(user)).ifBlank { "Chưa cập nhật" },
+                avatarUri = profile.optString("avatarUri", "").ifBlank { null },
                 dataPermissionEnabled = profile.optBoolean("dataPermissionEnabled", true),
             )
         }.getOrElse {
@@ -79,6 +107,7 @@ class FarmerProfileRepository @Inject constructor(
             .put("farmLocation", profile.farmLocation)
             .put("phoneNumber", profile.phoneNumber)
             .put("email", profile.email)
+            .put("avatarUri", profile.avatarUri.orEmpty())
             .put("dataPermissionEnabled", profile.dataPermissionEnabled)
 
         preferences.edit()
@@ -90,19 +119,20 @@ class FarmerProfileRepository @Inject constructor(
         return FarmerProfileUiState(
             userId = user.id,
             displayName = user.displayName,
-            farmLocation = "Coastal View Farms, Block A",
+            farmLocation = "Ao nuôi ven biển, khu A",
             phoneNumber = defaultPhone(user),
             email = defaultEmail(user),
+            avatarUri = null,
             dataPermissionEnabled = true,
         )
     }
 
     private fun defaultPhone(user: AuthUser): String {
-        return if (user.account.contains("@")) "Not set" else user.account
+        return if (user.account.contains("@")) "Chưa cập nhật" else user.account
     }
 
     private fun defaultEmail(user: AuthUser): String {
-        return if (user.account.contains("@")) user.account else "Not set"
+        return if (user.account.contains("@")) user.account else "Chưa cập nhật"
     }
 
     private fun keyFor(userId: String): String {

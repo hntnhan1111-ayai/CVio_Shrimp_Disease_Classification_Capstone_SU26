@@ -1,36 +1,52 @@
 package rs.smobile.shrimpdisease.ui.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.data.AdminActivityItem
 import rs.smobile.shrimpdisease.data.AdminActivityKind
 import rs.smobile.shrimpdisease.data.AdminChartPoint
+import rs.smobile.shrimpdisease.data.AdminCreateUserInput
 import rs.smobile.shrimpdisease.data.AdminDashboardUiState
 import rs.smobile.shrimpdisease.data.AdminDataReviewItem
 import rs.smobile.shrimpdisease.data.AdminUserSummary
@@ -147,43 +163,138 @@ fun AdminDashboardScreen(
 fun AdminUsersScreen(
     users: List<AdminUserSummary>,
     currentUserName: String?,
+    onCreateUser: (AdminCreateUserInput) -> Boolean,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            AdminTopBar(currentUserName = currentUserName)
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedUser by remember { mutableStateOf<AdminUserSummary?>(null) }
+    val filteredUsers = remember(users, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isBlank()) {
+            users
+        } else {
+            users.filter { user ->
+                user.name.contains(query, ignoreCase = true) ||
+                    user.account.contains(query, ignoreCase = true) ||
+                    user.farmLocation.contains(query, ignoreCase = true) ||
+                    user.status.contains(query, ignoreCase = true)
+            }
         }
-        item {
-            CVioSectionHeader(
-                title = "User Management",
-                subtitle = "Farmers connected to shrimp diagnosis monitoring.",
-                modifier = Modifier.padding(horizontal = 20.dp),
-            )
-        }
+    }
 
-        if (users.isEmpty()) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val columns = if (maxWidth >= 720.dp) 2 else 1
+        val cardRows = (filteredUsers.map<AdminUserSummary, AdminUserSummary?> { user -> user } + null)
+            .chunked(columns)
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             item {
-                CVioCard(
+                AdminTopBar(currentUserName = currentUserName)
+            }
+            item {
+                Column(
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    containerColor = CVioSurfaceContainerLow,
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    EmptyState(
-                        title = "No farmers yet",
-                        message = "Registered farmer accounts will appear here.",
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = "User Management",
+                                style = MaterialTheme.typography.displayLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Manage aquaculture farmers and field technicians.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    SearchUsersField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
                     )
                 }
             }
-        } else {
-            items(items = users, key = { user -> user.id }) { user ->
-                UserSummaryCard(
-                    user = user,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
+
+            if (users.isEmpty()) {
+                item {
+                    EmptyUsersCard(
+                        onAddUser = { showCreateDialog = true },
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                    )
+                }
+            } else if (filteredUsers.isEmpty()) {
+                item {
+                    CVioCard(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        containerColor = CVioSurfaceContainerLow,
+                    ) {
+                        EmptyState(
+                            title = "No matching users",
+                            message = "Try another name, email, pond, or status.",
+                        )
+                    }
+                }
+            } else {
+                items(cardRows) { rowUsers ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        rowUsers.forEach { user ->
+                            if (user == null) {
+                                AddUserCard(
+                                    onClick = { showCreateDialog = true },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            } else {
+                                UserBentoCard(
+                                    user = user,
+                                    onClick = { selectedUser = user },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                        repeat(columns - rowUsers.size) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
+    }
+
+    if (showCreateDialog) {
+        AddUserDialog(
+            onDismiss = { showCreateDialog = false },
+            onCreateUser = { input ->
+                if (onCreateUser(input)) {
+                    showCreateDialog = false
+                }
+            },
+        )
+    }
+
+    selectedUser?.let { user ->
+        UserDetailsDialog(
+            user = user,
+            onDismiss = { selectedUser = null },
+        )
     }
 }
 
@@ -307,6 +418,477 @@ private fun AdminTopBar(
                 fontWeight = FontWeight.Bold,
             )
         }
+    }
+}
+
+@Composable
+private fun SearchUsersField(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        shape = RoundedCornerShape(999.dp),
+        leadingIcon = {
+            Text(
+                text = "S",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.outline,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        placeholder = {
+            Text(
+                text = "Search users...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.outline,
+            )
+        },
+        textStyle = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
+private fun UserBentoCard(
+    user: AdminUserSummary,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val isActive = user.status == "Active"
+    Card(
+        modifier = modifier
+            .heightIn(min = 220.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .background(
+                        if (isActive) {
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+                        } else {
+                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                        }
+                    )
+            )
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(CVioSurfaceContainerLow),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = initialsFor(user.name),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = if (isActive) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            text = user.name,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = user.account,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    CVioStatusChip(
+                        text = user.status,
+                        containerColor = if (isActive) {
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        },
+                        contentColor = if (isActive) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        },
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CVioSurfaceContainerLow)
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    UserMetricBlock(
+                        label = "Checks Count",
+                        value = user.diseaseCheckCount.toString(),
+                        active = isActive,
+                        modifier = Modifier.weight(1f),
+                    )
+                    UserMetricBlock(
+                        label = "Last Active",
+                        value = user.lastActive,
+                        active = isActive,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "View Details",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = " ->",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserMetricBlock(
+    label: String,
+    value: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = value,
+            style = if (label == "Checks Count") {
+                MaterialTheme.typography.headlineSmall
+            } else {
+                MaterialTheme.typography.bodyMedium
+            },
+            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (label == "Checks Count") FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun AddUserCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .heightIn(min = 220.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = CVioSurfaceContainerLow),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "+",
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                text = "Add New User",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Register a new farmer or technician to the system.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyUsersCard(
+    onAddUser: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CVioCard(
+        modifier = modifier,
+        containerColor = CVioSurfaceContainerLow,
+    ) {
+        EmptyState(
+            title = "No farmers yet",
+            message = "Create the first farmer account for this admin console.",
+        )
+        PrimaryActionButton(
+            text = "Add New User",
+            onClick = onAddUser,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun AddUserDialog(
+    onDismiss: () -> Unit,
+    onCreateUser: (AdminCreateUserInput) -> Unit,
+) {
+    var displayName by rememberSaveable { mutableStateOf("") }
+    var account by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var farmLocation by rememberSaveable { mutableStateOf("") }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    val canSubmit = account.isNotBlank() && password.length >= 6
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Add New User",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = displayName,
+                    onValueChange = { displayName = it },
+                    label = { Text("Full name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = account,
+                    onValueChange = {
+                        account = it
+                        if (email.isBlank() && it.contains("@")) email = it
+                    },
+                    label = { Text("Login email or phone") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Temporary password") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = farmLocation,
+                    onValueChange = { farmLocation = it },
+                    label = { Text("Farm location") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = { phoneNumber = it },
+                        label = { Text("Phone") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Text(
+                    text = "Password must be at least 6 characters.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSubmit,
+                onClick = {
+                    onCreateUser(
+                        AdminCreateUserInput(
+                            displayName = displayName,
+                            account = account,
+                            password = password,
+                            farmLocation = farmLocation,
+                            phoneNumber = phoneNumber,
+                            email = email,
+                        )
+                    )
+                },
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
+}
+
+@Composable
+private fun UserDetailsDialog(
+    user: AdminUserSummary,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(CVioSurfaceContainerLow),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = initialsFor(user.name),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Column {
+                    Text(
+                        text = user.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = user.account,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                DetailLine(label = "Status", value = user.status)
+                DetailLine(label = "Checks Count", value = user.diseaseCheckCount.toString())
+                DetailLine(label = "Last Active", value = user.lastActive)
+                DetailLine(label = "Farm Location", value = user.farmLocation)
+                DetailLine(
+                    label = "Data Permission",
+                    value = if (user.dataPermissionEnabled) "Allowed" else "Disabled",
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+    )
+}
+
+@Composable
+private fun DetailLine(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(0.9f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            modifier = Modifier
+                .weight(1.1f)
+                .padding(start = 12.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

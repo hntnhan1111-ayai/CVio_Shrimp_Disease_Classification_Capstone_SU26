@@ -19,8 +19,13 @@ import rs.smobile.shrimpdisease.classifier.ClassificationResult
 import rs.smobile.shrimpdisease.classifier.ModelDefaults
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.classifier.ShrimpClassifier
+import rs.smobile.shrimpdisease.data.AdminCreateUserInput
 import rs.smobile.shrimpdisease.data.AdminDashboardRepository
 import rs.smobile.shrimpdisease.data.AdminDashboardUiState
+import rs.smobile.shrimpdisease.data.AdminDiagnosisUiState
+import rs.smobile.shrimpdisease.data.AdminInferenceLogsUiState
+import rs.smobile.shrimpdisease.data.AdminModelConfigUiState
+import rs.smobile.shrimpdisease.data.AdminModelConfigUpdate
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.data.HistoryFilter
 import rs.smobile.shrimpdisease.data.HistoryUiState
@@ -33,8 +38,8 @@ import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import javax.inject.Inject
 
 enum class InferenceSource(val displayName: String) {
-    GALLERY("Gallery image"),
-    SNAPSHOT("Camera snapshot"),
+    GALLERY("Ảnh có sẵn"),
+    SNAPSHOT("Ảnh chụp máy ảnh"),
 }
 
 enum class RuntimeDelegate(val displayName: String) {
@@ -94,6 +99,15 @@ class MainViewModel @Inject constructor(
 
     private val _adminDashboardUiState = MutableStateFlow(AdminDashboardUiState())
     val adminDashboardUiState: StateFlow<AdminDashboardUiState> = _adminDashboardUiState
+
+    private val _adminDiagnosisUiState = MutableStateFlow(AdminDiagnosisUiState())
+    val adminDiagnosisUiState: StateFlow<AdminDiagnosisUiState> = _adminDiagnosisUiState
+
+    private val _adminModelConfigUiState = MutableStateFlow(AdminModelConfigUiState())
+    val adminModelConfigUiState: StateFlow<AdminModelConfigUiState> = _adminModelConfigUiState
+
+    private val _adminInferenceLogsUiState = MutableStateFlow(AdminInferenceLogsUiState())
+    val adminInferenceLogsUiState: StateFlow<AdminInferenceLogsUiState> = _adminInferenceLogsUiState
 
     val logs: StateFlow<List<PredictionLogItem>> = predictionLogRepository.logs
     val benchmarkMetrics: StateFlow<BenchmarkMetrics> = predictionLogRepository.benchmarkMetrics
@@ -163,7 +177,7 @@ class MainViewModel @Inject constructor(
     fun runInference() {
         val bitmap = _inputState.value.bitmap
         if (bitmap == null) {
-            showError("Choose an image or take a camera snapshot before running inference.")
+            showError("Hãy chọn ảnh hoặc chụp ảnh tôm trước khi kiểm tra.")
             return
         }
 
@@ -180,7 +194,7 @@ class MainViewModel @Inject constructor(
                     _classificationState.value = ClassificationUiState(result = result)
                 }
                 .onFailure { error ->
-                    val message = error.message ?: "Inference failed."
+                    val message = error.message ?: "AI kiểm tra chưa thành công."
                     Log.e(TAG, message, error)
                     _classificationState.value = ClassificationUiState(errorMessage = message)
                 }
@@ -227,24 +241,28 @@ class MainViewModel @Inject constructor(
         return updated
     }
 
+    fun updateFarmerAvatar(avatarUri: String?): Boolean {
+        val updated = farmerProfileRepository.setAvatarUri(avatarUri)
+        if (updated) refreshAdminDashboard()
+        return updated
+    }
+
     fun exportLogs(context: Context, uri: Uri): Boolean {
         return predictionLogRepository.exportCsv(context, uri)
     }
 
     fun login(
-        role: AuthRole,
         account: String,
         password: String,
     ): AuthResult {
-        return authRepository.login(role, account, password).also { refreshAdminDashboard() }
+        return authRepository.login(account, password).also { refreshAdminDashboard() }
     }
 
     fun register(
-        role: AuthRole,
         account: String,
         password: String,
     ): AuthResult {
-        return authRepository.register(role, account, password).also { refreshAdminDashboard() }
+        return authRepository.register(account, password).also { refreshAdminDashboard() }
     }
 
     fun logout() {
@@ -255,10 +273,55 @@ class MainViewModel @Inject constructor(
 
     fun refreshAdminDashboard() {
         _adminDashboardUiState.value = adminDashboardRepository.loadDashboard()
+        _adminDiagnosisUiState.value = adminDashboardRepository.loadDiagnosis()
+        refreshAdminSettings()
+    }
+
+    fun refreshAdminSettings() {
+        _adminModelConfigUiState.value = adminDashboardRepository.loadModelConfig(
+            activeModelFile = _modelInfo.value.modelFile,
+            availableModels = _availableModels.value,
+            threshold = _settingsState.value.confidenceThreshold,
+        )
+        _adminInferenceLogsUiState.value = adminDashboardRepository.loadInferenceLogs()
+    }
+
+    fun saveAdminModelConfig(update: AdminModelConfigUpdate): Boolean {
+        adminDashboardRepository.saveModelConfig(update)
+        setConfidenceThreshold(update.threshold)
+        refreshAdminSettings()
+        return true
+    }
+
+    fun deployAdminModel(modelFile: String) {
+        adminDashboardRepository.saveActiveModel(modelFile)
+        loadModel(modelFile)
+        refreshAdminSettings()
+    }
+
+    fun createAdminUser(input: AdminCreateUserInput): AuthResult {
+        val result = adminDashboardRepository.createUser(input)
+        if (result is AuthResult.Success) refreshAdminDashboard()
+        return result
     }
 
     fun markAdminDataReviewed(itemId: String): Boolean {
         val updated = adminDashboardRepository.markReviewed(itemId)
+        refreshAdminDashboard()
+        return updated
+    }
+
+    fun confirmAdminDiagnosis(itemId: String): Boolean {
+        val updated = adminDashboardRepository.confirmDiagnosis(itemId)
+        refreshAdminDashboard()
+        return updated
+    }
+
+    fun correctAdminDiagnosis(
+        itemId: String,
+        correctedLabel: String,
+    ): Boolean {
+        val updated = adminDashboardRepository.correctDiagnosis(itemId, correctedLabel)
         refreshAdminDashboard()
         return updated
     }
@@ -284,8 +347,9 @@ class MainViewModel @Inject constructor(
                 _labels.value = shrimpClassifier.labels
                 _availableModels.value = shrimpClassifier.availableModelsInAssets()
                 clearClassification()
+                refreshAdminSettings()
             }.onFailure { error ->
-                val message = "Failed to load model: ${error.message}"
+                val message = "Không tải được mô hình: ${error.message}"
                 Log.e(TAG, message, error)
                 _classificationState.value = ClassificationUiState(errorMessage = message)
             }
@@ -294,7 +358,7 @@ class MainViewModel @Inject constructor(
 
     fun setRuntimeDelegate(delegate: RuntimeDelegate) {
         if (delegate == RuntimeDelegate.GPU) {
-            showError("GPU delegate is not bundled in this build. CPU runtime remains active.")
+            showError("Bản này chưa hỗ trợ GPU. Ứng dụng sẽ tiếp tục chạy bằng CPU.")
             _settingsState.value = _settingsState.value.copy(runtimeDelegate = RuntimeDelegate.CPU)
             return
         }

@@ -8,7 +8,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,8 +43,6 @@ import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
-    onLoginAsFarmer: () -> Unit,
-    onLoginAsAdmin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -87,52 +84,32 @@ fun WelcomeScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "Shrimp Disease Classification",
+                        text = "Kiểm tra bệnh tôm",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "AI-powered shrimp health diagnosis",
+                        text = "Chẩn đoán sức khỏe tôm bằng AI",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
                     )
-                    Text(
-                        text = "Capture or upload a shrimp image to detect possible disease signs.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
+
                 }
 
                 PrimaryActionButton(
-                    text = "Get Started",
+                    text = "Đăng nhập",
                     onClick = onGetStarted,
                     modifier = Modifier.fillMaxWidth(),
                 )
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        text = "Login as Farmer",
-                        modifier = Modifier.clickable(onClick = onLoginAsFarmer),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Login as Admin",
-                        modifier = Modifier.clickable(onClick = onLoginAsAdmin),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
+                PrimaryActionButton(
+                    text = "Tạo tài khoản mới",
+                    onClick = onGetStarted,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }

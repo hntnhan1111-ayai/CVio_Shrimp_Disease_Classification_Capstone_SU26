@@ -4,15 +4,16 @@ sealed class Screen(
     val route: String,
     val title: String,
 ) {
-    object Welcome : Screen("welcome", "AquaPulse")
-    object Auth : Screen("auth", "Login")
-    object Home : Screen("home", "Home")
-    object Inference : Screen("inference", "Diagnose")
-    object History : Screen("history", "History")
-    object Profile : Screen("profile", "Profile")
-    object Settings : Screen("settings", "Settings")
+    object Welcome : Screen("welcome", "Cvio")
+    object Auth : Screen("auth", "Đăng nhập")
+    object Home : Screen("home", "Trang chủ")
+    object Inference : Screen("inference", "Kiểm tra")
+    object History : Screen("history", "Lịch sử")
+    object Profile : Screen("profile", "Hồ sơ")
+    object Settings : Screen("settings", "Cài đặt")
     object AdminDashboard : Screen("admin_dashboard", "Dashboard")
     object AdminUsers : Screen("admin_users", "Users")
+    object AdminInference : Screen("admin_inference", "Inference")
     object AdminData : Screen("admin_data", "Data")
 }
 
@@ -26,6 +27,7 @@ val topLevelScreens = listOf(
 val adminTopLevelScreens = listOf(
     Screen.AdminDashboard,
     Screen.AdminUsers,
+    Screen.AdminInference,
     Screen.AdminData,
     Screen.Settings,
 )

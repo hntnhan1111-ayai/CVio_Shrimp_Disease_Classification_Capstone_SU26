@@ -32,6 +32,8 @@ import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.EmptyState
 import rs.smobile.shrimpdisease.ui.components.PredictionLogItemCard
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpIconButton
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 
@@ -41,6 +43,8 @@ fun HistoryScreen(
     onFilterSelected: (HistoryFilter) -> Unit,
     onExportCsv: () -> Unit,
     onClearLogs: () -> Unit,
+    onBackHome: () -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val logs = historyUiState.logs
@@ -51,7 +55,10 @@ fun HistoryScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            HistoryTopBar()
+            HistoryTopBar(
+                onBackHome = onBackHome,
+                onSettings = onSettings,
+            )
         }
 
         item {
@@ -60,13 +67,13 @@ fun HistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "Diagnosis History",
+                    text = "Lịch sử kiểm tra",
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Review past health assessments and track pond trends.",
+                    text = "Xem lại các lần kiểm tra tôm đã lưu.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -89,13 +96,13 @@ fun HistoryScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 SecondaryActionButton(
-                    text = "Export CSV",
+                    text = "Xuất file",
                     enabled = logs.isNotEmpty(),
                     onClick = onExportCsv,
                     modifier = Modifier.weight(1f),
                 )
                 SecondaryActionButton(
-                    text = "Clear logs",
+                    text = "Xóa lịch sử",
                     enabled = logs.isNotEmpty(),
                     onClick = onClearLogs,
                     modifier = Modifier.weight(1f),
@@ -110,8 +117,8 @@ fun HistoryScreen(
                     containerColor = CVioSurfaceContainerLow,
                 ) {
                     EmptyState(
-                        title = "No diagnosis history yet",
-                        message = "Start your first shrimp health check.",
+                        title = "Chưa có lịch sử kiểm tra",
+                        message = "Bắt đầu kiểm tra sức khỏe tôm lần đầu.",
                     )
                 }
             }
@@ -122,8 +129,8 @@ fun HistoryScreen(
                     containerColor = CVioSurfaceContainerLow,
                 ) {
                     EmptyState(
-                        title = "No matching records",
-                        message = "Try another filter or save a new diagnosis result.",
+                        title = "Không có kết quả phù hợp",
+                        message = "Thử bộ lọc khác hoặc lưu kết quả kiểm tra mới.",
                     )
                 }
             }
@@ -151,7 +158,10 @@ fun HistoryScreen(
 }
 
 @Composable
-private fun HistoryTopBar() {
+private fun HistoryTopBar(
+    onBackHome: () -> Unit,
+    onSettings: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,35 +170,17 @@ private fun HistoryTopBar() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "F",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.outline,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        ShrimpIconButton(
+            icon = ShrimpNavIcon.Back,
+            contentDescription = "Về trang chủ",
+            onClick = onBackHome,
+        )
         AppBrandLogo()
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(CVioSurfaceContainerLowest),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "N",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        ShrimpIconButton(
+            icon = ShrimpNavIcon.Settings,
+            contentDescription = "Mở cài đặt",
+            onClick = onSettings,
+        )
     }
 }
 
