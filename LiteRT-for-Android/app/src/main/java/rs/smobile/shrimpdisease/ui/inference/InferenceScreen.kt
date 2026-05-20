@@ -45,7 +45,6 @@ import coil.compose.AsyncImage
 import rs.smobile.shrimpdisease.CameraCaptureCard
 import rs.smobile.shrimpdisease.ClassificationUiState
 import rs.smobile.shrimpdisease.InferenceInputUiState
-import rs.smobile.shrimpdisease.InferenceSource
 import rs.smobile.shrimpdisease.classifier.ClassificationResult
 import rs.smobile.shrimpdisease.classifier.ModelInfo
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
@@ -100,6 +99,7 @@ fun InferenceScreen(
     showBackButton: Boolean = false,
     onBack: (() -> Unit)? = null,
     enableGroundTruthSelection: Boolean = false,
+    showResultMetrics: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val result = classificationState.result
@@ -134,10 +134,12 @@ fun InferenceScreen(
             cameraFps = cameraFps,
             onSaveResult = onSaveResult,
             onScanAnother = onOpenCamera,
+            onSelectAnotherImage = onSelectAnotherImage,
             onHome = onHome,
             onHistory = onHistory,
             showBackButton = showBackButton,
             onBack = onBack,
+            showResultMetrics = showResultMetrics,
             modifier = modifier,
         )
     }
@@ -410,27 +412,33 @@ private fun CaptureUploadContent(
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                SecondaryActionButton(
-                    text = if (inputState.source == InferenceSource.SNAPSHOT) "Chụp lại" else "Chọn ảnh khác",
-                    onClick = {
-                        if (inputState.source == InferenceSource.SNAPSHOT) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    SecondaryActionButton(
+                        text = "Chụp lại",
+                        onClick = {
                             retakeRequested = true
                             onOpenCamera()
-                        } else {
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    SecondaryActionButton(
+                        text = "Chọn ảnh khác",
+                        onClick = {
+                            retakeRequested = false
                             onSelectAnotherImage()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                )
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 PrimaryActionButton(
                     text = if (classificationState.isLoading) "Đang phân tích..." else "Dùng ảnh này",
                     enabled = !classificationState.isLoading,
                     onClick = onRunInference,
-                    modifier = Modifier.weight(1.65f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -622,10 +630,12 @@ private fun DiagnosisResultContent(
     cameraFps: Double?,
     onSaveResult: () -> Unit,
     onScanAnother: () -> Unit,
+    onSelectAnotherImage: () -> Unit,
     onHome: () -> Unit,
     onHistory: () -> Unit,
     showBackButton: Boolean,
     onBack: (() -> Unit)?,
+    showResultMetrics: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -645,14 +655,17 @@ private fun DiagnosisResultContent(
         ResultActions(
             onSaveResult = onSaveResult,
             onScanAnother = onScanAnother,
+            onSelectAnotherImage = onSelectAnotherImage,
             onHome = onHome,
             onHistory = onHistory,
         )
 
-        MetricsCard(
-            result = result,
-            benchmarkMetrics = benchmarkMetrics,
-        )
+        if (showResultMetrics) {
+            MetricsCard(
+                result = result,
+                benchmarkMetrics = benchmarkMetrics,
+            )
+        }
 
         DiagnosisDetailsCard(
             result = result,
@@ -801,6 +814,7 @@ private fun ResultOverviewCard(
 private fun ResultActions(
     onSaveResult: () -> Unit,
     onScanAnother: () -> Unit,
+    onSelectAnotherImage: () -> Unit,
     onHome: () -> Unit,
     onHistory: () -> Unit,
 ) {
@@ -815,7 +829,7 @@ private fun ResultActions(
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
-                text = "Kiểm tra ảnh khác",
+                text = "Chụp ảnh khác",
                 onClick = onScanAnother,
                 modifier = Modifier.weight(1f),
             )
@@ -825,8 +839,8 @@ private fun ResultActions(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SecondaryActionButton(
-                text = "Trang chủ",
-                onClick = onHome,
+                text = "Chọn ảnh khác",
+                onClick = onSelectAnotherImage,
                 modifier = Modifier.weight(1f),
             )
             SecondaryActionButton(
@@ -835,6 +849,11 @@ private fun ResultActions(
                 modifier = Modifier.weight(1f),
             )
         }
+        SecondaryActionButton(
+            text = "Trang chủ",
+            onClick = onHome,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

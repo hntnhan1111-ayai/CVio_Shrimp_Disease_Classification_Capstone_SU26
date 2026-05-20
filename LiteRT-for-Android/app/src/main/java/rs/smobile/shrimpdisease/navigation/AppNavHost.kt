@@ -541,6 +541,7 @@ fun AppNavHost(
                         navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
                     },
                     enableGroundTruthSelection = true,
+                    showResultMetrics = true,
                 )
             }
 
