@@ -13,7 +13,9 @@ import kotlin.math.roundToInt
  * Converts Android bitmaps into the exact tensor layout, dtype, and normalization
  * expected by the selected .tflite model.
  */
-class ImagePreprocessor {
+class ImagePreprocessor(
+    private val backgroundRemover: BackgroundRemover? = null,
+) {
     var debugEnabled: Boolean = false
 
     fun preprocess(bitmap: Bitmap, config: ModelConfig): ByteBuffer {
@@ -120,6 +122,10 @@ class ImagePreprocessor {
     }
 
     private fun resizedPixels(bitmap: Bitmap, inputWidth: Int, inputHeight: Int): IntArray {
+        backgroundRemover?.let { remover ->
+            return remover.removeBackground(bitmap, inputWidth, inputHeight)
+        }
+
         val resizedBitmap = if (bitmap.width == inputWidth && bitmap.height == inputHeight) {
             bitmap
         } else {
@@ -131,7 +137,7 @@ class ImagePreprocessor {
         if (resizedBitmap !== bitmap) {
             resizedBitmap.recycle()
         }
-        return BackgroundRemover.removeBackground(pixels, inputWidth, inputHeight)
+        return EdgeBackgroundRemover.removeBackground(pixels, inputWidth, inputHeight)
     }
 
     private fun writeNhwc(

@@ -8,6 +8,7 @@ import org.tensorflow.lite.DataType
  */
 object ModelDefaults {
     const val DEFAULT_MODEL_FILE = "efficientnet_b0_float16.tflite"
+    const val BACKGROUND_REMOVER_MODEL_FILE = "u2net_dynamic_range_int8.tflite"
     const val LABEL_FILE = "labels.txt"
 
     const val INPUT_SIZE = 224

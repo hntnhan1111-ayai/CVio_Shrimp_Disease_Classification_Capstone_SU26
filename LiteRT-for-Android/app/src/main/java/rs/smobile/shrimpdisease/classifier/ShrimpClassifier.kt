@@ -24,6 +24,7 @@ class ShrimpClassifier @Inject constructor(
     var labels: List<String> = loadLabels(assetManager, ModelDefaults.LABEL_FILE)
         private set
 
+    private val backgroundRemover = BackgroundRemover(assetManager)
     private var interpreterApi: InterpreterApi
     private var inputTensor: Tensor
     private var outputTensor: Tensor
@@ -107,7 +108,7 @@ class ShrimpClassifier @Inject constructor(
             quantizationZeroPoint = inputQuantization.getZeroPoint(),
             inputShape = inputShape.toList(),
         )
-        val prep = ImagePreprocessor()
+        val prep = ImagePreprocessor(backgroundRemover)
 
         val lbls = loadLabels(assetManager, labelFile)
 
@@ -168,7 +169,10 @@ class ShrimpClassifier @Inject constructor(
     fun availableModelsInAssets(): List<String> {
         return try {
             assetManager.list("")
-                ?.filter { it.lowercase().endsWith(".tflite") }
+                ?.filter { assetName ->
+                    assetName.lowercase().endsWith(".tflite") &&
+                        assetName != ModelDefaults.BACKGROUND_REMOVER_MODEL_FILE
+                }
                 ?.sorted()
                 ?: emptyList()
         } catch (e: Exception) {
