@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import rs.smobile.shrimpdisease.cloud.FirebaseCloudRepository
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
@@ -16,6 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     @ApplicationContext context: Context,
+    private val cloudRepository: FirebaseCloudRepository,
 ) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
     private val random = SecureRandom()
@@ -27,6 +29,7 @@ class AuthRepository @Inject constructor(
 
     init {
         seedDefaultAdminIfNeeded()
+        refreshUsersFromCloud()
     }
 
     fun login(
@@ -36,6 +39,14 @@ class AuthRepository @Inject constructor(
         val normalizedAccount = account.normalizedAccount()
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
+
+        refreshUsersFromCloud()
+        cloudRepository.signIn(normalizedAccount, password)?.let { cloudUser ->
+            cacheCloudUser(cloudUser, password)
+            saveSession(cloudUser.id)
+            _session.value = AuthSession(user = cloudUser)
+            return AuthResult.Success(cloudUser)
+        }
 
         val record = readUsers().firstOrNull {
             it.account == normalizedAccount
@@ -47,6 +58,7 @@ class AuthRepository @Inject constructor(
 
         saveSession(record.id)
         val user = record.toAuthUser()
+        cloudRepository.upsertUser(user)
         _session.value = AuthSession(user = user)
         return AuthResult.Success(user)
     }
@@ -59,9 +71,22 @@ class AuthRepository @Inject constructor(
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
+        refreshUsersFromCloud()
         val users = readUsers()
         if (users.any { it.account == normalizedAccount }) {
             return AuthResult.Error("Tài khoản này đã được đăng ký.")
+        }
+
+        cloudRepository.registerFarmer(
+            account = normalizedAccount,
+            password = password,
+            displayName = displayNameFor(normalizedAccount),
+        )?.let { cloudUser ->
+            val record = cloudUser.toStoredUser(password = password)
+            writeUsers(users + record)
+            saveSession(record.id)
+            _session.value = AuthSession(user = cloudUser)
+            return AuthResult.Success(cloudUser)
         }
 
         val salt = generateSalt()
@@ -77,6 +102,7 @@ class AuthRepository @Inject constructor(
         writeUsers(users + record)
         saveSession(record.id)
         val user = record.toAuthUser()
+        cloudRepository.upsertUser(user)
         _session.value = AuthSession(user = user)
         return AuthResult.Success(user)
     }
@@ -90,6 +116,7 @@ class AuthRepository @Inject constructor(
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
+        refreshUsersFromCloud()
         val users = readUsers()
         if (users.any { it.account == normalizedAccount }) {
             return AuthResult.Error("Tài khoản này đã được đăng ký.")
@@ -107,10 +134,12 @@ class AuthRepository @Inject constructor(
             createdAt = System.currentTimeMillis(),
         )
         writeUsers(users + record)
+        cloudRepository.upsertUser(record.toAuthUser())
         return AuthResult.Success(record.toAuthUser())
     }
 
     fun logout() {
+        cloudRepository.logout()
         preferences.edit()
             .remove(KEY_SESSION_USER_ID)
             .apply()
@@ -131,6 +160,7 @@ class AuthRepository @Inject constructor(
         val updatedUser = updatedUsers.firstOrNull { it.id == currentUser.id }
             ?: return AuthResult.Error("Không tìm thấy tài khoản.")
         val authUser = updatedUser.toAuthUser()
+        cloudRepository.upsertUser(authUser)
         _session.value = AuthSession(user = authUser)
         return AuthResult.Success(authUser)
     }
@@ -166,6 +196,7 @@ class AuthRepository @Inject constructor(
         writeUsers(updatedUsers)
 
         val updatedUser = updatedUsers.first { user -> user.id == userId }.toAuthUser()
+        cloudRepository.upsertUser(updatedUser)
         if (_session.value.user?.id == userId) {
             _session.value = AuthSession(user = updatedUser)
         }
@@ -180,6 +211,7 @@ class AuthRepository @Inject constructor(
         if (updatedUsers.size == users.size) return false
 
         writeUsers(updatedUsers)
+        cloudRepository.deleteUser(userId)
         if (_session.value.user?.id == userId) {
             logout()
         }
@@ -187,6 +219,7 @@ class AuthRepository @Inject constructor(
     }
 
     fun getUsers(): List<AuthUser> {
+        refreshUsersFromCloud()
         return readUsers().map { user -> user.toAuthUser() }
     }
 
@@ -214,6 +247,28 @@ class AuthRepository @Inject constructor(
     private fun readSessionUser(): AuthUser? {
         val sessionUserId = preferences.getString(KEY_SESSION_USER_ID, null) ?: return null
         return readUsers().firstOrNull { it.id == sessionUserId }?.toAuthUser()
+    }
+
+    private fun refreshUsersFromCloud() {
+        val cloudUsers = cloudRepository.fetchUsers() ?: return
+        val localUsers = readUsers()
+        val localById = localUsers.associateBy { user -> user.id }
+        val cloudRecords = cloudUsers.map { cloudUser ->
+            cloudUser.toStoredUser(existing = localById[cloudUser.id])
+        }
+        val cloudIds = cloudRecords.map { user -> user.id }.toSet()
+        val mergedUsers = cloudRecords + localUsers.filterNot { user -> user.id in cloudIds }
+        writeUsers(mergedUsers.distinctBy { user -> user.id })
+    }
+
+    private fun cacheCloudUser(
+        user: AuthUser,
+        password: String,
+    ) {
+        val users = readUsers()
+        val existing = users.firstOrNull { record -> record.id == user.id }
+        val record = user.toStoredUser(password = password, existing = existing)
+        writeUsers(users.filterNot { item -> item.id == user.id } + record)
     }
 
     private fun saveSession(userId: String) {
@@ -303,6 +358,31 @@ class AuthRepository @Inject constructor(
                 .put("passwordHash", passwordHash)
                 .put("createdAt", createdAt)
         }
+    }
+
+    private fun AuthUser.toStoredUser(
+        password: String? = null,
+        existing: StoredUser? = null,
+    ): StoredUser {
+        val nextSalt = if (password == null) {
+            existing?.salt.orEmpty()
+        } else {
+            generateSalt()
+        }
+        val nextPasswordHash = if (password == null) {
+            existing?.passwordHash.orEmpty()
+        } else {
+            hashPassword(password, nextSalt)
+        }
+        return StoredUser(
+            id = id,
+            account = account,
+            role = role,
+            displayName = displayName,
+            salt = nextSalt,
+            passwordHash = nextPasswordHash,
+            createdAt = createdAt,
+        )
     }
 
     private fun JSONObject.toStoredUser(): StoredUser {

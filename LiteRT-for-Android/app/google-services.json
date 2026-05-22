@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1086471751094",
+    "project_id": "mobile-shrimpsidease",
+    "storage_bucket": "mobile-shrimpsidease.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086471751094:android:a257cc2c04bb1cd59d6d17",
+        "android_client_info": {
+          "package_name": "rs.smobile.shrimpdisease"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV-6BtULu7ejLcs8BxzX1KwXmaGJsaA0M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

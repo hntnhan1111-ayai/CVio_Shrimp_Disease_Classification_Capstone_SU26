@@ -8,6 +8,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "rs.smobile.shrimpdisease"
     compileSdk = 36
@@ -88,6 +92,11 @@ dependencies {
 
     // On-device TensorFlow Lite runtime.
     implementation(libs.litert)
+
+    // Firebase Auth + Firestore metadata sync. Versions are managed by the Firebase BoM.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     // Dependency injection.
     implementation(libs.hilt.android)

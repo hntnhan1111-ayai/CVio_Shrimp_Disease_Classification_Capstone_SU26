@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import rs.smobile.shrimpdisease.cloud.FirebaseCloudRepository
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
 import rs.smobile.shrimpdisease.utils.CsvExportUtils
 import javax.inject.Inject
@@ -15,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class PredictionLogRepository @Inject constructor(
     @ApplicationContext context: Context,
+    private val cloudRepository: FirebaseCloudRepository,
 ) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
@@ -57,6 +59,7 @@ class PredictionLogRepository @Inject constructor(
         )
         val updatedLogs = (listOf(enrichedLog) + existingLogs).take(MAX_LOG_ITEMS)
         writeLogs(owner, updatedLogs)
+        cloudRepository.upsertPredictionLog(owner, enrichedLog)
         publish(updatedLogs)
         return true
     }
@@ -72,6 +75,7 @@ class PredictionLogRepository @Inject constructor(
         preferences.edit()
             .remove(keyFor(owner))
             .apply()
+        cloudRepository.clearPredictionLogs(owner)
         publish(emptyList())
     }
 
@@ -79,6 +83,7 @@ class PredictionLogRepository @Inject constructor(
         preferences.edit()
             .remove(keyFor(ownerId))
             .apply()
+        cloudRepository.clearPredictionLogs(ownerId)
         if (this.ownerId == ownerId) {
             publish(emptyList())
         }
@@ -107,6 +112,12 @@ class PredictionLogRepository @Inject constructor(
         if (!updated) return false
 
         writeLogs(ownerId, updatedLogs)
+        cloudRepository.updatePredictionLog(
+            ownerId = ownerId,
+            logId = logId,
+            predictedClass = predictedClass.trim().ifBlank { logs.first { item -> item.id == logId }.predictedClass },
+            confidence = confidence,
+        )
         if (this.ownerId == ownerId) {
             publish(updatedLogs)
         }
@@ -122,6 +133,7 @@ class PredictionLogRepository @Inject constructor(
         if (updatedLogs.size == logs.size) return false
 
         writeLogs(ownerId, updatedLogs)
+        cloudRepository.deletePredictionLog(ownerId, logId)
         if (this.ownerId == ownerId) {
             publish(updatedLogs)
         }
@@ -176,6 +188,17 @@ class PredictionLogRepository @Inject constructor(
     }
 
     private fun readLogs(owner: String): List<PredictionLogItem> {
+        val localLogs = readLocalLogs(owner)
+        val cloudLogs = cloudRepository.fetchPredictionLogs(owner)
+        if (cloudLogs != null) {
+            val mergedLogs = mergeLogs(cloudLogs, localLogs).take(MAX_LOG_ITEMS)
+            writeLogs(owner, mergedLogs)
+            return mergedLogs
+        }
+        return localLogs
+    }
+
+    private fun readLocalLogs(owner: String): List<PredictionLogItem> {
         val json = preferences.getString(keyFor(owner), null) ?: return emptyList()
         return runCatching {
             val array = JSONArray(json)
@@ -191,6 +214,15 @@ class PredictionLogRepository @Inject constructor(
         preferences.edit()
             .putString(keyFor(owner), array.toString())
             .apply()
+    }
+
+    private fun mergeLogs(
+        primary: List<PredictionLogItem>,
+        secondary: List<PredictionLogItem>,
+    ): List<PredictionLogItem> {
+        return (primary + secondary)
+            .distinctBy { item -> item.id }
+            .sortedByDescending { item -> item.timestamp }
     }
 
     private fun keyFor(owner: String): String {

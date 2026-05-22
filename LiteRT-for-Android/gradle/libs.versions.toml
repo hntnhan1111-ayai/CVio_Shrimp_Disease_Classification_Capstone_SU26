@@ -12,6 +12,8 @@ lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 camerax = "1.6.1"
 composeBom = "2025.10.00"
+firebaseBom = "34.7.0"
+googleServices = "4.4.4"
 litert = "1.4.0"
 kspVersion = "2.2.20-2.0.4"
 
@@ -19,6 +21,9 @@ kspVersion = "2.2.20-2.0.4"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+firebase-auth = { module = "com.google.firebase:firebase-auth" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
@@ -47,3 +52,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

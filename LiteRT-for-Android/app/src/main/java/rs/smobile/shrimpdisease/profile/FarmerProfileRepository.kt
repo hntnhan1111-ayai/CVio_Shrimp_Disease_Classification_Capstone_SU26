@@ -6,12 +6,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
 import rs.smobile.shrimpdisease.auth.AuthUser
+import rs.smobile.shrimpdisease.cloud.FirebaseCloudRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class FarmerProfileRepository @Inject constructor(
     @ApplicationContext context: Context,
+    private val cloudRepository: FirebaseCloudRepository,
 ) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
@@ -39,6 +41,7 @@ class FarmerProfileRepository @Inject constructor(
             avatarUri = update.avatarUri,
         )
         writeProfile(user.id, updated)
+        cloudRepository.upsertProfile(updated)
         _profile.value = updated
         return true
     }
@@ -47,6 +50,7 @@ class FarmerProfileRepository @Inject constructor(
         val user = currentUser ?: return false
         val updated = _profile.value.copy(avatarUri = avatarUri)
         writeProfile(user.id, updated)
+        cloudRepository.upsertProfile(updated)
         _profile.value = updated
         return true
     }
@@ -55,6 +59,7 @@ class FarmerProfileRepository @Inject constructor(
         val user = currentUser ?: return false
         val updated = _profile.value.copy(dataPermissionEnabled = enabled)
         writeProfile(user.id, updated)
+        cloudRepository.upsertProfile(updated)
         _profile.value = updated
         return true
     }
@@ -75,6 +80,7 @@ class FarmerProfileRepository @Inject constructor(
             email = profile.email.trim().ifBlank { defaultEmail(user) },
         )
         writeProfile(user.id, normalizedProfile)
+        cloudRepository.upsertProfile(normalizedProfile)
         if (currentUser?.id == user.id) {
             _profile.value = normalizedProfile
         }
@@ -85,6 +91,7 @@ class FarmerProfileRepository @Inject constructor(
         preferences.edit()
             .remove(keyFor(userId))
             .apply()
+        cloudRepository.deleteProfile(userId)
         if (currentUser?.id == userId) {
             _profile.value = FarmerProfileUiState()
             currentUser = null
@@ -93,6 +100,15 @@ class FarmerProfileRepository @Inject constructor(
     }
 
     private fun readProfile(user: AuthUser): FarmerProfileUiState {
+        cloudRepository.fetchProfile(user.id)?.let { cloudProfile ->
+            val normalized = cloudProfile.copy(
+                userId = user.id,
+                displayName = cloudProfile.displayName.ifBlank { user.displayName },
+            )
+            writeProfile(user.id, normalized)
+            return normalized
+        }
+
         val json = preferences.getString(keyFor(user.id), null)
         if (json.isNullOrBlank()) return defaultProfile(user)
 
