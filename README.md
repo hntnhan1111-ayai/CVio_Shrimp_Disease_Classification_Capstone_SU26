@@ -126,3 +126,64 @@ Expected summary artifacts include:
 - The partial two-model notebook failed during final partial-state handling because empty failed-result paths were converted to `Path(".")` and treated as readable files. The ConvNeXt-only notebook skips empty paths and directories.
 - AttributeProjectionCE needed an AMP-safe BCE implementation. The ConvNeXt-only notebook avoids `torch.nn.functional.binary_cross_entropy` on probability tensors under autocast and uses a manual float32 attribute term.
 - The final two-model 14-loss comparison is not complete until ConvNeXt-Tiny runs all 14 losses and final summary artifacts exist.
+
+## ASL-Based Custom Loss Variants Experiment
+
+New compact notebook:
+
+- `final_asl_custom_losses_convnext_yolo_repeat1_compact.ipynb`
+
+Purpose:
+
+- Compare ConvNeXt-Tiny/ShrimpXNet-style training and native Ultralytics YOLOv26m-cls training on one fixed 70/15/15 split, seed 42, repeat count 1.
+- Evaluate 6 existing baseline/reference losses and 10 dataset-specific ASL-based co-infection suppression variants.
+- Keep outputs compact and centered on `final_summary.xlsx` and `final_summary.csv`.
+
+Output directory:
+
+- `final_asl_custom_losses_convnext_yolo_repeat1_compact_outputs/`
+
+Primary outputs:
+
+- `final_summary.xlsx`
+- `final_summary.csv`
+- `loss_run_summary_raw.csv`
+- `run_audit.json`
+- `environment_versions.json`
+- `fixed_split_manifest_seed42_with_md5.csv`
+- `yolo_split_manifest_seed42_with_md5.csv`
+- `missing_or_failed_runs.csv`
+- `memory_bank_asl_custom_losses_experiment_summary.md`
+
+Existing baseline/reference losses:
+
+| Key | Loss | Category |
+| --- | --- | --- |
+| `baseline_ce` | CE | existing baseline |
+| `asl_single_label` | ASLSingleLabel | existing ASL baseline |
+| `false_coinfection_cost_ce` | False-CoInfection Cost CE | existing custom reference |
+| `poly_dcs_ce` | Poly-DCS-CE | existing custom reference |
+| `sce` | SCE | existing robust baseline |
+| `ldam` | LDAM | existing margin baseline |
+
+ASL-based custom variants:
+
+| Key | Loss |
+| --- | --- |
+| `false_coinfection_cost_asl` | False-CoInfection Cost ASL |
+| `poly_dcs_asl` | Poly-DCS-ASL |
+| `pairwise_coinfection_ranking_asl` | Pairwise Co-Infection Ranking ASL |
+| `confidence_gated_dcs_asl` | Confidence-Gated DCS-ASL |
+| `attribute_projection_asl` | Attribute-Projection ASL |
+| `sce_asl_hybrid` | SCE-ASL Hybrid |
+| `ldam_asl_hybrid` | LDAM-ASL Hybrid |
+| `robust_gap_asl` | Robust Gap ASL |
+| `distribution_balanced_attribute_asl` | Distribution-Balanced Attribute ASL |
+| `cost_poly_asl` | Cost-Poly ASL |
+
+Important interpretation:
+
+- ASLSingleLabel is an existing official-style ASL baseline, not a custom proposed method.
+- The new ASL variants should be described carefully as dataset-specific ASL-based co-infection suppression variants.
+- The notebook defaults to `RUN_TRAINING=0`; no final results exist for this new experiment until it is executed on the Linux RTX 4090 24GB target with `RUN_TRAINING=1`.
+- This new experiment must remain separate from the completed same-seed YOLO all-losses reference, the partial YOLO ASLSingleLabel diagnostic, and the completed ConvNeXt-Tiny 14-loss context.
