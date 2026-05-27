@@ -58,3 +58,71 @@ Hình ảnh dưới đây được lấy trực tiếp từ thư mục báo cáo
 - Ưu tiên bảng tổng hợp khi cần đối chiếu nhanh giữa các cấu hình.
 - Ưu tiên hình ảnh khi cần đánh giá bức tranh tổng quan về hiệu suất mô hình.
 - Ưu tiên các file `reports/` khi cần kiểm tra lại số liệu gốc hoặc lặp lại phân tích.
+
+## Current Best Partial YOLOv26m-cls Result
+
+The strongest newer YOLOv26m-cls result currently observed in the partial two-model 14-loss attempt is:
+
+| Scope | Model | Loss | Test Macro-F1 | Cohen Kappa | Accuracy | BG_WSSV Recall | WSSV to BG_WSSV |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Partial YOLO-only diagnostic | YOLOv26m-cls | ASLSingleLabel | 0.9109 | 0.8818 | 0.9133 | 0.9697 | 5 |
+
+Source: `experiment/final_yolo26m_convnext_tiny_14losses_repeat1_audited_outputs/loss_run_summary_raw.csv`, produced by `experiment/final_yolo26m_convnext_tiny_14losses_repeat1_audited.ipynb`.
+
+Important interpretation:
+
+- This is a partial YOLO-only diagnostic result from the later two-model notebook attempt, not a completed final two-model benchmark.
+- ASLSingleLabel is an existing official-style ASL baseline, not a custom proposed loss.
+- `experiment/final_yolo26m_convnext_tiny_14losses_repeat1_audited.ipynb` crashed before ConvNeXt-Tiny runs started and before `final_summary.xlsx`, `final_summary.json`, and `figures_and_reports.zip` were created.
+
+## Completed Same-Seed YOLOv26m-cls All-Losses Reference
+
+Keep this completed reference separate from the newer partial YOLO + ASLSingleLabel diagnostic above. The completed same-seed YOLOv26m-cls all-losses run is under `experiment/final_yolo26m_cls_all_losses_anchor_best_outputs/`.
+
+| Rank | Loss | Macro-F1 | Kappa | Accuracy | BG_WSSV Recall |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | CE | 0.9051 | 0.8739 | 0.9075 | 1.0000 |
+| 2 | SCE | 0.9040 | 0.8736 | 0.9075 | 1.0000 |
+| 3 | LDAM | 0.8984 | 0.8651 | 0.9017 | 0.9697 |
+| 4 | Co-Infection Margin ASL | 0.8929 | 0.8582 | 0.8960 | 1.0000 |
+| 5 | ASLSingleLabel | 0.8854 | 0.8502 | 0.8902 | 0.9394 |
+
+These repeats used same-seed reproducibility, not independent-seed robustness. CE remains the best overall loss in that completed reference run.
+
+## ConvNeXt-Tiny 14-Loss Notebook
+
+New notebook:
+
+- `experiment/final_convnext_tiny_shrimpxnet_14losses_repeat1_audited.ipynb`
+
+Purpose:
+
+- ConvNeXt-Tiny/ShrimpXNet baseline-style 14-loss ablation.
+- Fixed 70/15/15 split, seed 42, repeat count 1.
+- Intended runtime: Linux with RTX 4090 24GB.
+- The exact `shrimpxnet.ipynb` file was not present in this checkout during generation, so the ConvNeXt pipeline was extracted from the available local ConvNeXt/ShrimpXNet reference notebooks under `legacy/` and `best/`.
+
+Expected output directory:
+
+- `final_convnext_tiny_shrimpxnet_14losses_repeat1_audited_outputs/`
+
+Expected summary artifacts include:
+
+- `run_audit.json`
+- `environment_versions.json`
+- `fixed_split_manifest_seed42_with_md5.csv`
+- `loss_run_summary_raw.csv`
+- `loss_group_stats.csv`
+- `loss_deltas_vs_ce.csv`
+- `bg_wssv_error_summary.csv`
+- `all_predictions.csv`
+- `final_summary.xlsx`
+- `final_summary.json`
+- `output_table_audit.csv`
+- `figures_and_reports.zip`
+
+## Known Runtime Issues and Fixes
+
+- The partial two-model notebook failed during final partial-state handling because empty failed-result paths were converted to `Path(".")` and treated as readable files. The ConvNeXt-only notebook skips empty paths and directories.
+- AttributeProjectionCE needed an AMP-safe BCE implementation. The ConvNeXt-only notebook avoids `torch.nn.functional.binary_cross_entropy` on probability tensors under autocast and uses a manual float32 attribute term.
+- The final two-model 14-loss comparison is not complete until ConvNeXt-Tiny runs all 14 losses and final summary artifacts exist.
