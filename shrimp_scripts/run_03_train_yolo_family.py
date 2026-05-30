@@ -15,7 +15,7 @@ from shrimp_scripts import config
 from shrimp_scripts.dataset import load_yolo_manifest
 from shrimp_scripts.models_yolo import list_yolo_family_runs, probe_yolo_availability, train_yolo_with_fallback
 from shrimp_scripts.progress import log_event
-from shrimp_scripts.utils import ensure_dir, save_csv, write_status
+from shrimp_scripts.utils import ensure_dir, save_csv, write_json, write_status
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,20 +26,68 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
     parser.add_argument("--skip_probe", action="store_true")
+    parser.add_argument("--only_model", default=None, help="Optional exact model filter for smoke/debug runs, e.g. yolo26m-cls.")
+    parser.add_argument("--only_condition", default=None, help="Optional exact condition_key filter, e.g. asl_no_randaugment.")
+    parser.add_argument("--only_loss", default=None, help="Optional exact loss_key filter, e.g. asl_single_label.")
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
     parser.add_argument("--no_progress", dest="progress", action="store_false")
     return parser.parse_args()
 
 
+def filter_runs(rows: list[dict], args: argparse.Namespace) -> list[dict]:
+    selected = rows
+    if args.only_model:
+        selected = [row for row in selected if row["model"] == args.only_model]
+    if args.only_condition:
+        selected = [row for row in selected if row["condition_key"] == args.only_condition]
+    if args.only_loss:
+        selected = [row for row in selected if row["loss_key"] == args.only_loss]
+    return selected
+
+
+def stage03_summary(planned_rows: list[dict], results: list[dict]) -> dict:
+    completed = []
+    skipped = []
+    failed = []
+    other = []
+    result_by_run_id = {str(result.get("run_id", "")): result for result in results}
+    for row in planned_rows:
+        result = result_by_run_id.get(row["run_id"], {"run_id": row["run_id"], "status": "not_attempted"})
+        status = str(result.get("status", "completed"))
+        item = {"run_id": row["run_id"], "model": row["model"], "condition": row["condition_key"], "loss_key": row["loss_key"], "status": status}
+        if status == "completed":
+            completed.append(item)
+        elif status.startswith("skipped"):
+            skipped.append(item)
+        elif status == "failed":
+            item["error"] = result.get("error", result.get("errors", ""))
+            failed.append(item)
+        else:
+            other.append(item)
+    return {
+        "planned_count": len(planned_rows),
+        "attempted_count": len(results),
+        "completed_count": len(completed),
+        "skipped_count": len(skipped),
+        "failed_count": len(failed),
+        "other_count": len(other),
+        "completed_runs": completed,
+        "skipped_runs": skipped,
+        "failed_runs": failed,
+        "other_runs": other,
+    }
+
+
 def main() -> None:
     args = parse_args()
-    rows = list_yolo_family_runs(smoke_test=args.smoke_test)
+    all_rows = list_yolo_family_runs(smoke_test=args.smoke_test)
+    rows = filter_runs(all_rows, args)
     if args.list_runs:
-        print(json.dumps({"run_count": len(rows), "runs": rows}, indent=2))
+        print(json.dumps({"run_count": len(rows), "available_before_filter": len(all_rows), "runs": rows}, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
     if args.progress:
-        log_event("Starting YOLO family training.", output_dir=output_dir, extra={"planned_runs": len(rows), "skip_probe": args.skip_probe})
+        log_event("Starting YOLO family training.", output_dir=output_dir, extra={"planned_runs": len(rows), "available_before_filter": len(all_rows), "skip_probe": args.skip_probe, "only_model": args.only_model, "only_condition": args.only_condition, "only_loss": args.only_loss})
     yolo_manifest = load_yolo_manifest(output_dir)
     save_csv(pd.DataFrame(rows), output_dir / "experiment_plan_yolo_family.csv")
     availability = None if args.skip_probe else probe_yolo_availability(output_dir, progress_enabled=args.progress)
@@ -69,9 +117,14 @@ def main() -> None:
         results.append(result)
         if args.progress:
             log_event("Finished planned YOLO family run.", run_id=row["run_id"], output_dir=output_dir, extra={"status": result.get("status", "completed")})
+    summary = stage03_summary(rows, results)
+    write_json(output_dir / "stage03_yolo_family_summary.json", summary)
+    save_csv(pd.DataFrame(summary["completed_runs"] + summary["skipped_runs"] + summary["failed_runs"] + summary["other_runs"]), output_dir / "stage03_yolo_family_summary.csv")
+    if summary["failed_count"] > 0 and args.progress:
+        log_event("Stage 03 completed with failed YOLO runs.", level="ERROR", output_dir=output_dir, extra={"failed_count": summary["failed_count"], "failed_runs": summary["failed_runs"]})
     if args.progress:
-        log_event("YOLO family script completed.", output_dir=output_dir, extra={"attempted": len(results)})
-    print(json.dumps({"completed_or_attempted": len(results), "results": results}, indent=2, default=str))
+        log_event("YOLO family script completed.", output_dir=output_dir, extra=summary)
+    print(json.dumps({"completed_or_attempted": len(results), "summary": summary, "results": results}, indent=2, default=str))
 
 
 if __name__ == "__main__":

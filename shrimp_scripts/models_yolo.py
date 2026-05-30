@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import time
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -14,10 +15,26 @@ from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
 from .losses import LOSS_CONFIG, make_loss
 from .progress import log_event
-from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
+from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
 
 
 ACTIVE_YOLO_LOSS_KEY = "baseline_ce"
+
+try:
+    import torch as _TORCH
+    import torch.nn as _NN
+    from ultralytics.nn.tasks import ClassificationModel as _UltralyticsClassificationModel
+    try:
+        from ultralytics.models.yolo.classify.train import ClassificationTrainer as _UltralyticsClassificationTrainer
+    except Exception:
+        from ultralytics.models.yolo.classify import ClassificationTrainer as _UltralyticsClassificationTrainer
+    _YOLO_CUSTOM_CLASS_IMPORT_ERROR = None
+except Exception as _import_exc:
+    _TORCH = None
+    _NN = None
+    _UltralyticsClassificationModel = object
+    _UltralyticsClassificationTrainer = object
+    _YOLO_CUSTOM_CLASS_IMPORT_ERROR = _import_exc
 
 
 def _torch():
@@ -25,14 +42,56 @@ def _torch():
     return torch
 
 
-def _yolo_classification_types():
-    import torch.nn as nn
-    from ultralytics.nn.tasks import ClassificationModel
-    try:
-        from ultralytics.models.yolo.classify.train import ClassificationTrainer
-    except Exception:
-        from ultralytics.models.yolo.classify import ClassificationTrainer
-    return nn, ClassificationModel, ClassificationTrainer
+if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
+
+    class PaperClassificationLoss(_NN.Module):
+        def __init__(self, model):
+            super().__init__()
+            self.loss_key = getattr(model, "loss_key", ACTIVE_YOLO_LOSS_KEY)
+            self.loss_fcn = make_loss(self.loss_key)
+
+        def extract_logits(self, preds, targets):
+            if _TORCH.is_tensor(preds):
+                return preds
+            if isinstance(preds, (list, tuple)):
+                for item in preds:
+                    if _TORCH.is_tensor(item) and item.ndim == 2 and item.shape[0] == targets.shape[0] and item.shape[1] == config.NUM_CLASSES:
+                        return item
+                for item in preds:
+                    if _TORCH.is_tensor(item) and item.ndim == 2 and item.shape[0] == targets.shape[0]:
+                        return item
+            raise TypeError("unable_to_extract_yolo_classification_logits")
+
+        def forward(self, preds, batch):
+            targets = batch["cls"].long().view(-1)
+            logits = self.extract_logits(preds, targets).float()
+            targets = targets.to(logits.device)
+            self.loss_fcn = self.loss_fcn.to(logits.device)
+            loss = self.loss_fcn(logits, targets)
+            return loss, loss.detach()
+
+
+    class PaperClassificationModel(_UltralyticsClassificationModel):
+        def init_criterion(self):
+            return PaperClassificationLoss(self)
+
+
+    class PaperClassificationTrainer(_UltralyticsClassificationTrainer):
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            nc = self.data["nc"] if isinstance(self.data, dict) and "nc" in self.data else config.NUM_CLASSES
+            try:
+                model = PaperClassificationModel(cfg, nc=nc, verbose=verbose)
+            except TypeError:
+                model = PaperClassificationModel(cfg, ch=3, nc=nc, verbose=verbose)
+            model.loss_key = ACTIVE_YOLO_LOSS_KEY
+            if weights:
+                model.load(weights)
+            return model
+
+else:
+    PaperClassificationLoss = None
+    PaperClassificationModel = None
+    PaperClassificationTrainer = None
 
 
 def yolo_run_id(model_name: str, condition: dict[str, Any]) -> str:
@@ -50,52 +109,18 @@ def list_yolo_family_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
 
 
 def get_custom_trainer_class():
-    torch = _torch()
-    nn, ClassificationModel, ClassificationTrainer = _yolo_classification_types()
-
-    class PaperClassificationLoss(nn.Module):
-        def __init__(self, model):
-            super().__init__()
-            self.loss_key = getattr(model, "loss_key", ACTIVE_YOLO_LOSS_KEY)
-            self.loss_fcn = make_loss(self.loss_key)
-
-        def extract_logits(self, preds, targets):
-            if torch.is_tensor(preds):
-                return preds
-            if isinstance(preds, (list, tuple)):
-                for item in preds:
-                    if torch.is_tensor(item) and item.ndim == 2 and item.shape[0] == targets.shape[0] and item.shape[1] == config.NUM_CLASSES:
-                        return item
-                for item in preds:
-                    if torch.is_tensor(item) and item.ndim == 2 and item.shape[0] == targets.shape[0]:
-                        return item
-            raise TypeError("unable_to_extract_yolo_classification_logits")
-
-        def forward(self, preds, batch):
-            targets = batch["cls"].long().view(-1)
-            logits = self.extract_logits(preds, targets).float()
-            targets = targets.to(logits.device)
-            self.loss_fcn = self.loss_fcn.to(logits.device)
-            loss = self.loss_fcn(logits, targets)
-            return loss, loss.detach()
-
-    class PaperClassificationModel(ClassificationModel):
-        def init_criterion(self):
-            return PaperClassificationLoss(self)
-
-    class PaperClassificationTrainer(ClassificationTrainer):
-        def get_model(self, cfg=None, weights=None, verbose=True):
-            nc = self.data["nc"] if isinstance(self.data, dict) and "nc" in self.data else config.NUM_CLASSES
-            try:
-                model = PaperClassificationModel(cfg, nc=nc, verbose=verbose)
-            except TypeError:
-                model = PaperClassificationModel(cfg, ch=3, nc=nc, verbose=verbose)
-            model.loss_key = ACTIVE_YOLO_LOSS_KEY
-            if weights:
-                model.load(weights)
-            return model
-
+    if PaperClassificationTrainer is None:
+        raise ImportError(f"Ultralytics custom classification trainer is unavailable: {_YOLO_CUSTOM_CLASS_IMPORT_ERROR!r}")
     return PaperClassificationTrainer
+
+
+def exception_details(exc: BaseException) -> dict[str, str]:
+    return {
+        "exception_type": exc.__class__.__name__,
+        "exception_message": str(exc),
+        "exception_repr": repr(exc),
+        "traceback": traceback.format_exc(),
+    }
 
 
 def yolo_device_arg():
@@ -272,6 +297,12 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         if not candidates:
             raise FileNotFoundError(str(best_path))
         best_path = candidates[-1]
+    last_path = yolo_train_dir / "weights" / "last.pt"
+    if not last_path.exists():
+        candidates = sorted(yolo_train_dir.glob("**/last.pt"))
+        if not candidates:
+            raise FileNotFoundError(str(last_path))
+        last_path = candidates[-1]
     best_model = YOLO(str(best_path))
     val_frame = yolo_manifest[yolo_manifest["split"] == "val"].copy()
     test_frame = yolo_manifest[yolo_manifest["split"] == "test"].copy()
@@ -308,14 +339,16 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "params_m": params_m,
         "model_size_mb": best_path.stat().st_size / (1024 * 1024),
         "checkpoint_path": str(best_path.resolve()),
+        "last_checkpoint_path": str(last_path.resolve()),
         "checkpoint_sha256": sha256_file(best_path),
+        "last_checkpoint_sha256": sha256_file(last_path),
         "pretrained_weight_path": pretrained_path,
         "pretrained_weight_sha256": sha256_file(pretrained_path) if pretrained_path and Path(pretrained_path).is_file() else "",
         "val": val_metrics,
         "test": test_metrics,
     }
     write_json(run_dir / "metrics.json", metrics)
-    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **augment_audit, "backend": "ultralytics", "checkpoint_path": str(best_path.resolve()), "pretrained_weight_path": pretrained_path, "completed_at": utc_now(), "status": "completed"})
+    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **augment_audit, "backend": "ultralytics", "checkpoint_path": str(best_path.resolve()), "last_checkpoint_path": str(last_path.resolve()), "pretrained_weight_path": pretrained_path, "completed_at": utc_now(), "status": "completed"})
     write_status(run_dir, "completed", run_id=run_id, completed_at=utc_now(), test_macro_f1=test_metrics["macro_f1"])
     if progress_enabled:
         log_event("Saved final YOLO metrics and artifacts.", run_id=run_id, output_dir=output_dir, extra={"test_macro_f1": test_metrics["macro_f1"], "checkpoint": str(best_path.resolve())})
@@ -332,17 +365,32 @@ def train_yolo_with_fallback(model_name: str, condition: dict[str, Any], yolo_ma
                 log_event("Attempting YOLO batch fallback.", run_id=run_id, output_dir=output_dir, extra={"batch": batch})
             return train_yolo_once(model_name, condition, yolo_manifest, output_dir, resume=resume, smoke_test=smoke_test, batch=batch, progress_enabled=progress_enabled)
         except Exception as exc:
-            errors.append({"batch": batch, "error": repr(exc)})
+            failure = {"batch": batch, "error": repr(exc), **exception_details(exc)}
+            errors.append(failure)
             if is_oom_error(exc):
                 if progress_enabled:
-                    log_event("YOLO OOM during batch fallback; trying next batch.", level="WARNING", run_id=run_id, output_dir=output_dir, extra={"failed_batch": batch, "error": repr(exc)})
+                    log_event("YOLO OOM during batch fallback; trying next batch.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=failure)
                 cleanup_memory()
                 continue
             if progress_enabled:
-                log_event("YOLO run failed with non-OOM error.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"batch": batch, "error": repr(exc)})
+                log_event("YOLO run failed with non-OOM error.", level="ERROR", run_id=run_id, output_dir=output_dir, extra=failure)
             break
     run_dir = ensure_dir(config.output_paths(output_dir)["runs"] / run_id)
-    write_status(run_dir, "failed", run_id=run_id, errors=errors)
+    existing_audit = read_json(run_dir / "run_audit.json", default={})
+    failed_at = utc_now()
+    write_json(run_dir / "run_audit.json", {**existing_audit, "status": "failed", "failed_at": failed_at, "errors": errors})
+    last_error = errors[-1] if errors else {}
+    write_status(
+        run_dir,
+        "failed",
+        run_id=run_id,
+        failed_at=failed_at,
+        error=last_error.get("exception_repr", ""),
+        exception_type=last_error.get("exception_type", ""),
+        exception_message=last_error.get("exception_message", ""),
+        traceback=last_error.get("traceback", ""),
+        errors=errors,
+    )
     if progress_enabled:
         log_event("YOLO run failed after fallback attempts.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"errors": errors})
     return {"run_id": run_id, "status": "failed", "errors": errors}
