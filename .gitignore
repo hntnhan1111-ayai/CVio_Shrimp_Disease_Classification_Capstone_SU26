@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+# Experiment outputs
+shrimp_outputs/
+runs/
+figures/
+reports/
+yolo_fixed_dataset/
+paper_outputs.zip
+*.pt
+*.pth
+*.ckpt
+events.out.tfevents.*
+wandb/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
