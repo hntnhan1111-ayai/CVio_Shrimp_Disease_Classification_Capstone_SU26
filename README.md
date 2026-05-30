@@ -18,6 +18,8 @@ python shrimp_scripts/run_05_generate_reports_and_xai.py --output_dir /kaggle/wo
 
 Step 1 prepares data only. Step 2 is the main paper ablation. Step 3 is YOLO family comparison. Step 4 is lightweight/mobile-friendly model comparison. Step 5 generates tables, figures, XAI, Excel, report, and zip.
 
+All runner scripts print timestamped progress by default and append JSONL events to `progress_log.jsonl` in the selected `--output_dir`. Use `--no_progress` to silence progress bars and progress events during lightweight validation.
+
 ## Core Ablation
 
 Core ablation is the main experiment of the paper. It contains 12 runs:
@@ -49,6 +51,7 @@ This experiment tests whether the co-infection-aware loss and RandAugment improv
 | `shrimp_scripts/evaluate.py` | Computes metrics, prediction tables, classification reports, confusion matrices, and collects run outputs. |
 | `shrimp_scripts/xai.py` | Generates selected Grad-CAM-style heatmaps for supported Torch and YOLO classification models. |
 | `shrimp_scripts/report.py` | Builds final paper tables, figures, Excel files, reproducibility report, and downloadable zip. |
+| `shrimp_scripts/progress.py` | Provides timestamped console/JSONL progress logging and optional tqdm progress bars that degrade gracefully when tqdm is unavailable. |
 | `shrimp_scripts/run_01_prepare_dataset.py` | Entry point for dataset download, dataset audit, split creation, and YOLO dataset preparation. |
 | `shrimp_scripts/run_02_train_core_ablation.py` | Entry point for the main 12-run ablation: ConvNeXt and YOLOv26m across CE, ASL, Pairwise loss, with and without RandAugment. |
 | `shrimp_scripts/run_03_train_yolo_family.py` | Entry point for YOLO family comparison across YOLO classification m-variants. |

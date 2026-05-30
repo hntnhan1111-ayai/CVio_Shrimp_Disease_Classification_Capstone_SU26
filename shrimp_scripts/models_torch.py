@@ -13,6 +13,7 @@ from PIL import Image
 from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
 from .losses import LOSS_CONFIG, make_loss
+from .progress import log_event, progress_iter
 from .utils import (
     cleanup_memory,
     ensure_dir,
@@ -237,7 +238,7 @@ def make_run_config(model_key: str, model_name: str, condition: dict[str, Any], 
     }
 
 
-def predict_torch(model, loader, source_frame: pd.DataFrame, run_id: str, model_name: str, backend: str, loss_name: str, condition_key: str, randaugment: bool, split_name: str, device, batch_size: int):
+def predict_torch(model, loader, source_frame: pd.DataFrame, run_id: str, model_name: str, backend: str, loss_name: str, condition_key: str, randaugment: bool, split_name: str, device, batch_size: int, output_dir: str | Path | None = None, progress_enabled: bool = True):
     torch, _nn, F, _optim, _DataLoader, _Dataset, _models, _transforms, _InterpolationMode = _torch_stack()
     model.eval()
     y_true: list[int] = []
@@ -247,8 +248,10 @@ def predict_torch(model, loader, source_frame: pd.DataFrame, run_id: str, model_
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     start = time.time()
+    if progress_enabled:
+        log_event("Starting Torch prediction.", run_id=run_id, output_dir=output_dir, extra={"split": split_name, "images": len(source_frame), "batch_size": batch_size})
     with torch.no_grad():
-        for inputs, labels, batch_indices in loader:
+        for inputs, labels, batch_indices in progress_iter(loader, desc=f"{run_id} {split_name}", total=len(loader), enabled=progress_enabled, leave=False):
             inputs = inputs.to(device, non_blocking=True)
             logits = model(inputs).float()
             probs = F.softmax(logits, dim=1).detach().cpu().numpy()
@@ -269,10 +272,19 @@ def predict_torch(model, loader, source_frame: pd.DataFrame, run_id: str, model_
         "fps": len(y_true) / elapsed if elapsed > 0 else None,
         "prediction_batch": batch_size,
     })
+    if progress_enabled:
+        log_event("Finished Torch prediction.", run_id=run_id, output_dir=output_dir, extra={
+            "split": split_name,
+            "images": len(y_true),
+            "batch_size": batch_size,
+            "elapsed_s": round(elapsed, 3),
+            "latency_ms_image": metrics["latency_ms_image"],
+            "macro_f1": metrics["macro_f1"],
+        })
     return metrics, predictions, y_true, y_pred
 
 
-def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any], split_manifest: pd.DataFrame, output_dir: str | Path, resume: bool, smoke_test: bool, micro_batch: int):
+def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any], split_manifest: pd.DataFrame, output_dir: str | Path, resume: bool, smoke_test: bool, micro_batch: int, progress_enabled: bool = True):
     torch, _nn, _F, optim, DataLoader, _Dataset, _models, _transforms, _InterpolationMode = _torch_stack()
     paths = config.output_paths(output_dir)
     ensure_dir(paths["runs"])
@@ -284,13 +296,29 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
     if resume:
         completed, reason = is_run_completed(run_id, output_dir, run_hash, backend_hint)
         if completed:
+            if progress_enabled:
+                log_event("Skipping completed Torch run after strict resume check.", run_id=run_id, output_dir=output_dir, extra={"reason": reason})
             return {"run_id": run_id, "status": "skipped_completed", "skip_reason": reason}
+    if progress_enabled:
+        log_event("Starting Torch run.", run_id=run_id, output_dir=output_dir, extra={
+            "model": model_name,
+            "model_key": model_key,
+            "condition": condition["condition_key"],
+            "loss": condition["loss_key"],
+            "randaugment": condition["randaugment"],
+            "micro_batch": micro_batch,
+            "epochs": config.epochs_for(smoke_test),
+        })
     set_seed(config.SEED)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_frame = split_manifest[split_manifest["split"] == "train"].copy()
     val_frame = split_manifest[split_manifest["split"] == "val"].copy()
     test_frame = split_manifest[split_manifest["split"] == "test"].copy()
+    if progress_enabled:
+        log_event("Torch split sizes resolved.", run_id=run_id, output_dir=output_dir, extra={"train": len(train_frame), "val": len(val_frame), "test": len(test_frame)})
     accumulation_steps = max(1, config.TORCH_EFFECTIVE_BATCH // micro_batch)
+    if progress_enabled:
+        log_event("Creating Torch model.", run_id=run_id, output_dir=output_dir, extra={"model_key": model_key, "device": str(device)})
     model, model_cfg = create_torch_model(model_key)
     backend = model_cfg["library"]
     model = model.to(device)
@@ -328,6 +356,7 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         patience = config.LIGHTWEIGHT_TORCH_PATIENCE
 
     for phase in phases:
+        phase_start = time.time()
         if phase["optimizer_kind"] == "warmup":
             optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.CONVNEXT_WARMUP_LR)
         elif phase["optimizer_kind"] == "finetune":
@@ -348,12 +377,17 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         else:
             optimizer = optim.AdamW(model.parameters(), lr=config.LIGHTWEIGHT_LR, weight_decay=config.TORCH_WEIGHT_DECAY)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=config.CONVNEXT_STEP_SIZE, gamma=config.CONVNEXT_STEP_GAMMA)
+        if progress_enabled:
+            log_event("Starting Torch training phase.", run_id=run_id, output_dir=output_dir, extra={"phase": phase["name"], "start_epoch": phase["start"] + 1, "end_epoch": phase["end"], "optimizer_kind": phase["optimizer_kind"]})
         for epoch in range(phase["start"], phase["end"]):
+            epoch_start = time.time()
+            if progress_enabled:
+                log_event("Starting Torch epoch.", run_id=run_id, output_dir=output_dir, extra={"phase": phase["name"], "epoch": epoch + 1, "total_epochs": epochs})
             model.train()
             optimizer.zero_grad(set_to_none=True)
             running_loss = 0.0
             seen_batches = 0
-            for step, (inputs, labels, _indices) in enumerate(train_loader):
+            for step, (inputs, labels, _indices) in enumerate(progress_iter(train_loader, desc=f"{run_id} {phase['name']} epoch {epoch + 1}", total=len(train_loader), enabled=progress_enabled, leave=False)):
                 inputs = inputs.to(device, non_blocking=True)
                 labels = labels.to(device, non_blocking=True)
                 with torch.amp.autocast("cuda", enabled=config.USE_AMP and device.type == "cuda"):
@@ -367,7 +401,7 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
                 running_loss += float(loss.detach().cpu()) * accumulation_steps
                 seen_batches += 1
             scheduler.step()
-            val_metrics, _val_predictions, _val_true, _val_pred = predict_torch(model, val_loader, val_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "val", device, config.TORCH_EVAL_BATCH)
+            val_metrics, _val_predictions, _val_true, _val_pred = predict_torch(model, val_loader, val_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "val", device, config.TORCH_EVAL_BATCH, output_dir=output_dir, progress_enabled=progress_enabled)
             val_loss_proxy = 1.0 - float(val_metrics["macro_f1"])
             improved = val_loss_proxy < best_metric
             if improved:
@@ -387,8 +421,25 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
                 "lr": optimizer.param_groups[0]["lr"],
             })
             save_csv(pd.DataFrame(history), run_dir / "training_history.csv")
+            if progress_enabled:
+                log_event("Finished Torch epoch.", run_id=run_id, output_dir=output_dir, extra={
+                    "phase": phase["name"],
+                    "epoch": epoch + 1,
+                    "total_epochs": epochs,
+                    "train_loss": history[-1]["train_loss"],
+                    "val_macro_f1": val_metrics["macro_f1"],
+                    "best_val_macro_f1": 1.0 - best_metric,
+                    "no_improve": no_improve,
+                    "patience": patience,
+                    "lr": optimizer.param_groups[0]["lr"],
+                    "elapsed_s": round(time.time() - epoch_start, 3),
+                })
             if no_improve >= patience:
+                if progress_enabled:
+                    log_event("Early stopping patience reached.", run_id=run_id, output_dir=output_dir, extra={"phase": phase["name"], "no_improve": no_improve, "patience": patience})
                 break
+        if progress_enabled:
+            log_event("Finished Torch training phase.", run_id=run_id, output_dir=output_dir, extra={"phase": phase["name"], "elapsed_s": round(time.time() - phase_start, 3)})
     if best_state is None:
         raise RuntimeError("No best checkpoint was captured.")
     model.load_state_dict(best_state)
@@ -403,8 +454,13 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         "best_val_macro_f1": 1.0 - best_metric,
         "run_config": run_config,
     }, checkpoint_path)
-    val_metrics, val_predictions, val_true, val_pred = predict_torch(model, val_loader, val_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "val", device, config.TORCH_EVAL_BATCH)
-    test_metrics, test_predictions, test_true, test_pred = predict_torch(model, test_loader, test_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "test", device, config.TORCH_EVAL_BATCH)
+    if progress_enabled:
+        log_event("Saved best Torch checkpoint.", run_id=run_id, output_dir=output_dir, extra={"checkpoint": str(checkpoint_path), "best_epoch": best_epoch, "best_val_macro_f1": 1.0 - best_metric})
+        log_event("Starting final validation prediction.", run_id=run_id, output_dir=output_dir)
+    val_metrics, val_predictions, val_true, val_pred = predict_torch(model, val_loader, val_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "val", device, config.TORCH_EVAL_BATCH, output_dir=output_dir, progress_enabled=progress_enabled)
+    if progress_enabled:
+        log_event("Starting final test prediction.", run_id=run_id, output_dir=output_dir)
+    test_metrics, test_predictions, test_true, test_pred = predict_torch(model, test_loader, test_frame, run_id, model_name, backend, LOSS_CONFIG[condition["loss_key"]]["name"], condition["condition_key"], condition["randaugment"], "test", device, config.TORCH_EVAL_BATCH, output_dir=output_dir, progress_enabled=progress_enabled)
     save_prediction_artifacts(run_dir, val_metrics, val_predictions, val_true, val_pred, split_name="val")
     save_prediction_artifacts(run_dir, test_metrics, test_predictions, test_true, test_pred, split_name="test")
     save_csv(confusion_count_frame(test_metrics, run_id, model_name, backend, condition["condition_key"], condition["loss_key"]), run_dir / "confusion_counts.csv")
@@ -434,24 +490,34 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
     write_json(run_dir / "metrics.json", metrics)
     write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, "backend": backend, "checkpoint_path": str(checkpoint_path.resolve()), "completed_at": utc_now(), "status": "completed"})
     write_status(run_dir, "completed", run_id=run_id, completed_at=utc_now(), test_macro_f1=test_metrics["macro_f1"])
+    if progress_enabled:
+        log_event("Saved final Torch metrics and artifacts.", run_id=run_id, output_dir=output_dir, extra={"test_macro_f1": test_metrics["macro_f1"], "checkpoint": str(checkpoint_path.resolve())})
     cleanup_memory()
     return metrics
 
 
-def train_torch_with_fallback(model_key: str, model_name: str, condition: dict[str, Any], split_manifest: pd.DataFrame, output_dir: str | Path, resume: bool = True, smoke_test: bool = False) -> dict[str, Any]:
+def train_torch_with_fallback(model_key: str, model_name: str, condition: dict[str, Any], split_manifest: pd.DataFrame, output_dir: str | Path, resume: bool = True, smoke_test: bool = False, progress_enabled: bool = True) -> dict[str, Any]:
     run_id = torch_run_id(model_key, condition)
     errors: list[dict[str, Any]] = []
     for micro_batch in config.TORCH_MICRO_BATCH_FALLBACKS:
         try:
-            return train_torch_once(model_key, model_name, condition, split_manifest, output_dir, resume=resume, smoke_test=smoke_test, micro_batch=micro_batch)
+            if progress_enabled:
+                log_event("Attempting Torch batch fallback.", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch})
+            return train_torch_once(model_key, model_name, condition, split_manifest, output_dir, resume=resume, smoke_test=smoke_test, micro_batch=micro_batch, progress_enabled=progress_enabled)
         except Exception as exc:
             errors.append({"micro_batch": micro_batch, "error": repr(exc)})
             if is_oom_error(exc):
+                if progress_enabled:
+                    log_event("Torch OOM during batch fallback; trying next micro-batch.", level="WARNING", run_id=run_id, output_dir=output_dir, extra={"failed_micro_batch": micro_batch, "error": repr(exc)})
                 cleanup_memory()
                 continue
+            if progress_enabled:
+                log_event("Torch run failed with non-OOM error.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch, "error": repr(exc)})
             break
     run_dir = ensure_dir(config.output_paths(output_dir)["runs"] / run_id)
     write_status(run_dir, "failed", run_id=run_id, errors=errors)
+    if progress_enabled:
+        log_event("Torch run failed after fallback attempts.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"errors": errors})
     return {"run_id": run_id, "status": "failed", "errors": errors}
 
 

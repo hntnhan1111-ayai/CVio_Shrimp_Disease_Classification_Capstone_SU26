@@ -9,6 +9,7 @@ import pandas as pd
 
 from . import config
 from .evaluate import collect_run_outputs
+from .progress import log_event
 from .utils import ensure_dir, environment_versions, read_json, save_csv, write_json, zip_directory
 from .xai import generate_selected_xai
 
@@ -121,12 +122,14 @@ def write_reproducibility_report(output_dir: str | Path, metrics_frame: pd.DataF
     return path
 
 
-def generate_reports(output_dir: str | Path, dry_run: bool = False) -> dict[str, Any]:
+def generate_reports(output_dir: str | Path, dry_run: bool = False, progress_enabled: bool = True) -> dict[str, Any]:
     output_dir = Path(output_dir)
     ensure_dir(output_dir)
     ensure_dir(output_dir / "reports")
     ensure_dir(output_dir / "figures")
     if dry_run:
+        if progress_enabled:
+            log_event("Report generation dry-run requested.", output_dir=output_dir)
         return {
             "dry_run": True,
             "expected_inputs": [
@@ -141,19 +144,35 @@ def generate_reports(output_dir: str | Path, dry_run: bool = False) -> dict[str,
                 "paper_outputs.zip",
             ],
         }
+    if progress_enabled:
+        log_event("Writing environment versions.", output_dir=output_dir)
     write_json(output_dir / "environment_versions.json", environment_versions({
         "project": config.PROJECT_TITLE,
         "dataset_id": config.DATASET_ID,
         "seed": config.SEED,
     }))
+    if progress_enabled:
+        log_event("Collecting completed run outputs.", output_dir=output_dir)
     metrics_frame, predictions, confusions, failed = collect_run_outputs(output_dir, expected_run_ids=expected_all_run_ids())
+    if progress_enabled:
+        log_event("Run output collection completed.", output_dir=output_dir, extra={"metrics_rows": len(metrics_frame), "prediction_rows": len(predictions), "confusion_rows": len(confusions), "failed_rows": len(failed)})
     split_manifest = pd.read_csv(output_dir / "fixed_split_manifest_seed42_with_md5.csv") if (output_dir / "fixed_split_manifest_seed42_with_md5.csv").exists() else None
     yolo_manifest = pd.read_csv(output_dir / "yolo_split_manifest_seed42_with_md5.csv") if (output_dir / "yolo_split_manifest_seed42_with_md5.csv").exists() else None
-    xai_frame = generate_selected_xai(output_dir, metrics_frame, split_manifest=split_manifest, yolo_manifest=yolo_manifest)
+    xai_frame = generate_selected_xai(output_dir, metrics_frame, split_manifest=split_manifest, yolo_manifest=yolo_manifest, progress_enabled=progress_enabled)
+    if progress_enabled:
+        log_event("Building paper tables.", output_dir=output_dir)
     table_paths = make_tables(output_dir, metrics_frame, xai_frame)
+    if progress_enabled:
+        log_event("Building paper figures.", output_dir=output_dir)
     figure_paths = make_figures(output_dir, metrics_frame)
+    if progress_enabled:
+        log_event("Writing Excel summary.", output_dir=output_dir)
     excel_path = write_excel_summary(output_dir, table_paths, metrics_frame)
+    if progress_enabled:
+        log_event("Writing reproducibility report.", output_dir=output_dir)
     report_path = write_reproducibility_report(output_dir, metrics_frame, xai_frame)
+    if progress_enabled:
+        log_event("Creating downloadable zip package.", output_dir=output_dir)
     zip_path = zip_directory(output_dir, output_dir / "paper_outputs.zip", exclude_names={"paper_outputs.zip"})
     write_json(output_dir / "report_generation_summary.json", {
         "metrics_rows": len(metrics_frame),
@@ -167,4 +186,6 @@ def generate_reports(output_dir: str | Path, dry_run: bool = False) -> dict[str,
         "report": str(report_path),
         "zip": str(zip_path),
     })
+    if progress_enabled:
+        log_event("Report generation completed.", output_dir=output_dir, extra={"final_summary_rows": len(metrics_frame), "zip": str(zip_path), "report": str(report_path)})
     return {"final_summary_rows": len(metrics_frame), "zip": str(zip_path), "report": str(report_path)}

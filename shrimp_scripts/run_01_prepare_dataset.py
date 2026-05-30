@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shrimp_scripts import config
 from shrimp_scripts.dataset import prepare_all
+from shrimp_scripts.progress import log_event
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,12 +22,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--dry_run", action="store_true")
     parser.add_argument("--force_rebuild_yolo", action="store_true")
+    parser.add_argument("--progress", dest="progress", action="store_true", default=True)
+    parser.add_argument("--no_progress", dest="progress", action="store_false")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     if args.dry_run:
+        if args.progress:
+            log_event("Dry-run dataset preparation requested.", output_dir=args.output_dir)
         payload = {
             "dry_run": True,
             "dataset_id": config.DATASET_ID,
@@ -42,7 +47,9 @@ def main() -> None:
             ],
         }
     else:
-        payload = prepare_all(args.output_dir, dry_run=False, force_rebuild_yolo=args.force_rebuild_yolo)
+        payload = prepare_all(args.output_dir, dry_run=False, force_rebuild_yolo=args.force_rebuild_yolo, progress_enabled=args.progress)
+    if args.progress:
+        log_event("Dataset preparation script completed.", output_dir=args.output_dir, extra=payload)
     print(json.dumps(payload, indent=2))
 
 

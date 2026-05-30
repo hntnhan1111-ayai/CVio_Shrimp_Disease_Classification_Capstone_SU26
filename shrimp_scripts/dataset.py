@@ -10,6 +10,7 @@ import pandas as pd
 from PIL import Image
 
 from . import config
+from .progress import log_event, progress_iter
 from .utils import ensure_dir, md5_file, save_csv, write_json
 
 
@@ -59,7 +60,7 @@ def count_class_images(root: str | Path) -> dict[str, int]:
     return {class_dir: len(image_files(root / class_dir)) if (root / class_dir).is_dir() else -1 for class_dir in config.CLASS_DIRS}
 
 
-def audit_class_counts(root: str | Path) -> dict[str, Any]:
+def audit_class_counts(root: str | Path, output_dir: str | Path | None = None, progress_enabled: bool = True) -> dict[str, Any]:
     counts = count_class_images(root)
     named_counts = {config.DIR_TO_NAME[class_dir]: counts[class_dir] for class_dir in config.CLASS_DIRS}
     total = sum(counts.values())
@@ -74,11 +75,13 @@ def audit_class_counts(root: str | Path) -> dict[str, Any]:
         "actual_total_images": total,
     }
     if counts != config.EXPECTED_CLASS_COUNTS or total != config.EXPECTED_TOTAL_IMAGES:
+        if progress_enabled:
+            log_event("Dataset class-count audit failed before fail-fast exit.", level="ERROR", output_dir=output_dir, extra=audit)
         raise AssertionError("dataset_count_mismatch " + str(audit))
     return audit
 
 
-def download_dataset(output_dir: str | Path, dry_run: bool = False) -> tuple[Path | None, dict[str, Any]]:
+def download_dataset(output_dir: str | Path, dry_run: bool = False, progress_enabled: bool = True) -> tuple[Path | None, dict[str, Any]]:
     paths = config.output_paths(output_dir)
     ensure_dir(paths["output"])
     if dry_run:
@@ -87,10 +90,18 @@ def download_dataset(output_dir: str | Path, dry_run: bool = False) -> tuple[Pat
         return None, audit
     import kagglehub
 
+    if progress_enabled:
+        log_event("Downloading processed dataset with kagglehub.", output_dir=output_dir, extra={"dataset_id": config.DATASET_ID})
     downloaded = Path(kagglehub.dataset_download("uynnhy/processed-images"))
     print("Path to dataset files:", downloaded)
+    if progress_enabled:
+        log_event("Dataset download completed.", output_dir=output_dir, extra={"downloaded_path": str(downloaded)})
     root, attempts = resolve_dataset_root(downloaded)
-    audit = audit_class_counts(root)
+    if progress_enabled:
+        log_event("Dataset root resolved.", output_dir=output_dir, extra={"dataset_root": str(root)})
+    audit = audit_class_counts(root, output_dir=output_dir, progress_enabled=progress_enabled)
+    if progress_enabled:
+        log_event("Dataset class-count audit passed.", output_dir=output_dir, extra={"class_counts": audit["actual_class_counts_by_name"], "total": audit["actual_total_images"]})
     audit["downloaded_path"] = str(downloaded)
     audit["resolution_attempts"] = attempts
     write_json(paths["output"] / "dataset_resolution.json", audit)
@@ -104,13 +115,16 @@ def image_info(path: str | Path) -> tuple[int, int, str]:
     return width, height, mode
 
 
-def build_manifest(dataset_root: str | Path, output_dir: str | Path) -> pd.DataFrame:
+def build_manifest(dataset_root: str | Path, output_dir: str | Path, progress_enabled: bool = True) -> pd.DataFrame:
+    if progress_enabled:
+        log_event("Building source/processed manifest with MD5 hashes.", output_dir=output_dir, extra={"dataset_root": str(dataset_root)})
     rows: list[dict[str, Any]] = []
     root = Path(dataset_root)
     for class_dir in config.CLASS_DIRS:
         label = config.CLASS_TO_LABEL[class_dir]
         class_name = config.CLASS_NAMES[label]
-        for path in image_files(root / class_dir):
+        files = image_files(root / class_dir)
+        for path in progress_iter(files, desc=f"manifest {class_name}", total=len(files), enabled=progress_enabled, leave=False):
             width, height, mode = image_info(path)
             checksum = md5_file(path)
             rows.append({
@@ -143,10 +157,14 @@ def build_manifest(dataset_root: str | Path, output_dir: str | Path) -> pd.DataF
         frame[["class_dir", "class_name", "label"]].groupby(["class_dir", "class_name", "label"]).size().reset_index(name="count"),
         paths["output"] / "class_distribution.csv",
     )
+    if progress_enabled:
+        log_event("Manifest creation completed.", output_dir=output_dir, extra={"rows": len(frame), "path": str(paths["output"] / "source_processed_manifest_with_md5.csv")})
     return frame
 
 
-def create_split_manifest(manifest: pd.DataFrame, output_dir: str | Path) -> pd.DataFrame:
+def create_split_manifest(manifest: pd.DataFrame, output_dir: str | Path, progress_enabled: bool = True) -> pd.DataFrame:
+    if progress_enabled:
+        log_event("Creating fixed stratified train/val/test split.", output_dir=output_dir, extra={"rows": len(manifest), "split_seed": config.SPLIT_SEED})
     frame = manifest.sort_values("rel_path").reset_index(drop=True).copy()
     labels = frame["label"].to_numpy()
     indices = list(range(len(frame)))
@@ -189,6 +207,8 @@ def create_split_manifest(manifest: pd.DataFrame, output_dir: str | Path) -> pd.
         split_frame.groupby(["split", "class_name"]).size().unstack(fill_value=0).reset_index(),
         paths["output"] / "split_class_distribution.csv",
     )
+    if progress_enabled:
+        log_event("Split manifest completed.", output_dir=output_dir, extra={"rows": len(split_frame), "path": str(paths["output"] / "fixed_split_manifest_seed42_with_md5.csv")})
     return split_frame
 
 
@@ -211,14 +231,17 @@ def fallback_stratified_split(frame: pd.DataFrame) -> tuple[list[int], list[int]
     return train_idx, val_idx, test_idx
 
 
-def prepare_yolo_dataset(split_manifest: pd.DataFrame, output_dir: str | Path, force_rebuild: bool = False) -> pd.DataFrame:
+def prepare_yolo_dataset(split_manifest: pd.DataFrame, output_dir: str | Path, force_rebuild: bool = False, progress_enabled: bool = True) -> pd.DataFrame:
     paths = config.output_paths(output_dir)
     yolo_root = paths["yolo_dataset"]
     manifest_path = paths["output"] / "yolo_split_manifest_seed42_with_md5.csv"
+    if progress_enabled:
+        log_event("Preparing YOLO classification folder tree.", output_dir=output_dir, extra={"rows": len(split_manifest), "yolo_root": str(yolo_root)})
     if force_rebuild and yolo_root.exists():
         shutil.rmtree(yolo_root)
     rows: list[dict[str, Any]] = []
-    for row in split_manifest.sort_values("rel_path").itertuples(index=False):
+    ordered_rows = list(split_manifest.sort_values("rel_path").itertuples(index=False))
+    for row in progress_iter(ordered_rows, desc="copy yolo dataset", total=len(ordered_rows), enabled=progress_enabled, leave=False):
         source = Path(row.source_path)
         safe_name = row.rel_path.replace("/", "__").replace("\\", "__").replace(" ", "_")
         dest = yolo_root / row.split / row.class_name / f"{row.source_md5[:10]}__{safe_name}"
@@ -237,20 +260,30 @@ def prepare_yolo_dataset(split_manifest: pd.DataFrame, output_dir: str | Path, f
     if not (yolo_manifest["source_md5"] == yolo_manifest["yolo_md5"]).all():
         raise AssertionError("yolo_md5_mismatch")
     save_csv(yolo_manifest, manifest_path)
+    if progress_enabled:
+        log_event("YOLO dataset preparation completed.", output_dir=output_dir, extra={"rows": len(yolo_manifest), "manifest": str(manifest_path)})
     return yolo_manifest
 
 
-def prepare_all(output_dir: str | Path, dry_run: bool = False, force_rebuild_yolo: bool = False) -> dict[str, Any]:
+def prepare_all(output_dir: str | Path, dry_run: bool = False, force_rebuild_yolo: bool = False, progress_enabled: bool = True) -> dict[str, Any]:
     paths = config.output_paths(output_dir)
     for path in paths.values():
         ensure_dir(path)
-    root, audit = download_dataset(output_dir, dry_run=dry_run)
+    if progress_enabled:
+        log_event("Starting dataset preparation.", output_dir=output_dir, extra={"output_dir": str(paths["output"])})
+    root, audit = download_dataset(output_dir, dry_run=dry_run, progress_enabled=progress_enabled)
     if dry_run:
         return {"dry_run": True, "output_dir": str(paths["output"]), "dataset_audit": audit}
     assert root is not None
-    manifest = build_manifest(root, output_dir)
-    split_manifest = create_split_manifest(manifest, output_dir)
-    yolo_manifest = prepare_yolo_dataset(split_manifest, output_dir, force_rebuild=force_rebuild_yolo)
+    manifest = build_manifest(root, output_dir, progress_enabled=progress_enabled)
+    split_manifest = create_split_manifest(manifest, output_dir, progress_enabled=progress_enabled)
+    yolo_manifest = prepare_yolo_dataset(split_manifest, output_dir, force_rebuild=force_rebuild_yolo, progress_enabled=progress_enabled)
+    if progress_enabled:
+        log_event("Dataset preparation completed.", output_dir=output_dir, extra={
+            "manifest": str(paths["output"] / "source_processed_manifest_with_md5.csv"),
+            "split_manifest": str(paths["output"] / "fixed_split_manifest_seed42_with_md5.csv"),
+            "yolo_manifest": str(paths["output"] / "yolo_split_manifest_seed42_with_md5.csv"),
+        })
     return {
         "dataset_root": str(root),
         "manifest_rows": len(manifest),

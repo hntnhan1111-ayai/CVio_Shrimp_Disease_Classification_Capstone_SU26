@@ -13,6 +13,7 @@ from shrimp_scripts import config
 from shrimp_scripts.dataset import load_split_manifest, load_yolo_manifest
 from shrimp_scripts.models_torch import list_core_torch_runs, train_torch_with_fallback
 from shrimp_scripts.models_yolo import list_core_yolo_runs, train_yolo_with_fallback
+from shrimp_scripts.progress import log_event
 from shrimp_scripts.utils import ensure_dir, save_csv
 
 
@@ -23,6 +24,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no_resume", dest="resume", action="store_false")
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
+    parser.add_argument("--progress", dest="progress", action="store_true", default=True)
+    parser.add_argument("--no_progress", dest="progress", action="store_false")
     return parser.parse_args()
 
 
@@ -37,16 +40,33 @@ def main() -> None:
         print(json.dumps({"run_count": len(rows), "runs": rows}, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
+    if args.progress:
+        log_event("Starting core ablation training.", output_dir=output_dir, extra={"planned_runs": len(rows), "smoke_test": args.smoke_test, "resume": args.resume})
     split_manifest = load_split_manifest(output_dir)
     yolo_manifest = load_yolo_manifest(output_dir)
     save_csv(__import__("pandas").DataFrame(rows), output_dir / "experiment_plan_core_ablation.csv")
     results = []
-    for row in rows:
+    for index, row in enumerate(rows, start=1):
         condition = {"condition_key": row["condition_key"], "loss_key": row["loss_key"], "randaugment": row["randaugment"]}
+        if args.progress:
+            log_event("Starting planned core run.", run_id=row["run_id"], output_dir=output_dir, extra={
+                "index": index,
+                "total": len(rows),
+                "backend": row["backend"],
+                "model": row["model"],
+                "condition": row["condition_key"],
+                "loss": row["loss_key"],
+                "randaugment": row["randaugment"],
+            })
         if row["backend"] == "ultralytics":
-            results.append(train_yolo_with_fallback(row["model"], condition, yolo_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test))
+            result = train_yolo_with_fallback(row["model"], condition, yolo_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test, progress_enabled=args.progress)
         else:
-            results.append(train_torch_with_fallback(row["model_key"], row["model"], condition, split_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test))
+            result = train_torch_with_fallback(row["model_key"], row["model"], condition, split_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test, progress_enabled=args.progress)
+        results.append(result)
+        if args.progress:
+            log_event("Finished planned core run.", run_id=row["run_id"], output_dir=output_dir, extra={"status": result.get("status", "completed")})
+    if args.progress:
+        log_event("Core ablation script completed.", output_dir=output_dir, extra={"attempted": len(results)})
     print(json.dumps({"completed_or_attempted": len(results), "results": results}, indent=2, default=str))
 
 
