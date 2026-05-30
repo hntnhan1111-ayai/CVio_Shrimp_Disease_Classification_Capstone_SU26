@@ -212,6 +212,8 @@ def collect_run_outputs(output_dir: str | Path, expected_run_ids: set[str] | Non
                 "loss": metrics.get("loss"),
                 "condition": metrics.get("condition"),
                 "randaugment": metrics.get("randaugment"),
+                "diagnostic_extra": bool(metrics.get("diagnostic_extra", False)),
+                "experiment_group": metrics.get("experiment_group", ""),
                 "seed": metrics.get("seed"),
                 "repeat": metrics.get("repeat"),
                 "split_seed": metrics.get("split_seed"),

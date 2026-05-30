@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shrimp_scripts import config
 from shrimp_scripts.dataset import load_split_manifest
-from shrimp_scripts.models_torch import list_lightweight_runs, train_torch_with_fallback
+from shrimp_scripts.models_torch import list_lightweight_diagnostic_runs, list_lightweight_runs, train_torch_with_fallback
 from shrimp_scripts.progress import log_event
 from shrimp_scripts.utils import ensure_dir, save_csv
 
@@ -27,35 +27,85 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--list_runs", action="store_true")
     parser.add_argument("--start", type=int, default=0, help="Zero-based start index for chunked execution.")
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of runs for chunked execution.")
+    parser.add_argument("--run_id", default=None, help="Run exactly one default or diagnostic lightweight run by ID.")
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
     parser.add_argument("--no_progress", dest="progress", action="store_false")
     return parser.parse_args()
 
 
+def select_runs(args: argparse.Namespace) -> tuple[list[dict], list[dict], list[dict], list[dict], str]:
+    default_rows = list_lightweight_runs(smoke_test=args.smoke_test)
+    diagnostic_rows = list_lightweight_diagnostic_runs(smoke_test=args.smoke_test)
+    if args.run_id:
+        candidates = default_rows + diagnostic_rows
+        rows = [row for row in candidates if row["run_id"] == args.run_id]
+        if not rows:
+            known = [row["run_id"] for row in candidates]
+            raise SystemExit(f"Unknown --run_id {args.run_id!r}. Known run IDs: {known}")
+        return default_rows, diagnostic_rows, rows, rows, "single_run_id"
+    selected_rows = list_lightweight_runs(smoke_test=args.smoke_test, start=args.start, limit=args.limit)
+    return default_rows, diagnostic_rows, selected_rows, selected_rows, "default_plan"
+
+
+def condition_from_row(row: dict) -> dict:
+    condition = {
+        "condition_key": row["condition_key"],
+        "loss_key": row["loss_key"],
+        "randaugment": row["randaugment"],
+    }
+    if row.get("diagnostic_extra"):
+        condition["diagnostic_extra"] = True
+        condition["experiment_group"] = row.get("experiment_group", "lightweight_diagnostic")
+    return condition
+
+
 def main() -> None:
     args = parse_args()
-    all_rows = list_lightweight_runs(smoke_test=args.smoke_test)
-    rows = list_lightweight_runs(smoke_test=args.smoke_test, start=args.start, limit=args.limit)
+    default_rows, diagnostic_rows, rows, selected_plan_rows, selection_mode = select_runs(args)
     if args.list_runs:
-        print(json.dumps({"run_count": len(all_rows), "selected_count": len(rows), "start": args.start, "limit": args.limit, "runs": rows}, indent=2))
+        print(json.dumps({
+            "default_run_count": len(default_rows),
+            "diagnostic_run_count": len(diagnostic_rows),
+            "selected_count": len(rows),
+            "selection_mode": selection_mode,
+            "start": args.start,
+            "limit": args.limit,
+            "run_id": args.run_id,
+            "runs": rows,
+            "diagnostic_runs_available": diagnostic_rows,
+        }, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
     if args.progress:
-        log_event("Starting lightweight model training.", output_dir=output_dir, extra={"planned_runs": len(all_rows), "selected_runs": len(rows), "start": args.start, "limit": args.limit})
+        log_event("Starting lightweight model training.", output_dir=output_dir, extra={
+            "default_planned_runs": len(default_rows),
+            "diagnostic_runs_available": len(diagnostic_rows),
+            "selected_runs": len(rows),
+            "selection_mode": selection_mode,
+            "start": args.start,
+            "limit": args.limit,
+            "run_id": args.run_id,
+        })
     split_manifest = load_split_manifest(output_dir)
-    save_csv(pd.DataFrame(all_rows), output_dir / "experiment_plan_lightweight_models.csv")
+    save_csv(pd.DataFrame(default_rows), output_dir / "experiment_plan_lightweight_models.csv")
+    save_csv(pd.DataFrame(selected_plan_rows), output_dir / "experiment_plan_lightweight_selected_runs.csv")
+    if diagnostic_rows:
+        save_csv(pd.DataFrame(diagnostic_rows), output_dir / "experiment_plan_lightweight_diagnostic_runs.csv")
     results = []
     for index, row in enumerate(rows, start=1):
         if args.progress:
             log_event("Starting planned lightweight run.", run_id=row["run_id"], output_dir=output_dir, extra={
                 "index": index,
                 "selected_total": len(rows),
+                "selection_mode": selection_mode,
                 "model": row["model"],
                 "condition": row["condition_key"],
                 "loss": row["loss_key"],
                 "randaugment": row["randaugment"],
+                "diagnostic_extra": bool(row.get("diagnostic_extra", False)),
+                "experiment_group": row.get("experiment_group", "lightweight_default"),
             })
-        condition = {"condition_key": row["condition_key"], "loss_key": row["loss_key"], "randaugment": row["randaugment"]}
+        condition = condition_from_row(row)
         result = train_torch_with_fallback(row["model_key"], row["model"], condition, split_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test, progress_enabled=args.progress)
         results.append(result)
         if args.progress:

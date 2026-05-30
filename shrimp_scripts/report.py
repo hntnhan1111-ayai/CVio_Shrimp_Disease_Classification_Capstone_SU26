@@ -14,12 +14,18 @@ from .utils import ensure_dir, environment_versions, read_json, save_csv, write_
 from .xai import generate_selected_xai
 
 
-def expected_all_run_ids() -> set[str]:
-    from .models_torch import list_core_torch_runs, list_lightweight_runs
+def expected_all_run_ids(output_dir: str | Path | None = None) -> set[str]:
+    from .models_torch import list_core_torch_runs, list_lightweight_diagnostic_runs, list_lightweight_runs
     from .models_yolo import list_core_yolo_runs, list_yolo_family_runs
 
     rows = list_core_torch_runs() + list_core_yolo_runs() + list_yolo_family_runs() + list_lightweight_runs()
-    return {row["run_id"] for row in rows}
+    expected = {row["run_id"] for row in rows}
+    if output_dir is not None:
+        runs_dir = Path(output_dir) / "runs"
+        for row in list_lightweight_diagnostic_runs():
+            if (runs_dir / row["run_id"]).exists():
+                expected.add(row["run_id"])
+    return expected
 
 
 def make_tables(output_dir: str | Path, metrics_frame: pd.DataFrame, xai_frame: pd.DataFrame) -> dict[str, Path]:
@@ -153,7 +159,7 @@ def generate_reports(output_dir: str | Path, dry_run: bool = False, progress_ena
     }))
     if progress_enabled:
         log_event("Collecting completed run outputs.", output_dir=output_dir)
-    metrics_frame, predictions, confusions, failed = collect_run_outputs(output_dir, expected_run_ids=expected_all_run_ids())
+    metrics_frame, predictions, confusions, failed = collect_run_outputs(output_dir, expected_run_ids=expected_all_run_ids(output_dir))
     if progress_enabled:
         log_event("Run output collection completed.", output_dir=output_dir, extra={"metrics_rows": len(metrics_frame), "prediction_rows": len(predictions), "confusion_rows": len(confusions), "failed_rows": len(failed)})
     split_manifest = pd.read_csv(output_dir / "fixed_split_manifest_seed42_with_md5.csv") if (output_dir / "fixed_split_manifest_seed42_with_md5.csv").exists() else None

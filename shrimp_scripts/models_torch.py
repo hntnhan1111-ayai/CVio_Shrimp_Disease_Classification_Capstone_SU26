@@ -76,6 +76,28 @@ def list_lightweight_runs(smoke_test: bool = False, start: int | None = None, li
     return rows
 
 
+def list_lightweight_diagnostic_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
+    condition = {
+        **config.CORE_CONDITIONS[2],
+        "diagnostic_extra": True,
+        "experiment_group": "lightweight_diagnostic",
+    }
+    model_key = "convnext_tiny_in22k"
+    return [{
+        "run_id": torch_run_id(model_key, condition),
+        "backend": "timm",
+        "model_key": model_key,
+        "model": model_key,
+        **condition,
+    }]
+
+
+def default_experiment_group(model_key: str) -> str:
+    if model_key == config.CONVNEXT_CORE_MODEL_KEY:
+        return "core_ablation"
+    return "lightweight_default"
+
+
 class ManifestDataset:
     def __new__(cls, frame: pd.DataFrame, transform):
         _torch, _nn, _F, _optim, _DataLoader, Dataset, _models, _transforms, _InterpolationMode = _torch_stack()
@@ -220,7 +242,7 @@ def model_size_mb(model) -> float:
 
 
 def make_run_config(model_key: str, model_name: str, condition: dict[str, Any], output_dir: str | Path, smoke_test: bool, micro_batch: int | None = None) -> dict[str, Any]:
-    return {
+    run_config = {
         "dataset_id": config.DATASET_ID,
         "model_key": model_key,
         "model_name": model_name,
@@ -236,6 +258,10 @@ def make_run_config(model_key: str, model_name: str, condition: dict[str, Any], 
         "torch_effective_batch": config.TORCH_EFFECTIVE_BATCH,
         "output_dir": str(Path(output_dir)),
     }
+    if condition.get("diagnostic_extra"):
+        run_config["diagnostic_extra"] = True
+        run_config["experiment_group"] = condition.get("experiment_group", "lightweight_diagnostic")
+    return run_config
 
 
 def predict_torch(model, loader, source_frame: pd.DataFrame, run_id: str, model_name: str, backend: str, loss_name: str, condition_key: str, randaugment: bool, split_name: str, device, batch_size: int, output_dir: str | Path | None = None, progress_enabled: bool = True):
@@ -306,6 +332,8 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
             "condition": condition["condition_key"],
             "loss": condition["loss_key"],
             "randaugment": condition["randaugment"],
+            "diagnostic_extra": bool(condition.get("diagnostic_extra", False)),
+            "experiment_group": condition.get("experiment_group", default_experiment_group(model_key)),
             "micro_batch": micro_batch,
             "epochs": config.epochs_for(smoke_test),
         })
@@ -474,6 +502,8 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         "loss": LOSS_CONFIG[condition["loss_key"]]["name"],
         "condition": condition["condition_key"],
         "randaugment": bool(condition["randaugment"]),
+        "diagnostic_extra": bool(condition.get("diagnostic_extra", False)),
+        "experiment_group": condition.get("experiment_group", default_experiment_group(model_key)),
         "seed": config.SEED,
         "repeat": config.REPEAT,
         "split_seed": config.SPLIT_SEED,

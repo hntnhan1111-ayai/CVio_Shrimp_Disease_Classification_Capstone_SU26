@@ -20,6 +20,12 @@ Step 1 prepares data only. Step 2 is the main paper ablation. Step 3 is YOLO fam
 
 All runner scripts print timestamped progress by default and append JSONL events to `progress_log.jsonl` in the selected `--output_dir`. Use `--no_progress` to silence progress bars and progress events during lightweight validation.
 
+Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with PairwiseCoInfectionRankingASL and no RandAugment. It is not part of the default 51-run lightweight paper plan. Launch only that run with:
+
+```bash
+python shrimp_scripts/run_04_train_lightweight_models.py --output_dir /kaggle/working/shrimp_outputs --resume --progress --run_id timm_convnext_tiny_in22k_pairwise_no_randaugment_seed42_repeat1
+```
+
 ## Core Ablation
 
 Core ablation is the main experiment of the paper. It contains 12 runs:
