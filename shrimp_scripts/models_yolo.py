@@ -13,7 +13,7 @@ import pandas as pd
 
 from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
-from .losses import LOSS_CONFIG, make_loss
+from .losses import ASLSingleLabel, LOSS_CONFIG, PairwiseCoInfectionRankingASL, make_loss
 from .progress import log_event
 from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, required_outputs_exist, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
 
@@ -92,6 +92,28 @@ else:
     PaperClassificationLoss = None
     PaperClassificationModel = None
     PaperClassificationTrainer = None
+
+
+def register_yolo_checkpoint_safe_globals() -> dict[str, Any]:
+    if _TORCH is None:
+        return {"registered": False, "reason": "torch_unavailable"}
+    add_safe_globals = getattr(getattr(_TORCH, "serialization", None), "add_safe_globals", None)
+    if not callable(add_safe_globals):
+        return {"registered": False, "reason": "torch_serialization_add_safe_globals_unavailable"}
+    safe_classes = [
+        cls for cls in [
+            PaperClassificationLoss,
+            PaperClassificationModel,
+            PaperClassificationTrainer,
+            ASLSingleLabel,
+            PairwiseCoInfectionRankingASL,
+        ] if cls is not None
+    ]
+    try:
+        add_safe_globals(safe_classes)
+        return {"registered": True, "classes": [f"{cls.__module__}.{cls.__qualname__}" for cls in safe_classes]}
+    except Exception as exc:
+        return {"registered": False, "reason": repr(exc)}
 
 
 def yolo_run_id(model_name: str, condition: dict[str, Any]) -> str:
@@ -227,6 +249,7 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
         "checks": {},
         "errors": [],
     }
+    row["checkpoint_safe_globals"] = register_yolo_checkpoint_safe_globals()
     if not run_dir.exists():
         row["errors"].append("missing_run_directory")
         return row
@@ -378,6 +401,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         if not candidates:
             raise FileNotFoundError(str(last_path))
         last_path = candidates[-1]
+    safe_globals_audit = register_yolo_checkpoint_safe_globals()
     best_model = YOLO(str(best_path))
     val_frame = yolo_manifest[yolo_manifest["split"] == "val"].copy()
     test_frame = yolo_manifest[yolo_manifest["split"] == "test"].copy()
@@ -423,7 +447,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "test": test_metrics,
     }
     write_json(run_dir / "metrics.json", metrics)
-    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **augment_audit, "backend": "ultralytics", "checkpoint_path": str(best_path.resolve()), "last_checkpoint_path": str(last_path.resolve()), "pretrained_weight_path": pretrained_path, "completed_at": utc_now(), "status": "completed"})
+    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **augment_audit, "backend": "ultralytics", "checkpoint_path": str(best_path.resolve()), "last_checkpoint_path": str(last_path.resolve()), "pretrained_weight_path": pretrained_path, "checkpoint_safe_globals": safe_globals_audit, "completed_at": utc_now(), "status": "completed"})
     write_status(run_dir, "completed", run_id=run_id, completed_at=utc_now(), test_macro_f1=test_metrics["macro_f1"])
     if progress_enabled:
         log_event("Saved final YOLO metrics and artifacts.", run_id=run_id, output_dir=output_dir, extra={"test_macro_f1": test_metrics["macro_f1"], "checkpoint": str(best_path.resolve())})
