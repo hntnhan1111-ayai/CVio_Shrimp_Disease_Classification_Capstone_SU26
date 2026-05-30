@@ -125,6 +125,8 @@ def main() -> None:
     if args.progress:
         log_event("YOLO family script completed.", output_dir=output_dir, extra=summary)
     print(json.dumps({"completed_or_attempted": len(results), "summary": summary, "results": results}, indent=2, default=str))
+    if summary["failed_count"] > 0:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
