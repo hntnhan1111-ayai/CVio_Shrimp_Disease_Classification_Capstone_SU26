@@ -15,7 +15,7 @@ from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
 from .losses import LOSS_CONFIG, make_loss
 from .progress import log_event
-from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
+from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, required_outputs_exist, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
 
 
 ACTIVE_YOLO_LOSS_KEY = "baseline_ce"
@@ -199,6 +199,81 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "batch": batch,
         "output_dir": str(Path(output_dir)),
     }
+
+
+def _existing_file(path_value: Any) -> tuple[bool, str]:
+    path_text = str(path_value or "").strip()
+    if not path_text:
+        return False, ""
+    path = Path(path_text)
+    return path.is_file() and path.stat().st_size > 0, path_text
+
+
+def _text_contains_original_pickle_error(*payloads: Any) -> bool:
+    text = " ".join(str(payload) for payload in payloads)
+    return "Can't get local object" in text and "PaperClassificationModel" in text
+
+
+def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output_dir: str | Path, load_checkpoints: bool = True) -> dict[str, Any]:
+    run_id = yolo_run_id(model_name, condition)
+    run_dir = config.output_paths(output_dir)["runs"] / run_id
+    row: dict[str, Any] = {
+        "run_id": run_id,
+        "model": model_name,
+        "condition": condition["condition_key"],
+        "loss_key": condition["loss_key"],
+        "randaugment": bool(condition["randaugment"]),
+        "verification_status": "failed",
+        "checks": {},
+        "errors": [],
+    }
+    if not run_dir.exists():
+        row["errors"].append("missing_run_directory")
+        return row
+    status = read_json(run_dir / "status.json", default={})
+    audit = read_json(run_dir / "run_audit.json", default={})
+    metrics = read_json(run_dir / "metrics.json", default={})
+    row["checks"]["status_completed"] = status.get("status") == "completed"
+    row["checks"]["audit_completed"] = audit.get("status") == "completed"
+    row["checks"]["metrics_completed"] = metrics.get("status") == "completed"
+    ok_outputs, missing_outputs = required_outputs_exist(run_dir, "ultralytics")
+    row["checks"]["required_outputs_exist"] = ok_outputs
+    row["missing_outputs"] = missing_outputs
+    best_ok, best_path = _existing_file(audit.get("checkpoint_path") or metrics.get("checkpoint_path"))
+    last_ok, last_path = _existing_file(audit.get("last_checkpoint_path") or metrics.get("last_checkpoint_path"))
+    row["checkpoint_path"] = best_path
+    row["last_checkpoint_path"] = last_path
+    row["checks"]["best_checkpoint_exists"] = best_ok
+    row["checks"]["last_checkpoint_exists"] = last_ok
+    row["checks"]["classification_report_exists"] = (run_dir / "classification_report.csv").is_file()
+    row["checks"]["confusion_matrix_exists"] = (run_dir / "confusion_matrix.csv").is_file() or (run_dir / "confusion_matrix.json").is_file()
+    row["checks"]["test_predictions_exists"] = (run_dir / "test_predictions.csv").is_file()
+    row["checks"]["val_predictions_exists"] = (run_dir / "val_predictions.csv").is_file()
+    row["checks"]["original_pickle_error_absent"] = not _text_contains_original_pickle_error(status, audit)
+    if audit.get("batch") is not None and audit.get("config_hash"):
+        smoke_test = int(audit.get("epochs", config.EPOCHS)) == config.SMOKE_TEST_EPOCHS
+        expected_hash = stable_hash(make_run_config(model_name, condition, output_dir, smoke_test=smoke_test, batch=int(audit["batch"])))
+        row["checks"]["config_hash_matches"] = audit.get("config_hash") == expected_hash
+    else:
+        row["checks"]["config_hash_matches"] = False
+        row["errors"].append("missing_batch_or_config_hash")
+    if load_checkpoints and best_ok and last_ok:
+        try:
+            from ultralytics import YOLO
+            YOLO(best_path)
+            YOLO(last_path)
+            row["checks"]["checkpoints_loadable"] = True
+        except Exception as exc:
+            row["checks"]["checkpoints_loadable"] = False
+            row["errors"].append(f"checkpoint_load_failed:{repr(exc)}")
+    elif load_checkpoints:
+        row["checks"]["checkpoints_loadable"] = False
+    for check_name, passed in row["checks"].items():
+        if not passed:
+            row["errors"].append(check_name)
+    if not missing_outputs and all(bool(value) for value in row["checks"].values()):
+        row["verification_status"] = "passed"
+    return row
 
 
 def predict_yolo(best_model, frame: pd.DataFrame, run_id: str, model_name: str, loss_name: str, condition_key: str, randaugment: bool, split_name: str, batch: int, output_dir: str | Path | None = None, progress_enabled: bool = True):

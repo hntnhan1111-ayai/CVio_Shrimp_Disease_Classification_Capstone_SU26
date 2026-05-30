@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shrimp_scripts import config
 from shrimp_scripts.dataset import load_yolo_manifest
-from shrimp_scripts.models_yolo import list_yolo_family_runs, probe_yolo_availability, train_yolo_with_fallback
+from shrimp_scripts.models_yolo import list_yolo_family_runs, probe_yolo_availability, train_yolo_with_fallback, verify_yolo_run_artifacts
 from shrimp_scripts.progress import log_event
 from shrimp_scripts.utils import ensure_dir, save_csv, write_json, write_status
 
@@ -29,6 +29,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--only_model", default=None, help="Optional exact model filter for smoke/debug runs, e.g. yolo26m-cls.")
     parser.add_argument("--only_condition", default=None, help="Optional exact condition_key filter, e.g. asl_no_randaugment.")
     parser.add_argument("--only_loss", default=None, help="Optional exact loss_key filter, e.g. asl_single_label.")
+    parser.add_argument("--verify_artifacts", action="store_true", help="Verify completed run artifacts and checkpoint loadability for selected runs without training.")
+    parser.add_argument("--skip_checkpoint_load", action="store_true", help="Skip YOLO checkpoint load checks during --verify_artifacts.")
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
     parser.add_argument("--no_progress", dest="progress", action="store_false")
     return parser.parse_args()
@@ -43,6 +45,10 @@ def filter_runs(rows: list[dict], args: argparse.Namespace) -> list[dict]:
     if args.only_loss:
         selected = [row for row in selected if row["loss_key"] == args.only_loss]
     return selected
+
+
+def condition_from_row(row: dict) -> dict:
+    return {"condition_key": row["condition_key"], "loss_key": row["loss_key"], "randaugment": row["randaugment"]}
 
 
 def stage03_summary(planned_rows: list[dict], results: list[dict]) -> dict:
@@ -78,6 +84,37 @@ def stage03_summary(planned_rows: list[dict], results: list[dict]) -> dict:
     }
 
 
+def flatten_verification_row(row: dict) -> dict:
+    flattened = {key: value for key, value in row.items() if key not in {"checks", "errors"}}
+    for check_name, passed in row.get("checks", {}).items():
+        flattened[f"check_{check_name}"] = bool(passed)
+    flattened["errors"] = " | ".join(str(error) for error in row.get("errors", []))
+    return flattened
+
+
+def verify_selected_runs(rows: list[dict], output_dir: Path, load_checkpoints: bool, progress_enabled: bool) -> dict:
+    verification_rows = []
+    for row in rows:
+        condition = condition_from_row(row)
+        if progress_enabled:
+            log_event("Verifying YOLO run artifacts.", run_id=row["run_id"], output_dir=output_dir, extra={"load_checkpoints": load_checkpoints})
+        verification = verify_yolo_run_artifacts(row["model"], condition, output_dir, load_checkpoints=load_checkpoints)
+        verification_rows.append(verification)
+        if progress_enabled:
+            level = "INFO" if verification["verification_status"] == "passed" else "ERROR"
+            log_event("YOLO run artifact verification finished.", level=level, run_id=row["run_id"], output_dir=output_dir, extra=verification)
+    summary = {
+        "verified_count": len(verification_rows),
+        "passed_count": sum(1 for row in verification_rows if row["verification_status"] == "passed"),
+        "failed_count": sum(1 for row in verification_rows if row["verification_status"] != "passed"),
+        "load_checkpoints": load_checkpoints,
+        "runs": verification_rows,
+    }
+    write_json(output_dir / "stage03_yolo_artifact_verification.json", summary)
+    save_csv(pd.DataFrame(flatten_verification_row(row) for row in verification_rows), output_dir / "stage03_yolo_artifact_verification.csv")
+    return summary
+
+
 def main() -> None:
     args = parse_args()
     all_rows = list_yolo_family_runs(smoke_test=args.smoke_test)
@@ -86,6 +123,12 @@ def main() -> None:
         print(json.dumps({"run_count": len(rows), "available_before_filter": len(all_rows), "runs": rows}, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
+    if args.verify_artifacts:
+        summary = verify_selected_runs(rows, output_dir, load_checkpoints=not args.skip_checkpoint_load, progress_enabled=args.progress)
+        print(json.dumps({"artifact_verification": summary}, indent=2, default=str))
+        if summary["failed_count"] > 0:
+            raise SystemExit(1)
+        return
     if args.progress:
         log_event("Starting YOLO family training.", output_dir=output_dir, extra={"planned_runs": len(rows), "available_before_filter": len(all_rows), "skip_probe": args.skip_probe, "only_model": args.only_model, "only_condition": args.only_condition, "only_loss": args.only_loss})
     yolo_manifest = load_yolo_manifest(output_dir)
@@ -112,7 +155,7 @@ def main() -> None:
                 if args.progress:
                     log_event("Skipping unavailable YOLO model.", level="WARNING", run_id=row["run_id"], output_dir=output_dir, extra={"reason": reason})
                 continue
-        condition = {"condition_key": row["condition_key"], "loss_key": row["loss_key"], "randaugment": row["randaugment"]}
+        condition = condition_from_row(row)
         result = train_yolo_with_fallback(row["model"], condition, yolo_manifest, output_dir, resume=args.resume, smoke_test=args.smoke_test, progress_enabled=args.progress)
         results.append(result)
         if args.progress:

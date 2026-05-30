@@ -20,6 +20,15 @@ Step 1 prepares data only. Step 2 is the main paper ablation. Step 3 is YOLO fam
 
 All runner scripts print timestamped progress by default and append JSONL events to `progress_log.jsonl` in the selected `--output_dir`. Use `--no_progress` to silence progress bars and progress events during lightweight validation.
 
+Stage 03 supports filtered smoke/debug runs and artifact verification. For example, to test the YOLOv26m-cls custom ASL path and then verify the saved artifacts:
+
+```bash
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --resume --smoke_test --skip_probe --only_model yolo26m-cls --only_condition asl_no_randaugment --progress
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --smoke_test --only_model yolo26m-cls --only_condition asl_no_randaugment --verify_artifacts --progress
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --resume --smoke_test --skip_probe --only_model yolo26m-cls --only_condition pairwise_randaugment --progress
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --smoke_test --only_model yolo26m-cls --only_condition pairwise_randaugment --verify_artifacts --progress
+```
+
 Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with PairwiseCoInfectionRankingASL and no RandAugment. It is not part of the default 51-run lightweight paper plan. Launch only that run with:
 
 ```bash
