@@ -672,9 +672,14 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         if progress_enabled:
             log_event("Skipping YOLO run because auto_augment cannot be controlled.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=augment_audit)
         return {"run_id": run_id, "status": "skipped", "error": augment_audit["auto_augment_support_reason"]}
+    ACTIVE_YOLO_LOSS_KEY = condition["loss_key"]
+    started_loss_audit = {
+        "requested_loss_key": condition["loss_key"],
+        "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
+    }
     write_json(run_dir / "train_kwargs.json", train_kwargs)
     write_json(run_dir / "run_config.json", run_config)
-    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "started"})
+    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, **started_loss_audit, "status": "started"})
     if progress_enabled:
         log_event("Starting YOLO run.", run_id=run_id, output_dir=output_dir, extra={
             "model": model_name,
@@ -688,7 +693,6 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         })
         log_event("Resolved YOLO train kwargs.", run_id=run_id, output_dir=output_dir, extra={k: str(v) for k, v in train_kwargs.items()})
     set_seed(config.SEED)
-    ACTIVE_YOLO_LOSS_KEY = condition["loss_key"]
     start = time.time()
     if progress_enabled:
         log_event("Loading YOLO pretrained weights.", run_id=run_id, output_dir=output_dir, extra={"weights": model_name + ".pt"})
