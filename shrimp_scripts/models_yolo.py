@@ -67,6 +67,29 @@ def normalize_yolo_names_map(names: Any) -> dict[int, str]:
     return {}
 
 
+def class_path(obj: Any) -> str:
+    if obj is None:
+        return ""
+    cls = obj if isinstance(obj, type) else obj.__class__
+    return f"{cls.__module__}.{cls.__qualname__}"
+
+
+def yolo_model_loss_audit(model_obj: Any) -> dict[str, Any]:
+    if model_obj is None:
+        return {"model_present": False}
+    criterion = getattr(model_obj, "criterion", None)
+    loss_fcn = getattr(criterion, "loss_fcn", None)
+    return {
+        "model_present": True,
+        "model_class_observed": class_path(model_obj),
+        "model_loss_key": getattr(model_obj, "loss_key", ""),
+        "model_names": normalize_yolo_names_map(getattr(model_obj, "names", None)),
+        "criterion_class_observed": class_path(criterion),
+        "criterion_loss_key": getattr(criterion, "loss_key", ""),
+        "criterion_loss_module": class_path(loss_fcn),
+    }
+
+
 def normalize_yolo_folder_name(folder_name: str) -> str:
     candidates = [str(folder_name)]
     if "_" in folder_name:
@@ -160,7 +183,7 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
                 item = list(sample)
                 class_name = normalize_yolo_folder_name(Path(item[0]).parent.name)
                 item[1] = class_to_idx[class_name]
-                remapped_samples.append(item)
+                remapped_samples.append(tuple(item))
             self.samples = remapped_samples
             self.targets = [int(sample[1]) for sample in self.samples]
             self.classes = list(config.CLASS_NAMES)
@@ -169,6 +192,10 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
                 self.base.classes = list(config.CLASS_NAMES)
             if hasattr(self.base, "class_to_idx"):
                 self.base.class_to_idx = class_to_idx
+            if hasattr(self.base, "samples"):
+                self.base.samples = list(self.samples)
+            if hasattr(self.base, "imgs"):
+                self.base.imgs = list(self.samples)
             if hasattr(self.base, "targets"):
                 self.base.targets = list(self.targets)
 
@@ -536,6 +563,9 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     row["checks"]["impl_version_matches"] = audit.get("yolo_training_impl_version") == YOLO_TRAINING_IMPL_VERSION
     row["checks"]["trainer_class_matches"] = audit.get("trainer_class") == "shrimp_scripts.models_yolo.PaperClassificationTrainer"
     row["checks"]["criterion_class_matches"] = audit.get("criterion_class") == "shrimp_scripts.models_yolo.PaperClassificationLoss"
+    row["checks"]["requested_loss_key_matches"] = audit.get("requested_loss_key", audit.get("loss_key")) == condition["loss_key"]
+    row["checks"]["active_loss_key_matches"] = audit.get("active_yolo_loss_key_at_train_start") == condition["loss_key"]
+    row["checks"]["trainer_model_loss_key_matches"] = audit.get("trainer_model_loss_key") == condition["loss_key"]
     expected_auto_augment = "randaugment" if condition["randaugment"] else None
     row["checks"]["auto_augment_controlled"] = bool(audit.get("auto_augment_supported")) and audit.get("train_kwargs_auto_augment") == expected_auto_augment
     ok_outputs, missing_outputs = required_outputs_exist(run_dir, "ultralytics")
@@ -668,6 +698,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     if progress_enabled:
         log_event("Starting native Ultralytics classification training.", run_id=run_id, output_dir=output_dir, extra={"custom_loss": condition["loss_key"] != "baseline_ce"})
     yolo.train(trainer=get_custom_trainer_class(), **train_kwargs)
+    trainer_model_audit = yolo_model_loss_audit(getattr(getattr(yolo, "trainer", None), "model", None))
     train_time = time.time() - start
     if progress_enabled:
         log_event("Ultralytics training finished.", run_id=run_id, output_dir=output_dir, extra={"training_time_s": round(train_time, 3)})
@@ -685,6 +716,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         last_path = candidates[-1]
     safe_globals_audit = register_yolo_checkpoint_safe_globals()
     best_model = YOLO(str(best_path))
+    checkpoint_model_audit = yolo_model_loss_audit(getattr(best_model, "model", None))
     val_frame = yolo_manifest[yolo_manifest["split"] == "val"].copy()
     test_frame = yolo_manifest[yolo_manifest["split"] == "test"].copy()
     loss_name = LOSS_CONFIG[condition["loss_key"]]["name"]
@@ -727,6 +759,10 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "last_checkpoint_sha256": sha256_file(last_path),
         "pretrained_weight_path": pretrained_path,
         "pretrained_weight_sha256": sha256_file(pretrained_path) if pretrained_path and Path(pretrained_path).is_file() else "",
+        "requested_loss_key": condition["loss_key"],
+        "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
+        "trainer_model_loss_key": trainer_model_audit.get("model_loss_key", ""),
+        "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
         "val": val_metrics,
         "test": test_metrics,
     }
@@ -742,6 +778,12 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
             last_checkpoint_path=last_path,
         ),
         **augment_audit,
+        "requested_loss_key": condition["loss_key"],
+        "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
+        "trainer_model_loss_key": trainer_model_audit.get("model_loss_key", ""),
+        "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
+        "trainer_model_audit": trainer_model_audit,
+        "checkpoint_model_audit": checkpoint_model_audit,
         "pretrained_weight_path": pretrained_path,
         "checkpoint_safe_globals": safe_globals_audit,
         "completed_at": utc_now(),
