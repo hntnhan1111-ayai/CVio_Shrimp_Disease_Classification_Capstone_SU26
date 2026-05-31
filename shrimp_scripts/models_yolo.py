@@ -13,7 +13,7 @@ import pandas as pd
 
 from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
-from .losses import ASLSingleLabel, LOSS_CONFIG, PairwiseCoInfectionRankingASL, make_loss
+from .losses import LOSS_CHECKPOINT_SAFE_CLASSES, LOSS_CONFIG, make_loss
 from .progress import log_event
 from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, required_outputs_exist, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
 
@@ -105,8 +105,7 @@ def register_yolo_checkpoint_safe_globals() -> dict[str, Any]:
             PaperClassificationLoss,
             PaperClassificationModel,
             PaperClassificationTrainer,
-            ASLSingleLabel,
-            PairwiseCoInfectionRankingASL,
+            *LOSS_CHECKPOINT_SAFE_CLASSES,
         ] if cls is not None
     ]
     try:
@@ -117,7 +116,9 @@ def register_yolo_checkpoint_safe_globals() -> dict[str, Any]:
 
 
 def yolo_run_id(model_name: str, condition: dict[str, Any]) -> str:
-    return f"ultralytics_{model_name.replace('-', '_')}_{condition['condition_key']}_seed{config.SEED}_repeat{config.REPEAT}"
+    base = f"ultralytics_{model_name.replace('-', '_')}_{condition['condition_key']}_seed{config.SEED}_repeat{config.REPEAT}"
+    experiment_key = str(condition.get("experiment_key", "")).strip()
+    return f"{experiment_key}_{base}" if experiment_key else base
 
 
 def list_core_yolo_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
@@ -207,7 +208,7 @@ def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | 
 
 
 def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str | Path, smoke_test: bool, batch: int) -> dict[str, Any]:
-    return {
+    run_config = {
         "dataset_id": config.DATASET_ID,
         "model_name": model_name,
         "model_key": model_name.replace("-", "_"),
@@ -221,6 +222,10 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "batch": batch,
         "output_dir": str(Path(output_dir)),
     }
+    if condition.get("experiment_key"):
+        run_config["experiment_key"] = condition["experiment_key"]
+        run_config["experiment_group"] = condition.get("experiment_group", condition["experiment_key"])
+    return run_config
 
 
 def _existing_file(path_value: Any) -> tuple[bool, str]:
@@ -256,6 +261,8 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     status = read_json(run_dir / "status.json", default={})
     audit = read_json(run_dir / "run_audit.json", default={})
     metrics = read_json(run_dir / "metrics.json", default={})
+    row["checks"]["run_config_exists"] = (run_dir / "run_config.json").is_file()
+    row["checks"]["train_kwargs_exists"] = (run_dir / "train_kwargs.json").is_file()
     row["checks"]["status_completed"] = status.get("status") == "completed"
     row["checks"]["audit_completed"] = audit.get("status") == "completed"
     row["checks"]["metrics_completed"] = metrics.get("status") == "completed"
@@ -430,6 +437,8 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "loss": loss_name,
         "condition": condition["condition_key"],
         "randaugment": bool(condition["randaugment"]),
+        "experiment_key": condition.get("experiment_key", ""),
+        "experiment_group": condition.get("experiment_group", ""),
         "seed": config.SEED,
         "repeat": config.REPEAT,
         "split_seed": config.SPLIT_SEED,
@@ -477,12 +486,16 @@ def train_yolo_with_fallback(model_name: str, condition: dict[str, Any], yolo_ma
     run_dir = ensure_dir(config.output_paths(output_dir)["runs"] / run_id)
     existing_audit = read_json(run_dir / "run_audit.json", default={})
     failed_at = utc_now()
-    write_json(run_dir / "run_audit.json", {**existing_audit, "status": "failed", "failed_at": failed_at, "errors": errors})
     last_error = errors[-1] if errors else {}
+    failed_batch = int(last_error.get("batch") or config.YOLO_BATCH_FALLBACKS[0])
+    failed_run_config = make_run_config(model_name, condition, output_dir, smoke_test, batch=failed_batch)
+    failed_hash = existing_audit.get("config_hash") or stable_hash(failed_run_config)
+    write_json(run_dir / "run_audit.json", {**failed_run_config, **existing_audit, "config_hash": failed_hash, "status": "failed", "failed_at": failed_at, "errors": errors})
     write_status(
         run_dir,
         "failed",
         run_id=run_id,
+        run_config=failed_run_config,
         failed_at=failed_at,
         error=last_error.get("exception_repr", ""),
         exception_type=last_error.get("exception_type", ""),

@@ -35,6 +35,9 @@ def log_event(message: str, *, level: str = "INFO", run_id: str | None = None, o
         target_dir.mkdir(parents=True, exist_ok=True)
         with (target_dir / "progress_log.jsonl").open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, sort_keys=True, default=_json_default) + "\n")
+        (target_dir / "latest_progress.json").write_text(json.dumps(record, indent=2, sort_keys=True, default=_json_default), encoding="utf-8")
+        with (target_dir / "experiment_log.txt").open("a", encoding="utf-8") as handle:
+            handle.write(f"{prefix} {message} {json.dumps(extra or {}, sort_keys=True, default=_json_default)}\n")
     except Exception:
         pass
 

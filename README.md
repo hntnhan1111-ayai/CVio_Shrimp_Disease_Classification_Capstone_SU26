@@ -35,6 +35,8 @@ Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with Pai
 python shrimp_scripts/run_04_train_lightweight_models.py --output_dir /kaggle/working/shrimp_outputs --resume --progress --run_id timm_convnext_tiny_in22k_pairwise_no_randaugment_seed42_repeat1
 ```
 
+Additional ASL-derived loss screening scripts live in `experiments/asl_custom_loss_screening/`. They are a short pre-final screening experiment and do not change the main Stage 02/03/04 experiment definitions.
+
 ## Core Ablation
 
 Core ablation is the main experiment of the paper. It contains 12 runs:

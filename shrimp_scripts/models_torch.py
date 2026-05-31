@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import time
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,7 @@ from .utils import (
     ensure_dir,
     is_oom_error,
     is_run_completed,
+    read_json,
     save_csv,
     set_seed,
     sha256_file,
@@ -43,7 +45,9 @@ def _torch_stack():
 
 def torch_run_id(model_key: str, condition: dict[str, Any]) -> str:
     backend = "torchvision" if model_key in {config.CONVNEXT_CORE_MODEL_KEY, "mobilenet_v3_large", "shufflenet_v2_x1_0", "squeezenet1_1"} else "timm"
-    return f"{backend}_{model_key}_{condition['condition_key']}_seed{config.SEED}_repeat{config.REPEAT}"
+    base = f"{backend}_{model_key}_{condition['condition_key']}_seed{config.SEED}_repeat{config.REPEAT}"
+    experiment_key = str(condition.get("experiment_key", "")).strip()
+    return f"{experiment_key}_{base}" if experiment_key else base
 
 
 def list_core_torch_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
@@ -96,6 +100,15 @@ def default_experiment_group(model_key: str) -> str:
     if model_key == config.CONVNEXT_CORE_MODEL_KEY:
         return "core_ablation"
     return "lightweight_default"
+
+
+def exception_details(exc: BaseException) -> dict[str, str]:
+    return {
+        "exception_type": exc.__class__.__name__,
+        "exception_message": str(exc),
+        "exception_repr": repr(exc),
+        "traceback": traceback.format_exc(),
+    }
 
 
 class ManifestDataset:
@@ -261,6 +274,9 @@ def make_run_config(model_key: str, model_name: str, condition: dict[str, Any], 
     if condition.get("diagnostic_extra"):
         run_config["diagnostic_extra"] = True
         run_config["experiment_group"] = condition.get("experiment_group", "lightweight_diagnostic")
+    if condition.get("experiment_key"):
+        run_config["experiment_key"] = condition["experiment_key"]
+        run_config["experiment_group"] = condition.get("experiment_group", condition["experiment_key"])
     return run_config
 
 
@@ -504,6 +520,7 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         "randaugment": bool(condition["randaugment"]),
         "diagnostic_extra": bool(condition.get("diagnostic_extra", False)),
         "experiment_group": condition.get("experiment_group", default_experiment_group(model_key)),
+        "experiment_key": condition.get("experiment_key", ""),
         "seed": config.SEED,
         "repeat": config.REPEAT,
         "split_seed": config.SPLIT_SEED,
@@ -535,17 +552,36 @@ def train_torch_with_fallback(model_key: str, model_name: str, condition: dict[s
                 log_event("Attempting Torch batch fallback.", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch})
             return train_torch_once(model_key, model_name, condition, split_manifest, output_dir, resume=resume, smoke_test=smoke_test, micro_batch=micro_batch, progress_enabled=progress_enabled)
         except Exception as exc:
-            errors.append({"micro_batch": micro_batch, "error": repr(exc)})
+            failure = {"micro_batch": micro_batch, "error": repr(exc), **exception_details(exc)}
+            errors.append(failure)
             if is_oom_error(exc):
                 if progress_enabled:
-                    log_event("Torch OOM during batch fallback; trying next micro-batch.", level="WARNING", run_id=run_id, output_dir=output_dir, extra={"failed_micro_batch": micro_batch, "error": repr(exc)})
+                    log_event("Torch OOM during batch fallback; trying next micro-batch.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=failure)
                 cleanup_memory()
                 continue
             if progress_enabled:
-                log_event("Torch run failed with non-OOM error.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch, "error": repr(exc)})
+                log_event("Torch run failed with non-OOM error.", level="ERROR", run_id=run_id, output_dir=output_dir, extra=failure)
             break
     run_dir = ensure_dir(config.output_paths(output_dir)["runs"] / run_id)
-    write_status(run_dir, "failed", run_id=run_id, errors=errors)
+    existing_audit = read_json(run_dir / "run_audit.json", default={})
+    failed_at = utc_now()
+    last_error = errors[-1] if errors else {}
+    failed_micro_batch = int(last_error.get("micro_batch") or config.TORCH_MICRO_BATCH_FALLBACKS[0])
+    failed_run_config = make_run_config(model_key, model_name, condition, output_dir, smoke_test, micro_batch=failed_micro_batch)
+    failed_hash = existing_audit.get("config_hash") or stable_hash(failed_run_config)
+    write_json(run_dir / "run_audit.json", {**failed_run_config, **existing_audit, "config_hash": failed_hash, "status": "failed", "failed_at": failed_at, "errors": errors})
+    write_status(
+        run_dir,
+        "failed",
+        run_id=run_id,
+        run_config=failed_run_config,
+        failed_at=failed_at,
+        error=last_error.get("exception_repr", ""),
+        exception_type=last_error.get("exception_type", ""),
+        exception_message=last_error.get("exception_message", ""),
+        traceback=last_error.get("traceback", ""),
+        errors=errors,
+    )
     if progress_enabled:
         log_event("Torch run failed after fallback attempts.", level="ERROR", run_id=run_id, output_dir=output_dir, extra={"errors": errors})
     return {"run_id": run_id, "status": "failed", "errors": errors}
