@@ -13,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shrimp_scripts import config
 from shrimp_scripts.dataset import load_yolo_manifest
-from shrimp_scripts.models_yolo import list_yolo_family_runs, probe_yolo_availability, train_yolo_with_fallback, verify_yolo_run_artifacts
+from shrimp_scripts.models_yolo import list_yolo_family_runs, make_run_config as make_yolo_run_config, probe_yolo_availability, train_yolo_with_fallback, verify_yolo_run_artifacts
 from shrimp_scripts.progress import log_event
-from shrimp_scripts.utils import ensure_dir, save_csv, write_json, write_status
+from shrimp_scripts.utils import ensure_dir, save_csv, stable_hash, validate_run_completion, write_json, write_status
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,9 +26,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
     parser.add_argument("--skip_probe", action="store_true")
-    parser.add_argument("--only_model", default=None, help="Optional exact model filter for smoke/debug runs, e.g. yolo26m-cls.")
+    parser.add_argument("--only_model", "--model", dest="only_model", default=None, help="Optional exact model filter for smoke/debug runs, e.g. yolo26m-cls.")
     parser.add_argument("--only_condition", default=None, help="Optional exact condition_key filter, e.g. asl_no_randaugment.")
-    parser.add_argument("--only_loss", default=None, help="Optional exact loss_key filter, e.g. asl_single_label.")
+    parser.add_argument("--only_loss", "--loss", dest="only_loss", default=None, help="Optional exact loss_key filter, e.g. asl_single_label.")
+    parser.add_argument("--validate_resume", action="store_true", help="Validate skip/fresh-rerun decisions without training.")
     parser.add_argument("--verify_artifacts", action="store_true", help="Verify completed run artifacts and checkpoint loadability for selected runs without training.")
     parser.add_argument("--skip_checkpoint_load", action="store_true", help="Skip YOLO checkpoint load checks during --verify_artifacts.")
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
@@ -115,6 +116,53 @@ def verify_selected_runs(rows: list[dict], output_dir: Path, load_checkpoints: b
     return summary
 
 
+def validate_resume_rows(rows: list[dict], output_dir: Path, smoke_test: bool) -> dict:
+    flat_rows = []
+    detailed = []
+    for row in rows:
+        condition = condition_from_row(row)
+        validations = []
+        for batch in config.YOLO_BATCH_FALLBACKS:
+            run_config = make_yolo_run_config(row["model"], condition, output_dir, smoke_test=smoke_test, batch=batch)
+            validation = validate_run_completion(row["run_id"], output_dir, stable_hash(run_config), "ultralytics")
+            validations.append({"batch": batch, **validation})
+        valid = next((item for item in validations if item["validation_status"] == "completed_with_valid_final_metrics"), None)
+        if valid:
+            validation_status = "completed_with_valid_final_metrics"
+            resume_decision = "skipped_completed_with_final_metrics"
+            selected_batch = valid["batch"]
+            errors = []
+        else:
+            validation_status = "failed" if any(item["validation_status"] == "failed" for item in validations) else "skipped" if any(item["validation_status"] == "skipped" for item in validations) else "incomplete_missing_final_metrics"
+            resume_decision = "will_fresh_rerun"
+            selected_batch = ""
+            errors = sorted({str(error) for item in validations for error in item.get("errors", [])})
+        flat_rows.append({
+            "run_id": row["run_id"],
+            "backend": "ultralytics",
+            "model": row["model"],
+            "condition": row["condition_key"],
+            "loss_key": row["loss_key"],
+            "validation_status": validation_status,
+            "resume_decision": resume_decision,
+            "valid_batch": selected_batch,
+            "errors": " | ".join(errors),
+        })
+        detailed.append({"run_id": row["run_id"], "validations": validations})
+    summary = {
+        "planned_count": len(rows),
+        "completed_with_valid_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "completed_with_valid_final_metrics"),
+        "incomplete_missing_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "incomplete_missing_final_metrics"),
+        "failed": sum(1 for row in flat_rows if row["validation_status"] == "failed"),
+        "skipped": sum(1 for row in flat_rows if row["validation_status"] == "skipped"),
+        "will_fresh_rerun": sum(1 for row in flat_rows if row["resume_decision"] == "will_fresh_rerun"),
+        "skipped_completed_with_final_metrics": sum(1 for row in flat_rows if row["resume_decision"] == "skipped_completed_with_final_metrics"),
+    }
+    write_json(output_dir / "stage03_resume_validation.json", {"summary": summary, "runs": detailed})
+    save_csv(pd.DataFrame(flat_rows), output_dir / "stage03_resume_validation.csv")
+    return {"summary": summary, "runs": flat_rows}
+
+
 def main() -> None:
     args = parse_args()
     all_rows = list_yolo_family_runs(smoke_test=args.smoke_test)
@@ -123,6 +171,10 @@ def main() -> None:
         print(json.dumps({"run_count": len(rows), "available_before_filter": len(all_rows), "runs": rows}, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
+    if args.validate_resume:
+        summary = validate_resume_rows(rows, output_dir, smoke_test=args.smoke_test)
+        print(json.dumps({"resume_validation": summary}, indent=2, default=str))
+        return
     if args.verify_artifacts:
         summary = verify_selected_runs(rows, output_dir, load_checkpoints=not args.skip_checkpoint_load, progress_enabled=args.progress)
         print(json.dumps({"artifact_verification": summary}, indent=2, default=str))

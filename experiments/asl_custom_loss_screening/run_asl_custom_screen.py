@@ -13,10 +13,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from shrimp_scripts.dataset import load_split_manifest, load_yolo_manifest
-from shrimp_scripts.models_torch import train_torch_with_fallback
-from shrimp_scripts.models_yolo import train_yolo_with_fallback, yolo_custom_loss_self_check
+from shrimp_scripts import config
+from shrimp_scripts.models_torch import make_run_config as make_torch_run_config, train_torch_with_fallback
+from shrimp_scripts.models_yolo import make_run_config as make_yolo_run_config, train_yolo_with_fallback, yolo_custom_loss_self_check
 from shrimp_scripts.progress import log_event
-from shrimp_scripts.utils import ensure_dir, save_csv, write_json
+from shrimp_scripts.utils import ensure_dir, save_csv, stable_hash, validate_run_completion, write_json
 
 from experiments.asl_custom_loss_screening.screening_lib import (
     DEFAULT_OUTPUT_DIR,
@@ -40,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
+    parser.add_argument("--validate_resume", action="store_true", help="Validate skip/fresh-rerun decisions without training.")
     parser.add_argument("--verify_artifacts", action="store_true")
     parser.add_argument("--self_check_yolo_loss", action="store_true", help="Run a lightweight YOLO custom-loss plumbing check without training.")
     parser.add_argument("--skip_checkpoint_load", action="store_true")
@@ -82,6 +84,54 @@ def add_progress_indices(rows: list[dict]) -> list[dict]:
     return indexed
 
 
+def validate_resume_rows(rows: list[dict], output_dir: Path, smoke_test: bool) -> dict:
+    flat_rows = []
+    detailed = []
+    for row in rows:
+        condition = condition_from_row(row)
+        validations = []
+        if row["screen_backend"] == "yolo":
+            for batch in config.YOLO_BATCH_FALLBACKS:
+                run_config = make_yolo_run_config(row["model"], condition, output_dir, smoke_test=smoke_test, batch=batch)
+                validations.append({"batch": batch, **validate_run_completion(row["run_id"], output_dir, stable_hash(run_config), "ultralytics")})
+        else:
+            for micro_batch in config.TORCH_MICRO_BATCH_FALLBACKS:
+                run_config = make_torch_run_config(row["model_key"], row["model"], condition, output_dir, smoke_test=smoke_test, micro_batch=micro_batch)
+                validations.append({"micro_batch": micro_batch, **validate_run_completion(row["run_id"], output_dir, stable_hash(run_config), row["backend"])})
+        valid = next((item for item in validations if item["validation_status"] == "completed_with_valid_final_metrics"), None)
+        if valid:
+            validation_status = "completed_with_valid_final_metrics"
+            resume_decision = "skipped_completed_with_final_metrics"
+            errors = []
+        else:
+            validation_status = "failed" if any(item["validation_status"] == "failed" for item in validations) else "skipped" if any(item["validation_status"] == "skipped" for item in validations) else "incomplete_missing_final_metrics"
+            resume_decision = "will_fresh_rerun"
+            errors = sorted({str(error) for item in validations for error in item.get("errors", [])})
+        flat_rows.append({
+            "run_id": row["run_id"],
+            "screen_backend": row["screen_backend"],
+            "backend": row["backend"],
+            "model": row["model"],
+            "loss_key": row["loss_key"],
+            "validation_status": validation_status,
+            "resume_decision": resume_decision,
+            "errors": " | ".join(errors),
+        })
+        detailed.append({"run_id": row["run_id"], "validations": validations})
+    summary = {
+        "planned_count": len(rows),
+        "completed_with_valid_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "completed_with_valid_final_metrics"),
+        "incomplete_missing_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "incomplete_missing_final_metrics"),
+        "failed": sum(1 for row in flat_rows if row["validation_status"] == "failed"),
+        "skipped": sum(1 for row in flat_rows if row["validation_status"] == "skipped"),
+        "will_fresh_rerun": sum(1 for row in flat_rows if row["resume_decision"] == "will_fresh_rerun"),
+        "skipped_completed_with_final_metrics": sum(1 for row in flat_rows if row["resume_decision"] == "skipped_completed_with_final_metrics"),
+    }
+    write_json(output_dir / "asl_custom_screening_resume_validation.json", {"summary": summary, "runs": detailed})
+    save_csv(pd.DataFrame(flat_rows), output_dir / "asl_custom_screening_resume_validation.csv")
+    return {"summary": summary, "runs": flat_rows}
+
+
 def main() -> None:
     args = parse_args()
     all_rows, rows = selected_rows(args)
@@ -102,6 +152,11 @@ def main() -> None:
     output_dir = ensure_dir(args.output_dir)
     write_plan_files(output_dir, all_rows, rows)
     rows = add_progress_indices(rows)
+
+    if args.validate_resume:
+        summary = validate_resume_rows(rows, output_dir, smoke_test=args.smoke_test)
+        print(json.dumps({"resume_validation": summary}, indent=2, default=str))
+        return
 
     if args.self_check_yolo_loss:
         loss_keys = list(dict.fromkeys(row["loss_key"] for row in rows if row["screen_backend"] == "yolo"))
@@ -165,7 +220,7 @@ def main() -> None:
     write_json(output_dir / "asl_custom_screening_run_results.json", {"results": results})
     save_csv(pd.DataFrame(results), output_dir / "asl_custom_screening_run_results.csv")
     summary, failures, ranked = collect_screening_results(output_dir, rows=rows)
-    failed_results = [result for result in results if result.get("status") not in {"completed", "skipped_completed"}]
+    failed_results = [result for result in results if result.get("status") not in {"completed", "skipped_completed", "skipped_completed_with_final_metrics"}]
     if args.progress:
         log_event("ASL custom-loss screening completed.", output_dir=output_dir, extra={
             "attempted": len(results),

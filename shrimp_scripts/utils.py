@@ -8,6 +8,7 @@ import json
 import os
 import platform
 import random
+import re
 import shutil
 import sys
 import zipfile
@@ -161,47 +162,211 @@ def is_oom_error(exc: BaseException) -> bool:
     return "out of memory" in text or "cuda oom" in text or "cublas_status_alloc_failed" in text
 
 
+FINAL_TEST_METRIC_FIELDS = (
+    "test_accuracy",
+    "test_macro_precision",
+    "test_macro_recall",
+    "test_macro_f1",
+    "cohen_kappa",
+)
+
+
+def truthy_file(path: str | Path) -> bool:
+    path = Path(path)
+    return path.is_file() and path.stat().st_size > 0
+
+
+def read_json_safely(path: str | Path) -> tuple[dict[str, Any], str]:
+    path = Path(path)
+    if not truthy_file(path):
+        return {}, f"missing_or_empty:{path.name}"
+    try:
+        payload = read_json(path)
+    except Exception as exc:
+        return {}, f"invalid_json:{path.name}:{repr(exc)}"
+    if not isinstance(payload, dict):
+        return {}, f"json_not_object:{path.name}"
+    return payload, ""
+
+
+def finite_float(value: Any) -> bool:
+    try:
+        import math
+        return math.isfinite(float(value))
+    except Exception:
+        return False
+
+
+def extract_final_test_metrics(metrics: dict[str, Any]) -> dict[str, Any]:
+    test = metrics.get("test", {}) if isinstance(metrics.get("test", {}), dict) else {}
+    return {
+        "test_accuracy": metrics.get("test_accuracy", test.get("accuracy")),
+        "test_macro_precision": metrics.get("test_macro_precision", test.get("macro_precision")),
+        "test_macro_recall": metrics.get("test_macro_recall", test.get("macro_recall")),
+        "test_macro_f1": metrics.get("test_macro_f1", test.get("macro_f1")),
+        "cohen_kappa": metrics.get("cohen_kappa", test.get("cohen_kappa")),
+    }
+
+
+def final_test_metrics_valid(metrics: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any]]:
+    values = extract_final_test_metrics(metrics)
+    missing = [name for name, value in values.items() if not finite_float(value)]
+    return len(missing) == 0, missing, values
+
+
 def required_outputs_exist(run_dir: str | Path, backend: str) -> tuple[bool, list[str]]:
     run_dir = Path(run_dir)
     required = [
         run_dir / "metrics.json",
+        run_dir / "val_predictions.csv",
         run_dir / "test_predictions.csv",
         run_dir / "classification_report.csv",
+        run_dir / "confusion_counts.csv",
     ]
     confusion_options = [run_dir / "confusion_matrix.csv", run_dir / "confusion_matrix.json"]
-    missing = [str(path.name) for path in required if not path.is_file() or path.stat().st_size == 0]
-    if not any(path.is_file() and path.stat().st_size > 0 for path in confusion_options):
+    missing = [str(path.name) for path in required if not truthy_file(path)]
+    if not any(truthy_file(path) for path in confusion_options):
         missing.append("confusion_matrix.csv or confusion_matrix.json")
     if backend in {"torchvision", "timm", "torch"}:
         checkpoint = run_dir / "checkpoint_best.pt"
-        if not checkpoint.is_file() or checkpoint.stat().st_size == 0:
+        if not truthy_file(checkpoint):
             missing.append("checkpoint_best.pt")
     if backend == "ultralytics":
-        audit = read_json(run_dir / "run_audit.json", default={})
-        best_path = Path(str(audit.get("checkpoint_path", ""))) if audit.get("checkpoint_path") else run_dir / "best.pt"
-        if not best_path.is_file() or best_path.stat().st_size == 0:
+        audit, _audit_error = read_json_safely(run_dir / "run_audit.json")
+        metrics, _metrics_error = read_json_safely(run_dir / "metrics.json")
+        best_text = str(audit.get("checkpoint_path") or metrics.get("checkpoint_path") or "").strip()
+        best_path = Path(best_text) if best_text else run_dir / "best.pt"
+        if not truthy_file(best_path):
             missing.append("best.pt")
+        if not truthy_file(run_dir / "class_order_audit.json"):
+            missing.append("class_order_audit.json")
     return len(missing) == 0, missing
 
 
-def is_run_completed(run_id: str, output_dir: str | Path, expected_hash: str, backend: str) -> tuple[bool, str]:
+def yolo_class_order_audit_valid(run_dir: str | Path) -> tuple[bool, list[str], dict[str, Any]]:
+    audit, error = read_json_safely(Path(run_dir) / "class_order_audit.json")
+    if error:
+        return False, [error], audit
+    errors: list[str] = []
+    if audit.get("audit_passed") is not True:
+        errors.append("audit_passed_not_true")
+    swap = audit.get("swap_diagnostic", {})
+    if isinstance(swap, dict) and swap.get("failed_due_to_swap_diagnostic") is True:
+        errors.append("swap_diagnostic_failed")
+    if audit.get("failed_due_to_swap_diagnostic") is True:
+        errors.append("swap_diagnostic_failed")
+    return len(errors) == 0, errors, audit
+
+
+def validate_run_completion(run_id: str, output_dir: str | Path, expected_hash: str, backend: str) -> dict[str, Any]:
     run_dir = Path(output_dir) / "runs" / run_id
-    status_path = run_dir / "status.json"
-    audit_path = run_dir / "run_audit.json"
-    if not status_path.exists():
-        return False, "missing_status"
-    if not audit_path.exists():
-        return False, "missing_run_audit"
-    status = read_json(status_path, default={})
-    audit = read_json(audit_path, default={})
-    if status.get("status") != "completed":
-        return False, "status_not_completed"
-    if audit.get("config_hash") != expected_hash:
-        return False, "config_hash_mismatch"
-    ok, missing = required_outputs_exist(run_dir, backend)
-    if not ok:
-        return False, "missing_outputs:" + ",".join(missing)
-    return True, "completed"
+    result: dict[str, Any] = {
+        "run_id": run_id,
+        "backend": backend,
+        "run_dir": str(run_dir),
+        "validation_status": "incomplete_missing_final_metrics",
+        "resume_decision": "will_fresh_rerun",
+        "errors": [],
+        "missing_outputs": [],
+        "final_metrics": {},
+    }
+    if not run_dir.exists():
+        result["errors"].append("missing_run_directory")
+        return result
+    status, status_error = read_json_safely(run_dir / "status.json")
+    audit, audit_error = read_json_safely(run_dir / "run_audit.json")
+    metrics, metrics_error = read_json_safely(run_dir / "metrics.json")
+    if status_error:
+        result["errors"].append(status_error)
+    if audit_error:
+        result["errors"].append(audit_error)
+    if metrics_error:
+        result["errors"].append(metrics_error)
+    status_value = status.get("status")
+    if status_value == "failed":
+        result["validation_status"] = "failed"
+    elif status_value == "skipped":
+        result["validation_status"] = "skipped"
+    elif status_value != "completed":
+        result["errors"].append(f"status_not_completed:{status_value or 'missing'}")
+    if audit and audit.get("config_hash") != expected_hash:
+        result["errors"].append("config_hash_mismatch")
+    outputs_ok, missing_outputs = required_outputs_exist(run_dir, backend)
+    result["missing_outputs"] = missing_outputs
+    if not outputs_ok:
+        result["errors"].extend(f"missing_output:{name}" for name in missing_outputs)
+    metrics_ok, missing_metrics, metric_values = final_test_metrics_valid(metrics)
+    result["final_metrics"] = metric_values
+    if not metrics_ok:
+        result["errors"].extend(f"invalid_or_missing_metric:{name}" for name in missing_metrics)
+    if backend == "ultralytics":
+        audit_ok, audit_errors, class_order_audit = yolo_class_order_audit_valid(run_dir)
+        result["class_order_audit"] = {
+            "audit_passed": class_order_audit.get("audit_passed"),
+            "class_order_match": class_order_audit.get("class_order_match"),
+            "swap_diagnostic": class_order_audit.get("swap_diagnostic", {}),
+        }
+        if not audit_ok:
+            result["errors"].extend(f"class_order_audit:{error}" for error in audit_errors)
+    if status_value == "completed" and not result["errors"]:
+        result["validation_status"] = "completed_with_valid_final_metrics"
+        result["resume_decision"] = "skipped_completed_with_final_metrics"
+    elif result["validation_status"] not in {"failed", "skipped"}:
+        result["validation_status"] = "incomplete_missing_final_metrics"
+    return result
+
+
+def is_run_completed(run_id: str, output_dir: str | Path, expected_hash: str, backend: str) -> tuple[bool, str]:
+    validation = validate_run_completion(run_id, output_dir, expected_hash, backend)
+    if validation["validation_status"] == "completed_with_valid_final_metrics":
+        return True, "completed_with_valid_final_metrics"
+    errors = validation.get("errors", [])
+    if errors:
+        return False, ";".join(str(error) for error in errors)
+    return False, str(validation["validation_status"])
+
+
+def archive_run_dir_for_fresh_rerun(run_dir: str | Path, reason: str) -> Path | None:
+    run_dir = Path(run_dir)
+    if not run_dir.exists():
+        return None
+    safe_reason = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(reason).strip())[:80] or "incomplete"
+    archive_root = ensure_dir(run_dir.parent / "_archived_incomplete_runs")
+    stamp = utc_now().replace(":", "").replace("+", "Z")
+    target = archive_root / f"{run_dir.name}__{stamp}__{safe_reason}"
+    counter = 1
+    while target.exists():
+        target = archive_root / f"{run_dir.name}__{stamp}__{safe_reason}_{counter}"
+        counter += 1
+    shutil.move(str(run_dir), str(target))
+    return target
+
+
+def completion_validation_report(planned_runs: list[dict[str, Any]], output_dir: str | Path) -> dict[str, Any]:
+    rows = []
+    for row in planned_runs:
+        run_id = str(row["run_id"])
+        backend = str(row.get("backend", ""))
+        expected_hash = str(row.get("config_hash", ""))
+        if not expected_hash:
+            rows.append({
+                "run_id": run_id,
+                "backend": backend,
+                "validation_status": "incomplete_missing_final_metrics",
+                "resume_decision": "will_fresh_rerun",
+                "errors": ["missing_expected_config_hash"],
+            })
+            continue
+        rows.append(validate_run_completion(run_id, output_dir, expected_hash, backend))
+    counts: dict[str, int] = {}
+    for row in rows:
+        status = str(row["validation_status"])
+        counts[status] = counts.get(status, 0) + 1
+        decision = str(row.get("resume_decision", ""))
+        if decision:
+            counts[decision] = counts.get(decision, 0) + 1
+    return {"rows": rows, "counts": counts}
+
 
 
 def write_status(run_dir: str | Path, status: str, **kwargs: Any) -> Path:
@@ -245,4 +410,3 @@ def safe_unlink_tree(path: str | Path) -> None:
 
 def bool_arg(value: str) -> bool:
     return str(value).strip().lower() not in {"0", "false", "no", "off"}
-

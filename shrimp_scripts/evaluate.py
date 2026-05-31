@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from . import config
-from .utils import read_json, save_csv, write_json
+from .utils import extract_final_test_metrics, final_test_metrics_valid, read_json, save_csv, truthy_file, write_json, yolo_class_order_audit_valid
 
 
 def confusion_matrix_np(y_true: list[int], y_pred: list[int]) -> np.ndarray:
@@ -193,21 +193,37 @@ def collect_run_outputs(output_dir: str | Path, expected_run_ids: set[str] | Non
         save_csv(empty, output_dir / "final_summary.csv")
         save_csv(empty, output_dir / "missing_or_failed_runs.csv")
         return empty, empty, empty, empty
-    for run_dir in sorted(path for path in runs_dir.iterdir() if path.is_dir()):
+    seen_run_ids: set[str] = set()
+    for run_dir in sorted(path for path in runs_dir.iterdir() if path.is_dir() and not path.name.startswith("_")):
         if expected_run_ids is not None and run_dir.name not in expected_run_ids:
             continue
+        seen_run_ids.add(run_dir.name)
         status = read_json(run_dir / "status.json", default={})
         metrics_path = run_dir / "metrics.json"
-        if status.get("status") == "completed" and metrics_path.exists():
+        if status.get("status") == "completed" and truthy_file(metrics_path):
             metrics = read_json(metrics_path)
+            metrics_ok, missing_metrics, final_values = final_test_metrics_valid(metrics)
+            backend = metrics.get("backend")
+            yolo_audit_ok = True
+            yolo_audit_errors: list[str] = []
+            if backend == "ultralytics":
+                yolo_audit_ok, yolo_audit_errors, _audit = yolo_class_order_audit_valid(run_dir)
+            if not metrics_ok or not yolo_audit_ok:
+                failed_rows.append({
+                    "run_id": run_dir.name,
+                    "status": "completed_but_invalid_final_metrics",
+                    "error": ";".join([*(f"invalid_or_missing_metric:{name}" for name in missing_metrics), *(f"class_order_audit:{error}" for error in yolo_audit_errors)]),
+                })
+                continue
             test = metrics.get("test", {})
             val = metrics.get("val", {})
+            final_values = extract_final_test_metrics(metrics)
             metrics_rows.append({
                 "run_id": metrics.get("run_id", run_dir.name),
                 "status": "completed",
                 "model": metrics.get("model"),
                 "model_key": metrics.get("model_key"),
-                "backend": metrics.get("backend"),
+                "backend": backend,
                 "loss_key": metrics.get("loss_key"),
                 "loss": metrics.get("loss"),
                 "condition": metrics.get("condition"),
@@ -217,12 +233,12 @@ def collect_run_outputs(output_dir: str | Path, expected_run_ids: set[str] | Non
                 "seed": metrics.get("seed"),
                 "repeat": metrics.get("repeat"),
                 "split_seed": metrics.get("split_seed"),
-                "val_macro_f1": val.get("macro_f1"),
-                "test_accuracy": test.get("accuracy"),
-                "test_macro_precision": test.get("macro_precision"),
-                "test_macro_recall": test.get("macro_recall"),
-                "test_macro_f1": test.get("macro_f1"),
-                "cohen_kappa": test.get("cohen_kappa"),
+                "val_macro_f1": metrics.get("val_macro_f1", val.get("macro_f1")),
+                "test_accuracy": final_values["test_accuracy"],
+                "test_macro_precision": final_values["test_macro_precision"],
+                "test_macro_recall": final_values["test_macro_recall"],
+                "test_macro_f1": final_values["test_macro_f1"],
+                "cohen_kappa": final_values["cohen_kappa"],
                 "BG->WSSV_BG": test.get("BG->WSSV_BG"),
                 "WSSV->WSSV_BG": test.get("WSSV->WSSV_BG"),
                 "WSSV_BG->BG": test.get("WSSV_BG->BG"),
@@ -245,6 +261,9 @@ def collect_run_outputs(output_dir: str | Path, expected_run_ids: set[str] | Non
                 "status": status.get("status", "missing_status"),
                 "error": status.get("error", status.get("errors", "")),
             })
+    if expected_run_ids is not None:
+        for run_id in sorted(expected_run_ids - seen_run_ids):
+            failed_rows.append({"run_id": run_id, "status": "missing_run_directory", "error": ""})
     metrics_frame = pd.DataFrame(metrics_rows)
     predictions = pd.concat(prediction_frames, ignore_index=True) if prediction_frames else pd.DataFrame()
     confusions = pd.concat(confusion_frames, ignore_index=True) if confusion_frames else pd.DataFrame()

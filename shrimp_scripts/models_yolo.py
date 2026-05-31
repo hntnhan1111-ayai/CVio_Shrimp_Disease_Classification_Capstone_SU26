@@ -15,11 +15,30 @@ from . import config
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
 from .losses import LOSS_CHECKPOINT_SAFE_CLASSES, LOSS_CONFIG, make_loss
 from .progress import log_event
-from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, read_json, required_outputs_exist, save_csv, set_seed, sha256_file, stable_hash, utc_now, write_json, write_status
+from .utils import (
+    archive_run_dir_for_fresh_rerun,
+    cleanup_memory,
+    ensure_dir,
+    final_test_metrics_valid,
+    is_oom_error,
+    is_run_completed,
+    read_json,
+    required_outputs_exist,
+    save_csv,
+    set_seed,
+    sha256_file,
+    stable_hash,
+    utc_now,
+    validate_run_completion,
+    write_json,
+    write_status,
+)
 
 
 ACTIVE_YOLO_LOSS_KEY = "baseline_ce"
-YOLO_TRAINING_IMPL_VERSION = "paper_class_order_custom_loss_v2"
+YOLO_TRAINING_IMPL_VERSION = "paper_class_order_custom_loss_v3"
+YOLO_CLASS_ORDER_IMPL_VERSION = "prefixed_folder_decode_audit_v1"
+YOLO_SWAP_DIAGNOSTIC_FAIL_THRESHOLD = 0.20
 
 try:
     import torch as _TORCH
@@ -51,6 +70,19 @@ def paper_yolo_names() -> dict[int, str]:
 
 def paper_yolo_class_to_idx() -> dict[str, int]:
     return {name: index for index, name in enumerate(config.CLASS_NAMES)}
+
+
+def source_folder_to_project_idx() -> dict[str, int]:
+    return {class_dir: index for index, class_dir in enumerate(config.CLASS_DIRS)}
+
+
+def yolo_class_dir_name(label: int) -> str:
+    label = int(label)
+    return f"{label:02d}_{config.CLASS_NAMES[label]}"
+
+
+def expected_yolo_class_dirs() -> list[str]:
+    return [yolo_class_dir_name(index) for index in range(config.NUM_CLASSES)]
 
 
 def normalize_yolo_names_map(names: Any) -> dict[int, str]:
@@ -105,6 +137,139 @@ def normalize_yolo_folder_name(folder_name: str) -> str:
     raise ValueError(f"unknown_yolo_class_folder:{folder_name}")
 
 
+def discover_yolo_class_dirs(yolo_dataset_path: str | Path) -> dict[str, list[str]]:
+    root = Path(yolo_dataset_path)
+    return {
+        split: sorted(path.name for path in (root / split).iterdir() if path.is_dir()) if (root / split).is_dir() else []
+        for split in ["train", "val", "test"]
+    }
+
+
+def yolo_folder_to_project_idx(class_dirs_by_split: dict[str, list[str]]) -> dict[str, int]:
+    mapping: dict[str, int] = {}
+    class_to_idx = paper_yolo_class_to_idx()
+    for class_dirs in class_dirs_by_split.values():
+        for folder_name in class_dirs:
+            mapping[folder_name] = class_to_idx[normalize_yolo_folder_name(folder_name)]
+    return dict(sorted(mapping.items(), key=lambda item: item[0]))
+
+
+def prediction_index_mapping_from_names(names: Any) -> tuple[dict[int, int], dict[int, str], list[str]]:
+    normalized_names = normalize_yolo_names_map(names)
+    class_to_idx = paper_yolo_class_to_idx()
+    errors: list[str] = []
+    if not normalized_names:
+        errors.append("ultralytics_names_unavailable_using_identity_fallback")
+        return {index: index for index in range(config.NUM_CLASSES)}, {}, errors
+    mapping: dict[int, int] = {}
+    for prediction_idx, class_name in normalized_names.items():
+        try:
+            normalized_name = normalize_yolo_folder_name(class_name)
+            mapping[int(prediction_idx)] = class_to_idx[normalized_name]
+        except Exception as exc:
+            errors.append(f"prediction_index_{prediction_idx}_unknown_class:{class_name}:{repr(exc)}")
+    expected_project = set(range(config.NUM_CLASSES))
+    if set(mapping.values()) != expected_project:
+        errors.append(f"prediction_mapping_missing_project_indices:{sorted(expected_project - set(mapping.values()))}")
+    if set(mapping) != expected_project:
+        errors.append(f"prediction_mapping_missing_raw_indices:{sorted(expected_project - set(mapping))}")
+    return mapping, normalized_names, errors
+
+
+def decode_yolo_probabilities(results: list[Any], prediction_index_to_project_idx: dict[int, int]) -> list[list[float]]:
+    probabilities: list[list[float]] = []
+    for result in results:
+        raw_probs = result.probs.data.detach().cpu().float().tolist()
+        decoded = [0.0 for _ in range(config.NUM_CLASSES)]
+        for prediction_idx, value in enumerate(raw_probs):
+            project_idx = prediction_index_to_project_idx.get(int(prediction_idx))
+            if project_idx is None or not 0 <= int(project_idx) < config.NUM_CLASSES:
+                continue
+            decoded[int(project_idx)] = float(value)
+        probabilities.append(decoded)
+    return probabilities
+
+
+def swap_predicted_indices_0_1(y_pred: list[int]) -> list[int]:
+    return [1 if int(pred) == 0 else 0 if int(pred) == 1 else int(pred) for pred in y_pred]
+
+
+def build_class_order_audit(
+    output_dir: str | Path,
+    *,
+    model_names: Any = None,
+    trainer_dataset_audits: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    paths = config.output_paths(output_dir)
+    yolo_dataset_path = paths["yolo_dataset"]
+    class_dirs = discover_yolo_class_dirs(yolo_dataset_path)
+    folder_mapping: dict[str, int] = {}
+    errors: list[str] = []
+    try:
+        folder_mapping = yolo_folder_to_project_idx(class_dirs)
+    except Exception as exc:
+        errors.append(f"yolo_folder_mapping_failed:{repr(exc)}")
+    expected_dirs = expected_yolo_class_dirs()
+    for split, split_dirs in class_dirs.items():
+        if split_dirs != expected_dirs:
+            errors.append(f"{split}_class_dirs_mismatch expected={expected_dirs} actual={split_dirs}")
+    prediction_mapping, normalized_names, prediction_errors = prediction_index_mapping_from_names(model_names)
+    errors.extend(prediction_errors)
+    identity = {index: index for index in range(config.NUM_CLASSES)}
+    class_order_match = prediction_mapping == identity and all(class_dirs.get(split) == expected_dirs for split in ["train", "val", "test"])
+    trainer_dataset_audits = trainer_dataset_audits or {}
+    train_dataset_audit = trainer_dataset_audits.get("train", {}) if isinstance(trainer_dataset_audits, dict) else {}
+    warning: list[str] = []
+    if prediction_mapping != identity:
+        warning.append("prediction indices differ from project order and will be decoded before metrics")
+    warning.extend(errors)
+    return {
+        "project_class_names": list(config.CLASS_NAMES),
+        "project_class_to_idx": paper_yolo_class_to_idx(),
+        "source_class_dirs": list(config.CLASS_DIRS),
+        "source_folder_to_project_idx": source_folder_to_project_idx(),
+        "yolo_dataset_path": str(yolo_dataset_path),
+        "yolo_train_class_dirs": class_dirs.get("train", []),
+        "yolo_val_class_dirs": class_dirs.get("val", []),
+        "yolo_test_class_dirs": class_dirs.get("test", []),
+        "ultralytics_names_if_available": normalized_names,
+        "ultralytics_class_to_idx_if_available": train_dataset_audit.get("original_class_to_idx", {}),
+        "trainer_dataset_audits": trainer_dataset_audits,
+        "yolo_folder_to_project_idx": folder_mapping,
+        "prediction_index_to_project_idx": prediction_mapping,
+        "ground_truth_index_to_project_idx": identity,
+        "class_order_match": bool(class_order_match),
+        "class_order_warning": warning,
+        "swap_diagnostic": {},
+        "audit_passed": len(errors) == 0,
+        "class_order_impl_version": YOLO_CLASS_ORDER_IMPL_VERSION,
+    }
+
+
+def add_swap_diagnostic_to_audit(audit: dict[str, Any], y_true: list[int], y_pred: list[int]) -> dict[str, Any]:
+    original_metrics = compute_metrics(y_true, y_pred)
+    swapped_metrics = compute_metrics(y_true, swap_predicted_indices_0_1(y_pred))
+    original_f1 = float(original_metrics["macro_f1"])
+    swapped_f1 = float(swapped_metrics["macro_f1"])
+    delta = swapped_f1 - original_f1
+    failed = delta > YOLO_SWAP_DIAGNOSTIC_FAIL_THRESHOLD
+    swap_diagnostic = {
+        "original_test_macro_f1": original_f1,
+        "swapped_0_1_test_macro_f1": swapped_f1,
+        "macro_f1_delta_after_swap": float(delta),
+        "fail_threshold": YOLO_SWAP_DIAGNOSTIC_FAIL_THRESHOLD,
+        "failed_due_to_swap_diagnostic": bool(failed),
+    }
+    audit.update(swap_diagnostic)
+    audit["swap_diagnostic"] = swap_diagnostic
+    if failed:
+        audit["audit_passed"] = False
+        warnings = audit.setdefault("class_order_warning", [])
+        if isinstance(warnings, list):
+            warnings.append("YOLO class mapping mismatch suspected by swap diagnostic")
+    return audit
+
+
 def yolo_checkpoint_paths(train_kwargs: dict[str, Any]) -> tuple[Path, Path]:
     train_dir = Path(train_kwargs["project"]) / train_kwargs["name"]
     return train_dir / "weights" / "best.pt", train_dir / "weights" / "last.pt"
@@ -144,10 +309,13 @@ def yolo_audit_context(
         "dataset_source_type": "classification_folder",
         "class_names": list(config.CLASS_NAMES),
         "class_to_idx": paper_yolo_class_to_idx(),
+        "source_folder_to_project_idx": source_folder_to_project_idx(),
+        "expected_yolo_class_dirs": expected_yolo_class_dirs(),
         "yolo_data_yaml_names": paper_yolo_names(),
         "yolo_data_yaml_path": str(dataset_yaml_path),
         "yolo_label_order_source": "PaperClassificationDataset remaps torchvision ImageFolder labels to config.CLASS_NAMES order.",
         "yolo_training_impl_version": YOLO_TRAINING_IMPL_VERSION,
+        "yolo_class_order_impl_version": YOLO_CLASS_ORDER_IMPL_VERSION,
         "trainer_class": "shrimp_scripts.models_yolo.PaperClassificationTrainer",
         "model_class": "shrimp_scripts.models_yolo.PaperClassificationModel",
         "criterion_class": "shrimp_scripts.models_yolo.PaperClassificationLoss",
@@ -199,6 +367,16 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
             if hasattr(self.base, "targets"):
                 self.base.targets = list(self.targets)
 
+        def paper_audit(self) -> dict[str, Any]:
+            return {
+                "root": str(getattr(self, "root", "")),
+                "original_class_to_idx": dict(getattr(self, "original_class_to_idx", {})),
+                "remapped_class_to_idx": dict(getattr(self, "class_to_idx", {})),
+                "classes": list(getattr(self, "classes", [])),
+                "sample_count": len(getattr(self, "samples", [])),
+                "target_counts": {int(label): int(self.targets.count(label)) for label in sorted(set(getattr(self, "targets", [])))},
+            }
+
     class PaperClassificationLoss(_NN.Module):
         def __init__(self, model):
             super().__init__()
@@ -237,7 +415,11 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
 
     class PaperClassificationTrainer(_UltralyticsClassificationTrainer):
         def build_dataset(self, img_path: str, mode: str = "train", batch=None):
-            return PaperClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+            dataset = PaperClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+            if not hasattr(self, "paper_dataset_audits"):
+                self.paper_dataset_audits = {}
+            self.paper_dataset_audits[mode] = dataset.paper_audit()
+            return dataset
 
         def get_model(self, cfg=None, weights=None, verbose=True):
             nc = self.data["nc"] if isinstance(self.data, dict) and "nc" in self.data else config.NUM_CLASSES
@@ -504,7 +686,10 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "output_dir": str(Path(output_dir)),
         "paper_class_order": list(config.CLASS_NAMES),
         "class_to_idx": paper_yolo_class_to_idx(),
+        "source_folder_to_project_idx": source_folder_to_project_idx(),
+        "expected_yolo_class_dirs": expected_yolo_class_dirs(),
         "yolo_training_impl_version": YOLO_TRAINING_IMPL_VERSION,
+        "yolo_class_order_impl_version": YOLO_CLASS_ORDER_IMPL_VERSION,
         "trainer_class": "shrimp_scripts.models_yolo.PaperClassificationTrainer",
         "model_class": "shrimp_scripts.models_yolo.PaperClassificationModel",
         "criterion_class": "shrimp_scripts.models_yolo.PaperClassificationLoss",
@@ -549,18 +734,23 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     status = read_json(run_dir / "status.json", default={})
     audit = read_json(run_dir / "run_audit.json", default={})
     metrics = read_json(run_dir / "metrics.json", default={})
+    class_order_audit = read_json(run_dir / "class_order_audit.json", default={})
     row["checks"]["run_config_exists"] = (run_dir / "run_config.json").is_file()
     row["checks"]["train_kwargs_exists"] = (run_dir / "train_kwargs.json").is_file()
     row["checks"]["status_completed"] = status.get("status") == "completed"
     row["checks"]["audit_completed"] = audit.get("status") == "completed"
     row["checks"]["metrics_completed"] = metrics.get("status") == "completed"
+    row["checks"]["final_test_metrics_valid"] = final_test_metrics_valid(metrics)[0]
+    row["checks"]["top_level_final_metrics_present"] = all(key in metrics for key in ["test_accuracy", "test_macro_precision", "test_macro_recall", "test_macro_f1", "cohen_kappa"])
     row["checks"]["train_kwargs_in_audit"] = isinstance(audit.get("train_kwargs"), dict)
     row["checks"]["class_names_match"] = audit.get("class_names") == list(config.CLASS_NAMES)
     row["checks"]["class_to_idx_matches_paper_order"] = audit.get("class_to_idx") == paper_yolo_class_to_idx()
     yaml_names = normalize_yolo_names_map(audit.get("yolo_data_yaml_names"))
     row["checks"]["yolo_data_yaml_names_match"] = yaml_names == paper_yolo_names()
-    row["checks"]["model_names_match_paper_order"] = normalize_yolo_names_map(audit.get("model_names")) == paper_yolo_names()
+    audit_prediction_mapping, _audit_names, audit_name_errors = prediction_index_mapping_from_names(audit.get("model_names"))
+    row["checks"]["model_names_decodable_to_project_order"] = not audit_name_errors and set(audit_prediction_mapping.values()) == set(range(config.NUM_CLASSES))
     row["checks"]["impl_version_matches"] = audit.get("yolo_training_impl_version") == YOLO_TRAINING_IMPL_VERSION
+    row["checks"]["class_order_impl_version_matches"] = audit.get("yolo_class_order_impl_version") == YOLO_CLASS_ORDER_IMPL_VERSION
     row["checks"]["trainer_class_matches"] = audit.get("trainer_class") == "shrimp_scripts.models_yolo.PaperClassificationTrainer"
     row["checks"]["criterion_class_matches"] = audit.get("criterion_class") == "shrimp_scripts.models_yolo.PaperClassificationLoss"
     row["checks"]["requested_loss_key_matches"] = audit.get("requested_loss_key", audit.get("loss_key")) == condition["loss_key"]
@@ -581,6 +771,17 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     row["checks"]["confusion_matrix_exists"] = (run_dir / "confusion_matrix.csv").is_file() or (run_dir / "confusion_matrix.json").is_file()
     row["checks"]["test_predictions_exists"] = (run_dir / "test_predictions.csv").is_file()
     row["checks"]["val_predictions_exists"] = (run_dir / "val_predictions.csv").is_file()
+    row["checks"]["class_order_audit_exists"] = (run_dir / "class_order_audit.json").is_file()
+    swap_audit = class_order_audit.get("swap_diagnostic", {})
+    swap_failed = swap_audit.get("failed_due_to_swap_diagnostic") is True if isinstance(swap_audit, dict) else True
+    row["checks"]["class_order_audit_passed"] = class_order_audit.get("audit_passed") is True
+    row["checks"]["swap_diagnostic_not_failed"] = class_order_audit.get("failed_due_to_swap_diagnostic") is not True and not swap_failed
+    audit_mapping = class_order_audit.get("prediction_index_to_project_idx", {})
+    row["checks"]["prediction_index_mapping_complete"] = (
+        set(map(int, audit_mapping.keys())) == set(range(config.NUM_CLASSES))
+        and set(map(int, audit_mapping.values())) == set(range(config.NUM_CLASSES))
+    ) if isinstance(audit_mapping, dict) else False
+    row["class_order_audit"] = class_order_audit
     row["checks"]["original_pickle_error_absent"] = not _text_contains_original_pickle_error(status, audit)
     if audit.get("batch") is not None and audit.get("config_hash"):
         smoke_test = int(audit.get("epochs", config.EPOCHS)) == config.SMOKE_TEST_EPOCHS
@@ -608,7 +809,20 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     return row
 
 
-def predict_yolo(best_model, frame: pd.DataFrame, run_id: str, model_name: str, loss_name: str, condition_key: str, randaugment: bool, split_name: str, batch: int, output_dir: str | Path | None = None, progress_enabled: bool = True):
+def predict_yolo(
+    best_model,
+    frame: pd.DataFrame,
+    run_id: str,
+    model_name: str,
+    loss_name: str,
+    condition_key: str,
+    randaugment: bool,
+    split_name: str,
+    batch: int,
+    output_dir: str | Path | None = None,
+    progress_enabled: bool = True,
+    prediction_index_to_project_idx: dict[int, int] | None = None,
+):
     torch = _torch()
     paths = frame["yolo_path"].tolist()
     if torch.cuda.is_available():
@@ -621,7 +835,10 @@ def predict_yolo(best_model, frame: pd.DataFrame, run_id: str, model_name: str, 
         torch.cuda.synchronize()
     elapsed = time.time() - start
     y_true = frame["label"].astype(int).tolist()
-    probabilities = [[float(result.probs.data[index].detach().cpu()) for index in range(config.NUM_CLASSES)] for result in results]
+    raw_names = getattr(best_model, "names", getattr(getattr(best_model, "model", None), "names", None))
+    discovered_mapping, normalized_names, mapping_errors = prediction_index_mapping_from_names(raw_names)
+    decode_mapping = prediction_index_to_project_idx or discovered_mapping
+    probabilities = decode_yolo_probabilities(results, decode_mapping)
     y_pred = [int(np.argmax(row)) for row in probabilities]
     predictions = prediction_frame(frame, run_id, model_name, "ultralytics", loss_name, condition_key, randaugment, split_name, y_true, y_pred, probabilities)
     metrics = compute_metrics(y_true, y_pred)
@@ -639,8 +856,15 @@ def predict_yolo(best_model, frame: pd.DataFrame, run_id: str, model_name: str, 
             "elapsed_s": round(elapsed, 3),
             "latency_ms_image": metrics["latency_ms_image"],
             "macro_f1": metrics["macro_f1"],
+            "prediction_index_to_project_idx": decode_mapping,
         })
-    return metrics, predictions, y_true, y_pred
+    decode_audit = {
+        "ultralytics_names": normalized_names,
+        "discovered_prediction_index_to_project_idx": discovered_mapping,
+        "used_prediction_index_to_project_idx": decode_mapping,
+        "mapping_errors": mapping_errors,
+    }
+    return metrics, predictions, y_true, y_pred, decode_audit
 
 
 def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: pd.DataFrame, output_dir: str | Path, resume: bool, smoke_test: bool, batch: int, progress_enabled: bool = True) -> dict[str, Any]:
@@ -649,15 +873,26 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     paths = config.output_paths(output_dir)
     ensure_dir(paths["runs"])
     run_id = yolo_run_id(model_name, condition)
-    run_dir = ensure_dir(paths["runs"] / run_id)
+    run_dir = paths["runs"] / run_id
     run_config = make_run_config(model_name, condition, output_dir, smoke_test, batch=batch)
     run_hash = stable_hash(run_config)
-    if resume:
+    if resume and run_dir.exists():
+        validation = validate_run_completion(run_id, output_dir, run_hash, "ultralytics")
         completed, reason = is_run_completed(run_id, output_dir, run_hash, "ultralytics")
         if completed:
             if progress_enabled:
-                log_event("Skipping completed YOLO run after strict resume check.", run_id=run_id, output_dir=output_dir, extra={"reason": reason})
-            return {"run_id": run_id, "status": "skipped_completed", "skip_reason": reason}
+                log_event("Skipping completed YOLO run after strict final-metric resume check.", run_id=run_id, output_dir=output_dir, extra={"reason": reason, "validation": validation})
+            return {"run_id": run_id, "status": "skipped_completed_with_final_metrics", "skip_reason": reason, "validation_status": validation["validation_status"]}
+        archived = archive_run_dir_for_fresh_rerun(run_dir, reason)
+        if progress_enabled:
+            log_event(
+                "Fresh-rerunning YOLO run because completed final metrics/artifacts were not valid.",
+                level="WARNING",
+                run_id=run_id,
+                output_dir=output_dir,
+                extra={"resume_decision": "fresh_rerun_due_to_incomplete_final_metrics", "reason": reason, "archived_run_dir": str(archived) if archived else "", "validation": validation},
+            )
+    run_dir = ensure_dir(paths["runs"] / run_id)
     train_kwargs, augment_audit = yolo_train_kwargs(run_id, condition, output_dir, batch, smoke_test)
     planned_best_path, planned_last_path = yolo_checkpoint_paths(train_kwargs)
     audit_context = yolo_audit_context(output_dir, train_kwargs)
@@ -703,6 +938,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         log_event("Starting native Ultralytics classification training.", run_id=run_id, output_dir=output_dir, extra={"custom_loss": condition["loss_key"] != "baseline_ce"})
     yolo.train(trainer=get_custom_trainer_class(), **train_kwargs)
     trainer_model_audit = yolo_model_loss_audit(getattr(getattr(yolo, "trainer", None), "model", None))
+    trainer_dataset_audits = getattr(getattr(yolo, "trainer", None), "paper_dataset_audits", {})
     train_time = time.time() - start
     if progress_enabled:
         log_event("Ultralytics training finished.", run_id=run_id, output_dir=output_dir, extra={"training_time_s": round(train_time, 3)})
@@ -721,18 +957,58 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     safe_globals_audit = register_yolo_checkpoint_safe_globals()
     best_model = YOLO(str(best_path))
     checkpoint_model_audit = yolo_model_loss_audit(getattr(best_model, "model", None))
+    model_names = getattr(best_model, "names", getattr(getattr(best_model, "model", None), "names", None))
+    class_order_audit = build_class_order_audit(output_dir, model_names=model_names, trainer_dataset_audits=trainer_dataset_audits)
+    prediction_index_to_project_idx = {
+        int(key): int(value)
+        for key, value in class_order_audit.get("prediction_index_to_project_idx", {}).items()
+    }
+    write_json(run_dir / "class_order_audit.json", class_order_audit)
+    if class_order_audit.get("audit_passed") is not True:
+        raise RuntimeError("YOLO class order audit failed before prediction: " + " | ".join(str(item) for item in class_order_audit.get("class_order_warning", [])))
     val_frame = yolo_manifest[yolo_manifest["split"] == "val"].copy()
     test_frame = yolo_manifest[yolo_manifest["split"] == "test"].copy()
     loss_name = LOSS_CONFIG[condition["loss_key"]]["name"]
     if progress_enabled:
         log_event("Starting YOLO validation prediction.", run_id=run_id, output_dir=output_dir, extra={"checkpoint": str(best_path)})
-    val_metrics, val_predictions, val_true, val_pred = predict_yolo(best_model, val_frame, run_id, model_name, loss_name, condition["condition_key"], condition["randaugment"], "val", batch, output_dir=output_dir, progress_enabled=progress_enabled)
+    val_metrics, val_predictions, val_true, val_pred, val_decode_audit = predict_yolo(
+        best_model,
+        val_frame,
+        run_id,
+        model_name,
+        loss_name,
+        condition["condition_key"],
+        condition["randaugment"],
+        "val",
+        batch,
+        output_dir=output_dir,
+        progress_enabled=progress_enabled,
+        prediction_index_to_project_idx=prediction_index_to_project_idx,
+    )
     if progress_enabled:
         log_event("Starting YOLO test prediction.", run_id=run_id, output_dir=output_dir)
-    test_metrics, test_predictions, test_true, test_pred = predict_yolo(best_model, test_frame, run_id, model_name, loss_name, condition["condition_key"], condition["randaugment"], "test", batch, output_dir=output_dir, progress_enabled=progress_enabled)
+    test_metrics, test_predictions, test_true, test_pred, test_decode_audit = predict_yolo(
+        best_model,
+        test_frame,
+        run_id,
+        model_name,
+        loss_name,
+        condition["condition_key"],
+        condition["randaugment"],
+        "test",
+        batch,
+        output_dir=output_dir,
+        progress_enabled=progress_enabled,
+        prediction_index_to_project_idx=prediction_index_to_project_idx,
+    )
     save_prediction_artifacts(run_dir, val_metrics, val_predictions, val_true, val_pred, split_name="val")
     save_prediction_artifacts(run_dir, test_metrics, test_predictions, test_true, test_pred, split_name="test")
     save_csv(confusion_count_frame(test_metrics, run_id, model_name, "ultralytics", condition["condition_key"], condition["loss_key"]), run_dir / "confusion_counts.csv")
+    class_order_audit["prediction_decode_audit"] = {"val": val_decode_audit, "test": test_decode_audit}
+    class_order_audit = add_swap_diagnostic_to_audit(class_order_audit, test_true, test_pred)
+    write_json(run_dir / "class_order_audit.json", class_order_audit)
+    if class_order_audit.get("failed_due_to_swap_diagnostic"):
+        raise RuntimeError("YOLO class mapping mismatch suspected: swapping predicted indices 0 and 1 improves Macro-F1 by > 0.20.")
     params_m = None
     try:
         params_m = sum(param.numel() for param in best_model.model.parameters()) / 1e6
@@ -763,10 +1039,19 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "last_checkpoint_sha256": sha256_file(last_path),
         "pretrained_weight_path": pretrained_path,
         "pretrained_weight_sha256": sha256_file(pretrained_path) if pretrained_path and Path(pretrained_path).is_file() else "",
+        "test_accuracy": test_metrics["accuracy"],
+        "test_macro_precision": test_metrics["macro_precision"],
+        "test_macro_recall": test_metrics["macro_recall"],
+        "test_macro_f1": test_metrics["macro_f1"],
+        "cohen_kappa": test_metrics["cohen_kappa"],
+        "val_macro_f1": val_metrics["macro_f1"],
         "requested_loss_key": condition["loss_key"],
         "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
         "trainer_model_loss_key": trainer_model_audit.get("model_loss_key", ""),
         "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
+        "class_order_audit_path": str((run_dir / "class_order_audit.json").resolve()),
+        "class_order_audit_passed": bool(class_order_audit.get("audit_passed")),
+        "swap_diagnostic": class_order_audit.get("swap_diagnostic", {}),
         "val": val_metrics,
         "test": test_metrics,
     }
@@ -788,6 +1073,14 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
         "trainer_model_audit": trainer_model_audit,
         "checkpoint_model_audit": checkpoint_model_audit,
+        "trainer_dataset_audits": trainer_dataset_audits,
+        "class_order_audit_path": str((run_dir / "class_order_audit.json").resolve()),
+        "class_order_audit": {
+            "audit_passed": bool(class_order_audit.get("audit_passed")),
+            "class_order_match": bool(class_order_audit.get("class_order_match")),
+            "prediction_index_to_project_idx": class_order_audit.get("prediction_index_to_project_idx", {}),
+            "swap_diagnostic": class_order_audit.get("swap_diagnostic", {}),
+        },
         "pretrained_weight_path": pretrained_path,
         "checkpoint_safe_globals": safe_globals_audit,
         "completed_at": utc_now(),
@@ -802,12 +1095,33 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
 
 def train_yolo_with_fallback(model_name: str, condition: dict[str, Any], yolo_manifest: pd.DataFrame, output_dir: str | Path, resume: bool = True, smoke_test: bool = False, progress_enabled: bool = True) -> dict[str, Any]:
     run_id = yolo_run_id(model_name, condition)
+    run_dir = config.output_paths(output_dir)["runs"] / run_id
+    if resume and run_dir.exists():
+        validations = []
+        for batch in config.YOLO_BATCH_FALLBACKS:
+            run_config = make_run_config(model_name, condition, output_dir, smoke_test, batch=batch)
+            validation = validate_run_completion(run_id, output_dir, stable_hash(run_config), "ultralytics")
+            validations.append({"batch": batch, **validation})
+            if validation["validation_status"] == "completed_with_valid_final_metrics":
+                if progress_enabled:
+                    log_event("Skipping completed YOLO run after strict final-metric resume check.", run_id=run_id, output_dir=output_dir, extra={"batch": batch, "validation": validation})
+                return {"run_id": run_id, "status": "skipped_completed_with_final_metrics", "skip_reason": validation["validation_status"], "validation_status": validation["validation_status"], "batch": batch}
+        reason = ";".join(str(error) for item in validations for error in item.get("errors", [])) or "incomplete_missing_final_metrics"
+        archived = archive_run_dir_for_fresh_rerun(run_dir, reason)
+        if progress_enabled:
+            log_event(
+                "Fresh-rerunning YOLO run because no fallback batch has valid final metrics/artifacts.",
+                level="WARNING",
+                run_id=run_id,
+                output_dir=output_dir,
+                extra={"resume_decision": "fresh_rerun_due_to_incomplete_final_metrics", "reason": reason, "archived_run_dir": str(archived) if archived else "", "validations": validations},
+            )
     errors: list[dict[str, Any]] = []
     for batch in config.YOLO_BATCH_FALLBACKS:
         try:
             if progress_enabled:
                 log_event("Attempting YOLO batch fallback.", run_id=run_id, output_dir=output_dir, extra={"batch": batch})
-            return train_yolo_once(model_name, condition, yolo_manifest, output_dir, resume=resume, smoke_test=smoke_test, batch=batch, progress_enabled=progress_enabled)
+            return train_yolo_once(model_name, condition, yolo_manifest, output_dir, resume=False, smoke_test=smoke_test, batch=batch, progress_enabled=progress_enabled)
         except Exception as exc:
             failure = {"batch": batch, "error": repr(exc), **exception_details(exc)}
             errors.append(failure)

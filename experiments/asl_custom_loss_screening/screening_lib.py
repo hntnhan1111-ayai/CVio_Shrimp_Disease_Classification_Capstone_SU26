@@ -11,7 +11,18 @@ from shrimp_scripts import config
 from shrimp_scripts.losses import LOSS_CONFIG
 from shrimp_scripts.models_torch import torch_run_id
 from shrimp_scripts.models_yolo import verify_yolo_run_artifacts, yolo_run_id
-from shrimp_scripts.utils import ensure_dir, read_json, required_outputs_exist, save_csv, stable_hash, write_json
+from shrimp_scripts.utils import (
+    ensure_dir,
+    extract_final_test_metrics,
+    final_test_metrics_valid,
+    read_json,
+    required_outputs_exist,
+    save_csv,
+    stable_hash,
+    truthy_file,
+    write_json,
+    yolo_class_order_audit_valid,
+)
 
 
 EXPERIMENT_KEY = "asl_custom_screening"
@@ -125,7 +136,7 @@ def write_plan_files(output_dir: str | Path, all_rows: list[dict[str, Any]], sel
 
 
 def _truthy_file(path: Path) -> bool:
-    return path.is_file() and path.stat().st_size > 0
+    return truthy_file(path)
 
 
 def verify_torch_run_artifacts(row: dict[str, Any], output_dir: str | Path, load_checkpoints: bool = True) -> dict[str, Any]:
@@ -153,6 +164,8 @@ def verify_torch_run_artifacts(row: dict[str, Any], output_dir: str | Path, load
     checks["status_completed"] = status.get("status") == "completed"
     checks["audit_completed"] = audit.get("status") == "completed"
     checks["metrics_completed"] = metrics.get("status") == "completed"
+    checks["final_test_metrics_valid"] = final_test_metrics_valid(metrics)[0]
+    checks["top_level_final_metrics_present"] = all(key in metrics for key in ["test_accuracy", "test_macro_precision", "test_macro_recall", "test_macro_f1", "cohen_kappa"])
     checks["run_config_exists"] = _truthy_file(run_dir / "run_config.json")
     checks["resolved_model_config_exists"] = _truthy_file(run_dir / "resolved_model_config.json")
     checks["resolved_transform_config_exists"] = _truthy_file(run_dir / "resolved_transform_config.json")
@@ -224,6 +237,7 @@ def verify_screening_rows(rows: list[dict[str, Any]], output_dir: str | Path, lo
 def _metric_record_from_file(row: dict[str, Any], metrics: dict[str, Any]) -> dict[str, Any]:
     test = metrics.get("test", {})
     val = metrics.get("val", {})
+    final_values = extract_final_test_metrics(metrics)
     record = {
         "run_id": row["run_id"],
         "status": "completed",
@@ -239,12 +253,12 @@ def _metric_record_from_file(row: dict[str, Any], metrics: dict[str, Any]) -> di
         "seed": metrics.get("seed"),
         "repeat": metrics.get("repeat"),
         "split_seed": metrics.get("split_seed"),
-        "val_macro_f1": val.get("macro_f1"),
-        "test_accuracy": test.get("accuracy"),
-        "test_macro_precision": test.get("macro_precision"),
-        "test_macro_recall": test.get("macro_recall"),
-        "test_macro_f1": test.get("macro_f1"),
-        "cohen_kappa": test.get("cohen_kappa"),
+        "val_macro_f1": metrics.get("val_macro_f1", val.get("macro_f1")),
+        "test_accuracy": final_values["test_accuracy"],
+        "test_macro_precision": final_values["test_macro_precision"],
+        "test_macro_recall": final_values["test_macro_recall"],
+        "test_macro_f1": final_values["test_macro_f1"],
+        "cohen_kappa": final_values["cohen_kappa"],
         "BG->WSSV_BG": test.get("BG->WSSV_BG"),
         "WSSV->WSSV_BG": test.get("WSSV->WSSV_BG"),
         "WSSV_BG->BG": test.get("WSSV_BG->BG"),
@@ -274,8 +288,29 @@ def collect_screening_results(output_dir: str | Path, rows: list[dict[str, Any]]
         run_dir = Path(output_dir) / "runs" / row["run_id"]
         status = read_json(run_dir / "status.json", default={}) if run_dir.exists() else {"status": "missing_run_directory"}
         metrics_path = run_dir / "metrics.json"
-        if status.get("status") == "completed" and metrics_path.exists():
-            completed_records.append(_metric_record_from_file(row, read_json(metrics_path)))
+        if status.get("status") == "completed" and truthy_file(metrics_path):
+            metrics = read_json(metrics_path)
+            metrics_ok, missing_metrics, _values = final_test_metrics_valid(metrics)
+            yolo_audit_ok = True
+            yolo_audit_errors: list[str] = []
+            if row["screen_backend"] == "yolo":
+                yolo_audit_ok, yolo_audit_errors, _audit = yolo_class_order_audit_valid(run_dir)
+            if metrics_ok and yolo_audit_ok:
+                completed_records.append(_metric_record_from_file(row, metrics))
+            else:
+                failure_records.append({
+                    "run_id": row["run_id"],
+                    "screen_backend": row["screen_backend"],
+                    "backend": row["backend"],
+                    "model": row["model"],
+                    "loss_key": row["loss_key"],
+                    "loss_role": row["loss_role"],
+                    "randaugment": bool(row["randaugment"]),
+                    "status": "completed_but_invalid_final_metrics",
+                    "error": ";".join([*(f"invalid_or_missing_metric:{name}" for name in missing_metrics), *(f"class_order_audit:{error}" for error in yolo_audit_errors)]),
+                    "exception_type": "",
+                    "exception_message": "",
+                })
         else:
             failure_records.append({
                 "run_id": row["run_id"],

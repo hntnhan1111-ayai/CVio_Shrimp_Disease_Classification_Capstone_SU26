@@ -13,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shrimp_scripts import config
 from shrimp_scripts.dataset import load_split_manifest
-from shrimp_scripts.models_torch import list_lightweight_diagnostic_runs, list_lightweight_runs, train_torch_with_fallback
+from shrimp_scripts.models_torch import list_lightweight_diagnostic_runs, list_lightweight_runs, make_run_config as make_torch_run_config, train_torch_with_fallback
 from shrimp_scripts.progress import log_event
-from shrimp_scripts.utils import ensure_dir, save_csv
+from shrimp_scripts.utils import ensure_dir, save_csv, stable_hash, validate_run_completion, write_json
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no_resume", dest="resume", action="store_false")
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
+    parser.add_argument("--validate_resume", action="store_true", help="Validate skip/fresh-rerun decisions without training.")
     parser.add_argument("--start", type=int, default=0, help="Zero-based start index for chunked execution.")
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of runs for chunked execution.")
     parser.add_argument("--run_id", default=None, help="Run exactly one default or diagnostic lightweight run by ID.")
@@ -59,6 +60,52 @@ def condition_from_row(row: dict) -> dict:
     return condition
 
 
+def validate_resume_rows(rows: list[dict], output_dir: Path, smoke_test: bool) -> dict:
+    flat_rows = []
+    detailed = []
+    for row in rows:
+        condition = condition_from_row(row)
+        validations = []
+        for micro_batch in config.TORCH_MICRO_BATCH_FALLBACKS:
+            run_config = make_torch_run_config(row["model_key"], row["model"], condition, output_dir, smoke_test=smoke_test, micro_batch=micro_batch)
+            validations.append({"micro_batch": micro_batch, **validate_run_completion(row["run_id"], output_dir, stable_hash(run_config), row["backend"])})
+        valid = next((item for item in validations if item["validation_status"] == "completed_with_valid_final_metrics"), None)
+        if valid:
+            validation_status = "completed_with_valid_final_metrics"
+            resume_decision = "skipped_completed_with_final_metrics"
+            selected_micro_batch = valid["micro_batch"]
+            errors = []
+        else:
+            validation_status = "failed" if any(item["validation_status"] == "failed" for item in validations) else "skipped" if any(item["validation_status"] == "skipped" for item in validations) else "incomplete_missing_final_metrics"
+            resume_decision = "will_fresh_rerun"
+            selected_micro_batch = ""
+            errors = sorted({str(error) for item in validations for error in item.get("errors", [])})
+        flat_rows.append({
+            "run_id": row["run_id"],
+            "backend": row["backend"],
+            "model": row["model"],
+            "condition": row["condition_key"],
+            "loss_key": row["loss_key"],
+            "validation_status": validation_status,
+            "resume_decision": resume_decision,
+            "valid_micro_batch": selected_micro_batch,
+            "errors": " | ".join(errors),
+        })
+        detailed.append({"run_id": row["run_id"], "validations": validations})
+    summary = {
+        "planned_count": len(rows),
+        "completed_with_valid_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "completed_with_valid_final_metrics"),
+        "incomplete_missing_final_metrics": sum(1 for row in flat_rows if row["validation_status"] == "incomplete_missing_final_metrics"),
+        "failed": sum(1 for row in flat_rows if row["validation_status"] == "failed"),
+        "skipped": sum(1 for row in flat_rows if row["validation_status"] == "skipped"),
+        "will_fresh_rerun": sum(1 for row in flat_rows if row["resume_decision"] == "will_fresh_rerun"),
+        "skipped_completed_with_final_metrics": sum(1 for row in flat_rows if row["resume_decision"] == "skipped_completed_with_final_metrics"),
+    }
+    write_json(output_dir / "stage04_resume_validation.json", {"summary": summary, "runs": detailed})
+    save_csv(pd.DataFrame(flat_rows), output_dir / "stage04_resume_validation.csv")
+    return {"summary": summary, "runs": flat_rows}
+
+
 def main() -> None:
     args = parse_args()
     default_rows, diagnostic_rows, rows, selected_plan_rows, selection_mode = select_runs(args)
@@ -76,6 +123,10 @@ def main() -> None:
         }, indent=2))
         return
     output_dir = ensure_dir(args.output_dir)
+    if args.validate_resume:
+        summary = validate_resume_rows(rows, output_dir, smoke_test=args.smoke_test)
+        print(json.dumps({"resume_validation": summary}, indent=2, default=str))
+        return
     if args.progress:
         log_event("Starting lightweight model training.", output_dir=output_dir, extra={
             "default_planned_runs": len(default_rows),

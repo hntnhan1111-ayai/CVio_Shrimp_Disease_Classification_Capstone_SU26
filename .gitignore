@@ -16,6 +16,7 @@ figures/
 reports/
 yolo_fixed_dataset/
 paper_outputs.zip
+*.zip
 *.pt
 *.pth
 *.ckpt
@@ -27,4 +28,3 @@ wandb/
 Thumbs.db
 .vscode/
 .idea/
-

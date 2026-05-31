@@ -16,6 +16,7 @@ from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, 
 from .losses import LOSS_CONFIG, make_loss
 from .progress import log_event, progress_iter
 from .utils import (
+    archive_run_dir_for_fresh_rerun,
     cleanup_memory,
     ensure_dir,
     is_oom_error,
@@ -26,6 +27,7 @@ from .utils import (
     sha256_file,
     stable_hash,
     utc_now,
+    validate_run_completion,
     write_json,
     write_status,
 )
@@ -331,16 +333,27 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
     paths = config.output_paths(output_dir)
     ensure_dir(paths["runs"])
     run_id = torch_run_id(model_key, condition)
-    run_dir = ensure_dir(paths["runs"] / run_id)
+    run_dir = paths["runs"] / run_id
     run_config = make_run_config(model_key, model_name, condition, output_dir, smoke_test, micro_batch=micro_batch)
     run_hash = stable_hash(run_config)
     backend_hint = "torchvision" if model_key in {config.CONVNEXT_CORE_MODEL_KEY, "mobilenet_v3_large", "shufflenet_v2_x1_0", "squeezenet1_1"} else "timm"
-    if resume:
+    if resume and run_dir.exists():
+        validation = validate_run_completion(run_id, output_dir, run_hash, backend_hint)
         completed, reason = is_run_completed(run_id, output_dir, run_hash, backend_hint)
         if completed:
             if progress_enabled:
-                log_event("Skipping completed Torch run after strict resume check.", run_id=run_id, output_dir=output_dir, extra={"reason": reason})
-            return {"run_id": run_id, "status": "skipped_completed", "skip_reason": reason}
+                log_event("Skipping completed Torch run after strict final-metric resume check.", run_id=run_id, output_dir=output_dir, extra={"reason": reason, "validation": validation})
+            return {"run_id": run_id, "status": "skipped_completed_with_final_metrics", "skip_reason": reason, "validation_status": validation["validation_status"]}
+        archived = archive_run_dir_for_fresh_rerun(run_dir, reason)
+        if progress_enabled:
+            log_event(
+                "Fresh-rerunning Torch run because completed final metrics/artifacts were not valid.",
+                level="WARNING",
+                run_id=run_id,
+                output_dir=output_dir,
+                extra={"resume_decision": "fresh_rerun_due_to_incomplete_final_metrics", "reason": reason, "archived_run_dir": str(archived) if archived else "", "validation": validation},
+            )
+    run_dir = ensure_dir(paths["runs"] / run_id)
     if progress_enabled:
         log_event("Starting Torch run.", run_id=run_id, output_dir=output_dir, extra={
             "model": model_name,
@@ -531,6 +544,12 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
         "model_size_mb": model_size_mb(model),
         "checkpoint_path": str(checkpoint_path.resolve()),
         "checkpoint_sha256": sha256_file(checkpoint_path),
+        "test_accuracy": test_metrics["accuracy"],
+        "test_macro_precision": test_metrics["macro_precision"],
+        "test_macro_recall": test_metrics["macro_recall"],
+        "test_macro_f1": test_metrics["macro_f1"],
+        "cohen_kappa": test_metrics["cohen_kappa"],
+        "val_macro_f1": val_metrics["macro_f1"],
         "val": val_metrics,
         "test": test_metrics,
     }
@@ -545,12 +564,34 @@ def train_torch_once(model_key: str, model_name: str, condition: dict[str, Any],
 
 def train_torch_with_fallback(model_key: str, model_name: str, condition: dict[str, Any], split_manifest: pd.DataFrame, output_dir: str | Path, resume: bool = True, smoke_test: bool = False, progress_enabled: bool = True) -> dict[str, Any]:
     run_id = torch_run_id(model_key, condition)
+    run_dir = config.output_paths(output_dir)["runs"] / run_id
+    backend_hint = "torchvision" if model_key in {config.CONVNEXT_CORE_MODEL_KEY, "mobilenet_v3_large", "shufflenet_v2_x1_0", "squeezenet1_1"} else "timm"
+    if resume and run_dir.exists():
+        validations = []
+        for micro_batch in config.TORCH_MICRO_BATCH_FALLBACKS:
+            run_config = make_run_config(model_key, model_name, condition, output_dir, smoke_test, micro_batch=micro_batch)
+            validation = validate_run_completion(run_id, output_dir, stable_hash(run_config), backend_hint)
+            validations.append({"micro_batch": micro_batch, **validation})
+            if validation["validation_status"] == "completed_with_valid_final_metrics":
+                if progress_enabled:
+                    log_event("Skipping completed Torch run after strict final-metric resume check.", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch, "validation": validation})
+                return {"run_id": run_id, "status": "skipped_completed_with_final_metrics", "skip_reason": validation["validation_status"], "validation_status": validation["validation_status"], "micro_batch": micro_batch}
+        reason = ";".join(str(error) for item in validations for error in item.get("errors", [])) or "incomplete_missing_final_metrics"
+        archived = archive_run_dir_for_fresh_rerun(run_dir, reason)
+        if progress_enabled:
+            log_event(
+                "Fresh-rerunning Torch run because no fallback micro-batch has valid final metrics/artifacts.",
+                level="WARNING",
+                run_id=run_id,
+                output_dir=output_dir,
+                extra={"resume_decision": "fresh_rerun_due_to_incomplete_final_metrics", "reason": reason, "archived_run_dir": str(archived) if archived else "", "validations": validations},
+            )
     errors: list[dict[str, Any]] = []
     for micro_batch in config.TORCH_MICRO_BATCH_FALLBACKS:
         try:
             if progress_enabled:
                 log_event("Attempting Torch batch fallback.", run_id=run_id, output_dir=output_dir, extra={"micro_batch": micro_batch})
-            return train_torch_once(model_key, model_name, condition, split_manifest, output_dir, resume=resume, smoke_test=smoke_test, micro_batch=micro_batch, progress_enabled=progress_enabled)
+            return train_torch_once(model_key, model_name, condition, split_manifest, output_dir, resume=False, smoke_test=smoke_test, micro_batch=micro_batch, progress_enabled=progress_enabled)
         except Exception as exc:
             failure = {"micro_batch": micro_batch, "error": repr(exc), **exception_details(exc)}
             errors.append(failure)

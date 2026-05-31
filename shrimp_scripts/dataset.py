@@ -231,20 +231,48 @@ def fallback_stratified_split(frame: pd.DataFrame) -> tuple[list[int], list[int]
     return train_idx, val_idx, test_idx
 
 
+def yolo_class_dir_name(label: int) -> str:
+    label = int(label)
+    return f"{label:02d}_{config.CLASS_NAMES[label]}"
+
+
+def expected_yolo_class_dirs() -> list[str]:
+    return [yolo_class_dir_name(index) for index in range(config.NUM_CLASSES)]
+
+
+def discover_yolo_class_dirs(yolo_root: str | Path) -> dict[str, list[str]]:
+    root = Path(yolo_root)
+    discovered: dict[str, list[str]] = {}
+    for split in ["train", "val", "test"]:
+        split_dir = root / split
+        if split_dir.is_dir():
+            discovered[split] = sorted(path.name for path in split_dir.iterdir() if path.is_dir())
+        else:
+            discovered[split] = []
+    return discovered
+
+
+def yolo_tree_has_unexpected_class_dirs(yolo_root: str | Path) -> bool:
+    expected = set(expected_yolo_class_dirs())
+    discovered = discover_yolo_class_dirs(yolo_root)
+    return any(set(class_dirs) - expected for class_dirs in discovered.values())
+
+
 def prepare_yolo_dataset(split_manifest: pd.DataFrame, output_dir: str | Path, force_rebuild: bool = False, progress_enabled: bool = True) -> pd.DataFrame:
     paths = config.output_paths(output_dir)
     yolo_root = paths["yolo_dataset"]
     manifest_path = paths["output"] / "yolo_split_manifest_seed42_with_md5.csv"
     if progress_enabled:
         log_event("Preparing YOLO classification folder tree.", output_dir=output_dir, extra={"rows": len(split_manifest), "yolo_root": str(yolo_root)})
-    if force_rebuild and yolo_root.exists():
+    if yolo_root.exists() and (force_rebuild or yolo_tree_has_unexpected_class_dirs(yolo_root)):
         shutil.rmtree(yolo_root)
     rows: list[dict[str, Any]] = []
     ordered_rows = list(split_manifest.sort_values("rel_path").itertuples(index=False))
     for row in progress_iter(ordered_rows, desc="copy yolo dataset", total=len(ordered_rows), enabled=progress_enabled, leave=False):
         source = Path(row.source_path)
         safe_name = row.rel_path.replace("/", "__").replace("\\", "__").replace(" ", "_")
-        dest = yolo_root / row.split / row.class_name / f"{row.source_md5[:10]}__{safe_name}"
+        yolo_class_dir = yolo_class_dir_name(row.label)
+        dest = yolo_root / row.split / yolo_class_dir / f"{row.source_md5[:10]}__{safe_name}"
         if not dest.exists():
             ensure_dir(dest.parent)
             shutil.copy2(source, dest)
@@ -252,16 +280,26 @@ def prepare_yolo_dataset(split_manifest: pd.DataFrame, output_dir: str | Path, f
         if yolo_md5 != row.source_md5:
             raise AssertionError(f"yolo_copy_md5_mismatch {source} -> {dest}")
         item = row._asdict()
-        item.update({"yolo_path": str(dest.resolve()), "yolo_md5": yolo_md5})
+        item.update({
+            "yolo_path": str(dest.resolve()),
+            "yolo_md5": yolo_md5,
+            "yolo_class_dir": yolo_class_dir,
+            "yolo_project_idx": int(row.label),
+        })
         rows.append(item)
     yolo_manifest = pd.DataFrame(rows).sort_values(["split", "label", "rel_path"]).reset_index(drop=True)
     if yolo_manifest["yolo_path"].duplicated().any():
         raise AssertionError("duplicated_yolo_paths")
     if not (yolo_manifest["source_md5"] == yolo_manifest["yolo_md5"]).all():
         raise AssertionError("yolo_md5_mismatch")
+    discovered = discover_yolo_class_dirs(yolo_root)
+    expected_dirs = expected_yolo_class_dirs()
+    for split, class_dirs in discovered.items():
+        if class_dirs != expected_dirs:
+            raise AssertionError(f"yolo_class_dir_mismatch split={split} expected={expected_dirs} actual={class_dirs}")
     save_csv(yolo_manifest, manifest_path)
     if progress_enabled:
-        log_event("YOLO dataset preparation completed.", output_dir=output_dir, extra={"rows": len(yolo_manifest), "manifest": str(manifest_path)})
+        log_event("YOLO dataset preparation completed.", output_dir=output_dir, extra={"rows": len(yolo_manifest), "manifest": str(manifest_path), "class_dirs": discovered})
     return yolo_manifest
 
 

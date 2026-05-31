@@ -20,14 +20,14 @@ Step 1 prepares data only. Step 2 is the main paper ablation. Step 3 is YOLO fam
 
 All runner scripts print timestamped progress by default and append JSONL events to `progress_log.jsonl` in the selected `--output_dir`. Use `--no_progress` to silence progress bars and progress events during lightweight validation.
 
-Stage 03 supports filtered smoke/debug runs and artifact verification. For example, to test the YOLOv26m-cls custom ASL path and then verify the saved artifacts:
+Stage 03 supports filtered diagnostic runs and artifact verification. For example, to run the YOLOv26m-cls CE class-mapping diagnostic in a fresh output directory:
 
 ```bash
-python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --resume --smoke_test --skip_probe --only_model yolo26m-cls --only_condition asl_no_randaugment --progress
-python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --smoke_test --only_model yolo26m-cls --only_condition asl_no_randaugment --verify_artifacts --progress
-python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --resume --smoke_test --skip_probe --only_model yolo26m-cls --only_condition pairwise_randaugment --progress
-python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --smoke_test --only_model yolo26m-cls --only_condition pairwise_randaugment --verify_artifacts --progress
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs_yolo_classmap_diagnostic --resume --progress --model yolo26m-cls --loss baseline_ce
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs_yolo_classmap_diagnostic --model yolo26m-cls --loss baseline_ce --verify_artifacts --progress
 ```
+
+The Kaggle notebook `kaggle_step_by_step_runner.ipynb` provides the same real-stage command order with command logs written to `/kaggle/working/notebook_command_logs`.
 
 Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with PairwiseCoInfectionRankingASL and no RandAugment. It is not part of the default 51-run lightweight paper plan. Launch only that run with:
 
@@ -74,6 +74,7 @@ This experiment tests whether the co-infection-aware loss and RandAugment improv
 | `shrimp_scripts/run_03_train_yolo_family.py` | Entry point for YOLO family comparison across YOLO classification m-variants. |
 | `shrimp_scripts/run_04_train_lightweight_models.py` | Entry point for lightweight/mobile-friendly model comparison with resume and chunking support. |
 | `shrimp_scripts/run_05_generate_reports_and_xai.py` | Entry point for final result aggregation, XAI generation, tables, figures, reports, and zip packaging. |
+| `kaggle_step_by_step_runner.ipynb` | Kaggle runner notebook with real-stage switches defaulting to `True`, safe resume validation, and no default output deletion. |
 
 ## Dataset Audit
 
@@ -90,7 +91,13 @@ The expected total is 1149 images. Because the dataset is already processed, `pr
 
 ## Resume Rules
 
-A run is skipped only when `status.json` says completed, `run_audit.json` has the current config hash, and all required output files are present. Required files include `metrics.json`, `test_predictions.csv`, `classification_report.csv`, `confusion_matrix.csv` or `confusion_matrix.json`, and the appropriate best checkpoint.
+A run is skipped only when strict final-artifact validation passes. Required evidence includes `status.json` with `status="completed"`, current `run_audit.json` config hash, `metrics.json` with finite top-level final test metrics, `val_predictions.csv`, `test_predictions.csv`, `classification_report.csv`, `confusion_matrix.csv` or `confusion_matrix.json`, `confusion_counts.csv`, and the appropriate best checkpoint. YOLO runs also require `class_order_audit.json` with `audit_passed=true` and no swap-diagnostic failure.
+
+If validation fails, only that run directory is archived under `runs/_archived_incomplete_runs/` and the run is launched fresh. The scripts do not delete the whole output directory during normal resume execution.
+
+## YOLO Class-Order Audit
+
+YOLO classification folders are copied as `00_Healthy`, `01_BG`, `02_WSSV`, and `03_WSSV_BG` to prevent alphabetical folder-order drift. Each YOLO run writes `class_order_audit.json`, records Ultralytics-discovered names and dataset order, decodes prediction indices back into the project class order, and runs a Healthy/BG swap diagnostic. If swapping predicted indices 0 and 1 improves test Macro-F1 by more than 0.20, the run fails instead of reporting suspicious metrics.
 
 ## Validation
 
@@ -101,6 +108,10 @@ python shrimp_scripts/run_02_train_core_ablation.py --list_runs
 python shrimp_scripts/run_03_train_yolo_family.py --list_runs
 python shrimp_scripts/run_04_train_lightweight_models.py --list_runs
 python shrimp_scripts/run_05_generate_reports_and_xai.py --dry_run
+python shrimp_scripts/run_02_train_core_ablation.py --output_dir /kaggle/working/shrimp_outputs --validate_resume
+python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/shrimp_outputs --validate_resume
+python shrimp_scripts/run_04_train_lightweight_models.py --output_dir /kaggle/working/shrimp_outputs --validate_resume
+python experiments/asl_custom_loss_screening/run_asl_custom_screen.py --output_dir /kaggle/working/shrimp_outputs_asl_custom_screening --validate_resume
 python -c "import shrimp_scripts.config, shrimp_scripts.utils, shrimp_scripts.dataset, shrimp_scripts.losses, shrimp_scripts.evaluate, shrimp_scripts.models_torch, shrimp_scripts.models_yolo, shrimp_scripts.xai, shrimp_scripts.report"
 ```
 
