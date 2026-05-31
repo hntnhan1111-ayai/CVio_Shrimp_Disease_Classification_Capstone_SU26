@@ -19,6 +19,7 @@ from .utils import cleanup_memory, ensure_dir, is_oom_error, is_run_completed, r
 
 
 ACTIVE_YOLO_LOSS_KEY = "baseline_ce"
+YOLO_TRAINING_IMPL_VERSION = "paper_class_order_custom_loss_v2"
 
 try:
     import torch as _TORCH
@@ -109,6 +110,11 @@ def yolo_audit_context(
         "yolo_data_yaml_names": paper_yolo_names(),
         "yolo_data_yaml_path": str(dataset_yaml_path),
         "yolo_label_order_source": "PaperClassificationDataset remaps torchvision ImageFolder labels to config.CLASS_NAMES order.",
+        "yolo_training_impl_version": YOLO_TRAINING_IMPL_VERSION,
+        "trainer_class": "shrimp_scripts.models_yolo.PaperClassificationTrainer",
+        "model_class": "shrimp_scripts.models_yolo.PaperClassificationModel",
+        "criterion_class": "shrimp_scripts.models_yolo.PaperClassificationLoss",
+        "dataset_class": "shrimp_scripts.models_yolo.PaperClassificationDataset",
     }
     if train_kwargs is not None:
         planned_best, planned_last = yolo_checkpoint_paths(train_kwargs)
@@ -191,14 +197,22 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
 
         def get_model(self, cfg=None, weights=None, verbose=True):
             nc = self.data["nc"] if isinstance(self.data, dict) and "nc" in self.data else config.NUM_CLASSES
+            channels = self.data.get("channels", 3) if isinstance(self.data, dict) else 3
             try:
-                model = PaperClassificationModel(cfg, nc=nc, verbose=verbose)
+                model = PaperClassificationModel(cfg, nc=nc, ch=channels, verbose=verbose)
             except TypeError:
-                model = PaperClassificationModel(cfg, ch=3, nc=nc, verbose=verbose)
-            model.loss_key = ACTIVE_YOLO_LOSS_KEY
+                model = PaperClassificationModel(cfg, nc=nc, verbose=verbose)
             if weights:
                 model.load(weights)
+            model.loss_key = ACTIVE_YOLO_LOSS_KEY
             model.names = paper_yolo_names()
+            for module in model.modules():
+                if getattr(self.args, "pretrained", True) is False and hasattr(module, "reset_parameters"):
+                    module.reset_parameters()
+                if isinstance(module, _TORCH.nn.Dropout) and getattr(self.args, "dropout", 0):
+                    module.p = self.args.dropout
+            for parameter in model.parameters():
+                parameter.requires_grad = True
             return model
 
         def set_model_attributes(self):
@@ -342,10 +356,14 @@ def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | 
 def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str | Path, smoke_test: bool, batch: int) -> dict[str, Any]:
     run_config = {
         "dataset_id": config.DATASET_ID,
+        "backend": "ultralytics",
+        "model": model_name,
         "model_name": model_name,
         "model_key": model_name.replace("-", "_"),
+        "condition_key": condition["condition_key"],
         "condition": condition,
         "loss_key": condition["loss_key"],
+        "loss_name": LOSS_CONFIG[condition["loss_key"]]["name"],
         "randaugment": bool(condition["randaugment"]),
         "seed": config.SEED,
         "repeat": config.REPEAT,
@@ -353,6 +371,13 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "epochs": config.epochs_for(smoke_test),
         "batch": batch,
         "output_dir": str(Path(output_dir)),
+        "paper_class_order": list(config.CLASS_NAMES),
+        "class_to_idx": paper_yolo_class_to_idx(),
+        "yolo_training_impl_version": YOLO_TRAINING_IMPL_VERSION,
+        "trainer_class": "shrimp_scripts.models_yolo.PaperClassificationTrainer",
+        "model_class": "shrimp_scripts.models_yolo.PaperClassificationModel",
+        "criterion_class": "shrimp_scripts.models_yolo.PaperClassificationLoss",
+        "dataset_class": "shrimp_scripts.models_yolo.PaperClassificationDataset",
     }
     if condition.get("experiment_key"):
         run_config["experiment_key"] = condition["experiment_key"]
