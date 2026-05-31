@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 from shrimp_scripts.dataset import load_split_manifest, load_yolo_manifest
 from shrimp_scripts.models_torch import train_torch_with_fallback
-from shrimp_scripts.models_yolo import train_yolo_with_fallback
+from shrimp_scripts.models_yolo import train_yolo_with_fallback, yolo_custom_loss_self_check
 from shrimp_scripts.progress import log_event
 from shrimp_scripts.utils import ensure_dir, save_csv, write_json
 
@@ -41,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smoke_test", action="store_true")
     parser.add_argument("--list_runs", action="store_true")
     parser.add_argument("--verify_artifacts", action="store_true")
+    parser.add_argument("--self_check_yolo_loss", action="store_true", help="Run a lightweight YOLO custom-loss plumbing check without training.")
     parser.add_argument("--skip_checkpoint_load", action="store_true")
     parser.add_argument("--resume", dest="resume", action="store_true", default=True)
     parser.add_argument("--no_resume", dest="resume", action="store_false")
@@ -101,6 +102,14 @@ def main() -> None:
     output_dir = ensure_dir(args.output_dir)
     write_plan_files(output_dir, all_rows, rows)
     rows = add_progress_indices(rows)
+
+    if args.self_check_yolo_loss:
+        loss_keys = list(dict.fromkeys(row["loss_key"] for row in rows if row["screen_backend"] == "yolo"))
+        summary = yolo_custom_loss_self_check(loss_keys=loss_keys, output_dir=output_dir)
+        print(json.dumps({"yolo_custom_loss_self_check": summary}, indent=2, default=str))
+        if summary["status"] != "passed":
+            raise SystemExit(1)
+        return
 
     if args.verify_artifacts:
         summary = verify_screening_rows(rows, output_dir, load_checkpoints=not args.skip_checkpoint_load)

@@ -58,6 +58,12 @@ Tiny YOLO smoke run:
 python experiments/asl_custom_loss_screening/run_asl_custom_screen.py --output_dir /kaggle/working/shrimp_outputs_asl_custom_screening --backend yolo --model yolo26m-cls --loss coinfection_weighted_asl --smoke_test --resume --progress
 ```
 
+Check YOLO custom-loss plumbing without training:
+
+```bash
+python experiments/asl_custom_loss_screening/run_asl_custom_screen.py --output_dir /kaggle/working/shrimp_outputs_asl_custom_screening --backend yolo --model yolo26m-cls --loss coinfection_weighted_asl --self_check_yolo_loss
+```
+
 Verify completed artifacts:
 
 ```bash

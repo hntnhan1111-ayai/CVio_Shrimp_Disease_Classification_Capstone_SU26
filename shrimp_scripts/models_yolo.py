@@ -53,6 +53,20 @@ def paper_yolo_class_to_idx() -> dict[str, int]:
     return {name: index for index, name in enumerate(config.CLASS_NAMES)}
 
 
+def normalize_yolo_names_map(names: Any) -> dict[int, str]:
+    if isinstance(names, dict):
+        normalized = {}
+        for key, value in names.items():
+            try:
+                normalized[int(key)] = str(value)
+            except Exception:
+                return {}
+        return normalized
+    if isinstance(names, (list, tuple)):
+        return {index: str(value) for index, value in enumerate(names)}
+    return {}
+
+
 def normalize_yolo_folder_name(folder_name: str) -> str:
     candidates = [str(folder_name)]
     if "_" in folder_name:
@@ -257,6 +271,94 @@ def register_yolo_checkpoint_safe_globals() -> dict[str, Any]:
         return {"registered": False, "reason": repr(exc)}
 
 
+def yolo_custom_loss_self_check(loss_keys: list[str] | None = None, output_dir: str | Path | None = None) -> dict[str, Any]:
+    requested_loss_keys = list(dict.fromkeys(loss_keys or list(LOSS_CONFIG)))
+    result: dict[str, Any] = {
+        "status": "failed",
+        "loss_keys": requested_loss_keys,
+        "checks": {},
+        "loss_results": [],
+        "errors": [],
+    }
+    try:
+        torch = _torch()
+        result["checks"]["torch_available"] = True
+    except Exception as exc:
+        result["checks"]["torch_available"] = False
+        result["errors"].append(f"torch_unavailable:{repr(exc)}")
+        result["status"] = "unavailable"
+        if output_dir is not None:
+            write_json(Path(output_dir) / "yolo_custom_loss_self_check.json", result)
+        return result
+    custom_classes = [PaperClassificationLoss, PaperClassificationModel, PaperClassificationTrainer, PaperClassificationDataset]
+    importable_classes = [
+        cls for cls in custom_classes
+        if cls is not None and cls.__module__ == __name__ and "." not in cls.__qualname__
+    ]
+    result["checks"]["custom_classes_importable"] = len(importable_classes) == len(custom_classes)
+    result["custom_classes"] = [f"{cls.__module__}.{cls.__qualname__}" for cls in importable_classes]
+    if not result["checks"]["custom_classes_importable"]:
+        result["errors"].append(f"custom_class_import_error:{_YOLO_CUSTOM_CLASS_IMPORT_ERROR!r}")
+        result["status"] = "unavailable"
+        if output_dir is not None:
+            write_json(Path(output_dir) / "yolo_custom_loss_self_check.json", result)
+        return result
+    result["checkpoint_safe_globals"] = register_yolo_checkpoint_safe_globals()
+
+    class _DummyModel:
+        def __init__(self, loss_key: str) -> None:
+            self.loss_key = loss_key
+
+    base_logits = torch.tensor(
+        [
+            [1.00, -0.25, 0.15, -0.40],
+            [-0.30, 0.90, 0.10, 0.35],
+            [0.20, -0.10, 0.75, 0.45],
+            [-0.55, 0.20, 0.45, 0.95],
+        ],
+        dtype=torch.float32,
+    )
+    targets = torch.tensor([0, 1, 2, 3], dtype=torch.long)
+    for loss_key in requested_loss_keys:
+        loss_result: dict[str, Any] = {"loss_key": loss_key, "status": "failed", "pred_formats": []}
+        try:
+            criterion = PaperClassificationLoss(_DummyModel(loss_key))
+            loss_result["criterion_loss_key"] = criterion.loss_key
+            loss_result["loss_module"] = criterion.loss_fcn.__class__.__name__
+            for pred_format in ["tensor", "tuple_preds_1"]:
+                logits = base_logits.clone().detach().requires_grad_(True)
+                preds = logits if pred_format == "tensor" else (None, logits)
+                loss, detached = criterion(preds, {"cls": targets})
+                finite = bool(torch.isfinite(loss.detach()).item())
+                scalar = loss.ndim == 0
+                loss.backward()
+                has_grad = logits.grad is not None and bool(torch.isfinite(logits.grad).all().item())
+                loss_result["pred_formats"].append({
+                    "pred_format": pred_format,
+                    "scalar": bool(scalar),
+                    "finite": finite,
+                    "detached_scalar": bool(detached.ndim == 0),
+                    "has_finite_grad": has_grad,
+                    "loss_value": float(loss.detach().cpu()),
+                })
+            if criterion.loss_key == loss_key and all(item["scalar"] and item["finite"] and item["detached_scalar"] and item["has_finite_grad"] for item in loss_result["pred_formats"]):
+                loss_result["status"] = "passed"
+            else:
+                result["errors"].append(f"loss_self_check_failed:{loss_key}")
+        except Exception as exc:
+            loss_result["exception_type"] = exc.__class__.__name__
+            loss_result["exception_message"] = str(exc)
+            loss_result["exception_repr"] = repr(exc)
+            loss_result["traceback"] = traceback.format_exc()
+            result["errors"].append(f"loss_self_check_exception:{loss_key}:{repr(exc)}")
+        result["loss_results"].append(loss_result)
+    result["checks"]["all_losses_passed"] = all(item["status"] == "passed" for item in result["loss_results"])
+    result["status"] = "passed" if result["checks"]["custom_classes_importable"] and result["checks"]["all_losses_passed"] else "failed"
+    if output_dir is not None:
+        write_json(Path(output_dir) / "yolo_custom_loss_self_check.json", result)
+    return result
+
+
 def yolo_run_id(model_name: str, condition: dict[str, Any]) -> str:
     base = f"ultralytics_{model_name.replace('-', '_')}_{condition['condition_key']}_seed{config.SEED}_repeat{config.REPEAT}"
     experiment_key = str(condition.get("experiment_key", "")).strip()
@@ -428,8 +530,14 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     row["checks"]["train_kwargs_in_audit"] = isinstance(audit.get("train_kwargs"), dict)
     row["checks"]["class_names_match"] = audit.get("class_names") == list(config.CLASS_NAMES)
     row["checks"]["class_to_idx_matches_paper_order"] = audit.get("class_to_idx") == paper_yolo_class_to_idx()
-    yaml_names = {int(key): value for key, value in dict(audit.get("yolo_data_yaml_names", {})).items()} if audit.get("yolo_data_yaml_names") else {}
+    yaml_names = normalize_yolo_names_map(audit.get("yolo_data_yaml_names"))
     row["checks"]["yolo_data_yaml_names_match"] = yaml_names == paper_yolo_names()
+    row["checks"]["model_names_match_paper_order"] = normalize_yolo_names_map(audit.get("model_names")) == paper_yolo_names()
+    row["checks"]["impl_version_matches"] = audit.get("yolo_training_impl_version") == YOLO_TRAINING_IMPL_VERSION
+    row["checks"]["trainer_class_matches"] = audit.get("trainer_class") == "shrimp_scripts.models_yolo.PaperClassificationTrainer"
+    row["checks"]["criterion_class_matches"] = audit.get("criterion_class") == "shrimp_scripts.models_yolo.PaperClassificationLoss"
+    expected_auto_augment = "randaugment" if condition["randaugment"] else None
+    row["checks"]["auto_augment_controlled"] = bool(audit.get("auto_augment_supported")) and audit.get("train_kwargs_auto_augment") == expected_auto_augment
     ok_outputs, missing_outputs = required_outputs_exist(run_dir, "ultralytics")
     row["checks"]["required_outputs_exist"] = ok_outputs
     row["missing_outputs"] = missing_outputs
