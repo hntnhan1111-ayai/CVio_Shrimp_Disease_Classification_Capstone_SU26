@@ -115,6 +115,8 @@ def yolo_audit_context(
         context["train_kwargs"] = dict(train_kwargs)
         context["planned_checkpoint_path"] = str(planned_best)
         context["planned_last_checkpoint_path"] = str(planned_last)
+        context["checkpoint_path"] = str(planned_best)
+        context["last_checkpoint_path"] = str(planned_last)
     if model_names is not None:
         context["model_names"] = model_names
     if checkpoint_path is not None:
@@ -200,6 +202,10 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
             return model
 
         def set_model_attributes(self):
+            try:
+                super().set_model_attributes()
+            except AttributeError:
+                pass
             if isinstance(self.data, dict):
                 self.data["names"] = paper_yolo_names()
                 self.data["nc"] = config.NUM_CLASSES
@@ -266,7 +272,10 @@ def exception_details(exc: BaseException) -> dict[str, str]:
 
 
 def yolo_device_arg():
-    torch = _torch()
+    try:
+        torch = _torch()
+    except Exception:
+        return "cpu"
     return 0 if torch.cuda.is_available() else "cpu"
 
 
@@ -287,6 +296,10 @@ def yolo_supports_auto_augment() -> tuple[bool, str]:
     except Exception as exc:
         return False, f"auto_augment support check failed: {repr(exc)}"
     return False, f"auto_augment not found in Ultralytics config; cfg_error={locals().get('cfg_error', '')}"
+
+
+def yolo_dependency_unavailable(reason: str) -> bool:
+    return "ModuleNotFoundError" in reason and "ultralytics" in reason
 
 
 def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | Path, batch: int, smoke_test: bool) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -484,7 +497,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     planned_best_path, planned_last_path = yolo_checkpoint_paths(train_kwargs)
     audit_context = yolo_audit_context(output_dir, train_kwargs)
     if condition["randaugment"] != (train_kwargs.get("auto_augment") == "randaugment"):
-        if not augment_audit["auto_augment_supported"]:
+        if not augment_audit["auto_augment_supported"] and not yolo_dependency_unavailable(str(augment_audit["auto_augment_support_reason"])):
             write_json(run_dir / "train_kwargs.json", train_kwargs)
             write_json(run_dir / "run_config.json", run_config)
             write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "skipped_auto_augment_unsupported"})
