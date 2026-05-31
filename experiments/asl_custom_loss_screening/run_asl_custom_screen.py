@@ -156,14 +156,18 @@ def main() -> None:
     write_json(output_dir / "asl_custom_screening_run_results.json", {"results": results})
     save_csv(pd.DataFrame(results), output_dir / "asl_custom_screening_run_results.csv")
     summary, failures, ranked = collect_screening_results(output_dir, rows=rows)
+    failed_results = [result for result in results if result.get("status") not in {"completed", "skipped_completed"}]
     if args.progress:
         log_event("ASL custom-loss screening completed.", output_dir=output_dir, extra={
             "attempted": len(results),
             "completed_rows": len(summary),
             "failed_or_missing_rows": len(failures),
             "ranked_rows": len(ranked),
+            "failed_results": len(failed_results),
         })
     print(json.dumps({"completed_or_attempted": len(results), "results": results}, indent=2, default=str))
+    if failed_results:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
