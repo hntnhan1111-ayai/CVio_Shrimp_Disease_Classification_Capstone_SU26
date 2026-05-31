@@ -148,12 +148,15 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
                 item[1] = class_to_idx[class_name]
                 remapped_samples.append(item)
             self.samples = remapped_samples
+            self.targets = [int(sample[1]) for sample in self.samples]
             self.classes = list(config.CLASS_NAMES)
             self.class_to_idx = class_to_idx
             if hasattr(self.base, "classes"):
                 self.base.classes = list(config.CLASS_NAMES)
             if hasattr(self.base, "class_to_idx"):
                 self.base.class_to_idx = class_to_idx
+            if hasattr(self.base, "targets"):
+                self.base.targets = list(self.targets)
 
     class PaperClassificationLoss(_NN.Module):
         def __init__(self, model):
@@ -303,8 +306,6 @@ def yolo_supports_auto_augment() -> tuple[bool, str]:
     try:
         from ultralytics import YOLO
         signature = inspect.signature(YOLO.train)
-        if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in signature.parameters.values()):
-            return True, "YOLO.train accepts **kwargs"
         if "auto_augment" in signature.parameters:
             return True, "YOLO.train signature"
     except Exception as exc:
@@ -348,6 +349,7 @@ def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | 
         "auto_augment_support_reason": support_reason,
         "requested_auto_augment": auto_augment,
         "train_kwargs_auto_augment": kwargs.get("auto_augment", "not_passed"),
+        "auto_augment_control_required": True,
         "augmentation_train_kwargs": {k: kwargs.get(k) for k in ["auto_augment", "imgsz", "cache", "amp"] if k in kwargs},
     }
     return kwargs, audit
@@ -521,15 +523,17 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     train_kwargs, augment_audit = yolo_train_kwargs(run_id, condition, output_dir, batch, smoke_test)
     planned_best_path, planned_last_path = yolo_checkpoint_paths(train_kwargs)
     audit_context = yolo_audit_context(output_dir, train_kwargs)
-    if condition["randaugment"] != (train_kwargs.get("auto_augment") == "randaugment"):
-        if not augment_audit["auto_augment_supported"] and not yolo_dependency_unavailable(str(augment_audit["auto_augment_support_reason"])):
-            write_json(run_dir / "train_kwargs.json", train_kwargs)
-            write_json(run_dir / "run_config.json", run_config)
-            write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "skipped_auto_augment_unsupported"})
-            write_status(run_dir, "skipped", run_id=run_id, error=augment_audit["auto_augment_support_reason"])
-            if progress_enabled:
-                log_event("Skipping YOLO run because auto_augment cannot be controlled.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=augment_audit)
-            return {"run_id": run_id, "status": "skipped", "error": augment_audit["auto_augment_support_reason"]}
+    auto_augment_supported = bool(augment_audit["auto_augment_supported"])
+    dependency_missing = yolo_dependency_unavailable(str(augment_audit["auto_augment_support_reason"]))
+    auto_augment_matches_condition = condition["randaugment"] == (train_kwargs.get("auto_augment") == "randaugment")
+    if not dependency_missing and ((not auto_augment_supported) or not auto_augment_matches_condition):
+        write_json(run_dir / "train_kwargs.json", train_kwargs)
+        write_json(run_dir / "run_config.json", run_config)
+        write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "skipped_auto_augment_unsupported"})
+        write_status(run_dir, "skipped", run_id=run_id, error=augment_audit["auto_augment_support_reason"])
+        if progress_enabled:
+            log_event("Skipping YOLO run because auto_augment cannot be controlled.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=augment_audit)
+        return {"run_id": run_id, "status": "skipped", "error": augment_audit["auto_augment_support_reason"]}
     write_json(run_dir / "train_kwargs.json", train_kwargs)
     write_json(run_dir / "run_config.json", run_config)
     write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "started"})
