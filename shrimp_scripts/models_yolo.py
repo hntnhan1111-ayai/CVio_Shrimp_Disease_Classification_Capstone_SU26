@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from . import config
+from .attention import attention_is_baseline, attention_metadata, checkpoint_safe_attention_classes, inject_attention_before_classify, normalize_attention_key
 from .evaluate import compute_metrics, confusion_count_frame, prediction_frame, save_prediction_artifacts
 from .losses import LOSS_CHECKPOINT_SAFE_CLASSES, LOSS_CONFIG, make_loss
 from .progress import log_event
@@ -36,6 +37,7 @@ from .utils import (
 
 
 ACTIVE_YOLO_LOSS_KEY = "baseline_ce"
+ACTIVE_YOLO_ATTENTION_KEY = "none_baseline"
 YOLO_TRAINING_IMPL_VERSION = "paper_class_order_custom_loss_v3"
 YOLO_CLASS_ORDER_IMPL_VERSION = "prefixed_folder_decode_audit_v1"
 YOLO_SWAP_DIAGNOSTIC_FAIL_THRESHOLD = 0.20
@@ -119,6 +121,20 @@ def yolo_model_loss_audit(model_obj: Any) -> dict[str, Any]:
         "criterion_class_observed": class_path(criterion),
         "criterion_loss_key": getattr(criterion, "loss_key", ""),
         "criterion_loss_module": class_path(loss_fcn),
+    }
+
+
+def yolo_model_attention_audit(model_obj: Any) -> dict[str, Any]:
+    if model_obj is None:
+        return {"model_present": False, "attention_key": "", "status": "model_absent"}
+    audit = getattr(model_obj, "attention_module_audit", None)
+    if isinstance(audit, dict):
+        return dict(audit)
+    return {
+        "model_present": True,
+        "attention_key": getattr(model_obj, "attention_key", ""),
+        "status": "attention_audit_unavailable",
+        "inserted": False,
     }
 
 
@@ -431,7 +447,23 @@ if _YOLO_CUSTOM_CLASS_IMPORT_ERROR is None:
             if weights:
                 model.load(weights)
             model.loss_key = ACTIVE_YOLO_LOSS_KEY
+            model.attention_key = normalize_attention_key(ACTIVE_YOLO_ATTENTION_KEY)
             model.names = paper_yolo_names()
+            if attention_is_baseline(model.attention_key):
+                model.attention_module_audit = {
+                    "attention_key": model.attention_key,
+                    "status": "baseline_no_attention",
+                    "inserted": False,
+                    "params_added": 0,
+                    **attention_metadata(model.attention_key),
+                }
+            else:
+                model.attention_module_audit = inject_attention_before_classify(
+                    model,
+                    model.attention_key,
+                    img_size=config.IMG_SIZE,
+                    num_classes=config.NUM_CLASSES,
+                )
             for module in model.modules():
                 if getattr(self.args, "pretrained", True) is False and hasattr(module, "reset_parameters"):
                     module.reset_parameters()
@@ -470,6 +502,7 @@ def register_yolo_checkpoint_safe_globals() -> dict[str, Any]:
             PaperClassificationModel,
             PaperClassificationTrainer,
             PaperClassificationDataset,
+            *checkpoint_safe_attention_classes(),
             *LOSS_CHECKPOINT_SAFE_CLASSES,
         ] if cls is not None
     ]
@@ -631,11 +664,12 @@ def yolo_dependency_unavailable(reason: str) -> bool:
 def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | Path, batch: int, smoke_test: bool) -> tuple[dict[str, Any], dict[str, Any]]:
     supports_auto, support_reason = yolo_supports_auto_augment()
     auto_augment = "randaugment" if condition["randaugment"] else None
+    epochs = int(condition.get("epochs", config.epochs_for(smoke_test)))
     kwargs = {
         "data": str(config.output_paths(output_dir)["yolo_dataset"]),
         "task": "classify",
         "imgsz": config.IMG_SIZE,
-        "epochs": config.epochs_for(smoke_test),
+        "epochs": epochs,
         "patience": config.YOLO_PATIENCE,
         "batch": batch,
         "workers": config.YOLO_WORKERS,
@@ -660,13 +694,18 @@ def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | 
         "auto_augment_support_reason": support_reason,
         "requested_auto_augment": auto_augment,
         "train_kwargs_auto_augment": kwargs.get("auto_augment", "not_passed"),
-        "auto_augment_control_required": True,
+        "auto_augment_control_required": bool(condition["randaugment"]),
+        "auto_augment_control_limitation_accepted": bool((not condition["randaugment"]) and (not supports_auto)),
         "augmentation_train_kwargs": {k: kwargs.get(k) for k in ["auto_augment", "imgsz", "cache", "amp"] if k in kwargs},
+        "epochs": epochs,
     }
     return kwargs, audit
 
 
 def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str | Path, smoke_test: bool, batch: int) -> dict[str, Any]:
+    attention_requested = "attention_key" in condition
+    attention_key = normalize_attention_key(condition.get("attention_key", "none_baseline"))
+    epochs = int(condition.get("epochs", config.epochs_for(smoke_test)))
     run_config = {
         "dataset_id": config.DATASET_ID,
         "backend": "ultralytics",
@@ -681,7 +720,7 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "seed": config.SEED,
         "repeat": config.REPEAT,
         "split_seed": config.SPLIT_SEED,
-        "epochs": config.epochs_for(smoke_test),
+        "epochs": epochs,
         "batch": batch,
         "output_dir": str(Path(output_dir)),
         "paper_class_order": list(config.CLASS_NAMES),
@@ -695,9 +734,15 @@ def make_run_config(model_name: str, condition: dict[str, Any], output_dir: str 
         "criterion_class": "shrimp_scripts.models_yolo.PaperClassificationLoss",
         "dataset_class": "shrimp_scripts.models_yolo.PaperClassificationDataset",
     }
+    if attention_requested:
+        run_config["attention_key"] = attention_key
+        run_config["attention_enabled"] = not attention_is_baseline(attention_key)
+        run_config["attention_impl_version"] = "yolo_classify_prehead_attention_v1"
     if condition.get("experiment_key"):
         run_config["experiment_key"] = condition["experiment_key"]
         run_config["experiment_group"] = condition.get("experiment_group", condition["experiment_key"])
+    if condition.get("screening_note"):
+        run_config["screening_note"] = condition["screening_note"]
     return run_config
 
 
@@ -757,7 +802,13 @@ def verify_yolo_run_artifacts(model_name: str, condition: dict[str, Any], output
     row["checks"]["active_loss_key_matches"] = audit.get("active_yolo_loss_key_at_train_start") == condition["loss_key"]
     row["checks"]["trainer_model_loss_key_matches"] = audit.get("trainer_model_loss_key") == condition["loss_key"]
     expected_auto_augment = "randaugment" if condition["randaugment"] else None
-    row["checks"]["auto_augment_controlled"] = bool(audit.get("auto_augment_supported")) and audit.get("train_kwargs_auto_augment") == expected_auto_augment
+    if condition["randaugment"]:
+        row["checks"]["auto_augment_controlled"] = bool(audit.get("auto_augment_supported")) and audit.get("train_kwargs_auto_augment") == expected_auto_augment
+    else:
+        row["checks"]["auto_augment_controlled"] = (
+            (bool(audit.get("auto_augment_supported")) and audit.get("train_kwargs_auto_augment") == expected_auto_augment)
+            or bool(audit.get("auto_augment_control_limitation_accepted"))
+        )
     ok_outputs, missing_outputs = required_outputs_exist(run_dir, "ultralytics")
     row["checks"]["required_outputs_exist"] = ok_outputs
     row["missing_outputs"] = missing_outputs
@@ -868,7 +919,7 @@ def predict_yolo(
 
 
 def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: pd.DataFrame, output_dir: str | Path, resume: bool, smoke_test: bool, batch: int, progress_enabled: bool = True) -> dict[str, Any]:
-    global ACTIVE_YOLO_LOSS_KEY
+    global ACTIVE_YOLO_LOSS_KEY, ACTIVE_YOLO_ATTENTION_KEY
 
     paths = config.output_paths(output_dir)
     ensure_dir(paths["runs"])
@@ -876,6 +927,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     run_dir = paths["runs"] / run_id
     run_config = make_run_config(model_name, condition, output_dir, smoke_test, batch=batch)
     run_hash = stable_hash(run_config)
+    attention_key = normalize_attention_key(condition.get("attention_key", "none_baseline"))
     if resume and run_dir.exists():
         validation = validate_run_completion(run_id, output_dir, run_hash, "ultralytics")
         completed, reason = is_run_completed(run_id, output_dir, run_hash, "ultralytics")
@@ -898,31 +950,51 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     audit_context = yolo_audit_context(output_dir, train_kwargs)
     auto_augment_supported = bool(augment_audit["auto_augment_supported"])
     dependency_missing = yolo_dependency_unavailable(str(augment_audit["auto_augment_support_reason"]))
-    auto_augment_matches_condition = condition["randaugment"] == (train_kwargs.get("auto_augment") == "randaugment")
-    if not dependency_missing and ((not auto_augment_supported) or not auto_augment_matches_condition):
+    auto_augment_matches_condition = (
+        condition["randaugment"] == (train_kwargs.get("auto_augment") == "randaugment")
+        if auto_augment_supported
+        else not condition["randaugment"]
+    )
+    auto_augment_skip_required = (condition["randaugment"] and not auto_augment_supported) or (auto_augment_supported and not auto_augment_matches_condition)
+    if not dependency_missing and auto_augment_skip_required:
         write_json(run_dir / "train_kwargs.json", train_kwargs)
         write_json(run_dir / "run_config.json", run_config)
         write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, "status": "skipped_auto_augment_unsupported"})
+        if "attention_key" in condition:
+            write_json(run_dir / "attention_module_audit.json", {
+                "attention_key": attention_key,
+                "status": "skipped_before_model_build",
+                "inserted": False,
+                "reason": "auto_augment_unsupported",
+                "params_added": 0,
+                **attention_metadata(attention_key),
+            })
         write_status(run_dir, "skipped", run_id=run_id, error=augment_audit["auto_augment_support_reason"])
         if progress_enabled:
             log_event("Skipping YOLO run because auto_augment cannot be controlled.", level="WARNING", run_id=run_id, output_dir=output_dir, extra=augment_audit)
         return {"run_id": run_id, "status": "skipped", "error": augment_audit["auto_augment_support_reason"]}
     ACTIVE_YOLO_LOSS_KEY = condition["loss_key"]
+    ACTIVE_YOLO_ATTENTION_KEY = attention_key
     started_loss_audit = {
         "requested_loss_key": condition["loss_key"],
         "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
     }
+    started_attention_audit = {
+        "requested_attention_key": attention_key,
+        "active_yolo_attention_key_at_train_start": ACTIVE_YOLO_ATTENTION_KEY,
+    } if "attention_key" in condition else {}
     write_json(run_dir / "train_kwargs.json", train_kwargs)
     write_json(run_dir / "run_config.json", run_config)
-    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, **started_loss_audit, "status": "started"})
+    write_json(run_dir / "run_audit.json", {**run_config, "config_hash": run_hash, **audit_context, **augment_audit, **started_loss_audit, **started_attention_audit, "status": "started"})
     if progress_enabled:
         log_event("Starting YOLO run.", run_id=run_id, output_dir=output_dir, extra={
             "model": model_name,
             "condition": condition["condition_key"],
             "loss": condition["loss_key"],
             "randaugment": condition["randaugment"],
+            "attention": attention_key,
             "batch": batch,
-            "epochs": config.epochs_for(smoke_test),
+            "epochs": train_kwargs.get("epochs"),
             "device": train_kwargs.get("device"),
             "class_to_idx": paper_yolo_class_to_idx(),
         })
@@ -938,6 +1010,7 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         log_event("Starting native Ultralytics classification training.", run_id=run_id, output_dir=output_dir, extra={"custom_loss": condition["loss_key"] != "baseline_ce"})
     yolo.train(trainer=get_custom_trainer_class(), **train_kwargs)
     trainer_model_audit = yolo_model_loss_audit(getattr(getattr(yolo, "trainer", None), "model", None))
+    trainer_attention_audit = yolo_model_attention_audit(getattr(getattr(yolo, "trainer", None), "model", None))
     trainer_dataset_audits = getattr(getattr(yolo, "trainer", None), "paper_dataset_audits", {})
     train_time = time.time() - start
     if progress_enabled:
@@ -957,6 +1030,20 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
     safe_globals_audit = register_yolo_checkpoint_safe_globals()
     best_model = YOLO(str(best_path))
     checkpoint_model_audit = yolo_model_loss_audit(getattr(best_model, "model", None))
+    checkpoint_attention_audit = yolo_model_attention_audit(getattr(best_model, "model", None))
+    attention_module_audit = {
+        "attention_key": attention_key,
+        "requested_attention_key": attention_key,
+        **attention_metadata(attention_key),
+        "params_added": int(trainer_attention_audit.get("params_added", 0) or 0),
+        "trainer_attention_audit": trainer_attention_audit,
+        "checkpoint_attention_audit": checkpoint_attention_audit,
+        "status": trainer_attention_audit.get("status", "attention_audit_unavailable"),
+        "inserted": bool(trainer_attention_audit.get("inserted", False)),
+        "note": "Checkpoint reload may not preserve local wrapper metadata; trainer audit is authoritative for injection.",
+    }
+    if "attention_key" in condition:
+        write_json(run_dir / "attention_module_audit.json", attention_module_audit)
     model_names = getattr(best_model, "names", getattr(getattr(best_model, "model", None), "names", None))
     class_order_audit = build_class_order_audit(output_dir, model_names=model_names, trainer_dataset_audits=trainer_dataset_audits)
     prediction_index_to_project_idx = {
@@ -1049,6 +1136,11 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "active_yolo_loss_key_at_train_start": ACTIVE_YOLO_LOSS_KEY,
         "trainer_model_loss_key": trainer_model_audit.get("model_loss_key", ""),
         "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
+        "requested_attention_key": attention_key if "attention_key" in condition else "",
+        "active_yolo_attention_key_at_train_start": ACTIVE_YOLO_ATTENTION_KEY if "attention_key" in condition else "",
+        "trainer_attention_status": trainer_attention_audit.get("status", "") if "attention_key" in condition else "",
+        "trainer_attention_inserted": bool(trainer_attention_audit.get("inserted", False)) if "attention_key" in condition else False,
+        "attention_module_audit_path": str((run_dir / "attention_module_audit.json").resolve()) if "attention_key" in condition else "",
         "class_order_audit_path": str((run_dir / "class_order_audit.json").resolve()),
         "class_order_audit_passed": bool(class_order_audit.get("audit_passed")),
         "swap_diagnostic": class_order_audit.get("swap_diagnostic", {}),
@@ -1073,6 +1165,9 @@ def train_yolo_once(model_name: str, condition: dict[str, Any], yolo_manifest: p
         "checkpoint_model_loss_key": checkpoint_model_audit.get("model_loss_key", ""),
         "trainer_model_audit": trainer_model_audit,
         "checkpoint_model_audit": checkpoint_model_audit,
+        "trainer_attention_audit": trainer_attention_audit if "attention_key" in condition else {},
+        "checkpoint_attention_audit": checkpoint_attention_audit if "attention_key" in condition else {},
+        "attention_module_audit_path": str((run_dir / "attention_module_audit.json").resolve()) if "attention_key" in condition else "",
         "trainer_dataset_audits": trainer_dataset_audits,
         "class_order_audit_path": str((run_dir / "class_order_audit.json").resolve()),
         "class_order_audit": {
@@ -1140,12 +1235,35 @@ def train_yolo_with_fallback(model_name: str, condition: dict[str, Any], yolo_ma
     failed_batch = int(last_error.get("batch") or config.YOLO_BATCH_FALLBACKS[0])
     failed_run_config = make_run_config(model_name, condition, output_dir, smoke_test, batch=failed_batch)
     failed_hash = existing_audit.get("config_hash") or stable_hash(failed_run_config)
+    attention_key = normalize_attention_key(condition.get("attention_key", "none_baseline"))
     try:
         failed_train_kwargs, failed_augment_audit = yolo_train_kwargs(run_id, condition, output_dir, failed_batch, smoke_test)
         failed_context = {**yolo_audit_context(output_dir, failed_train_kwargs), **failed_augment_audit}
     except Exception as audit_exc:
         failed_context = {"failure_audit_error": repr(audit_exc), **yolo_audit_context(output_dir)}
-    write_json(run_dir / "run_audit.json", {**failed_run_config, **failed_context, **existing_audit, "config_hash": failed_hash, "status": "failed", "failed_at": failed_at, "errors": errors})
+    failed_attention_audit = {
+        "attention_key": attention_key,
+        "requested_attention_key": attention_key,
+        "status": "failed",
+        "inserted": False,
+        "params_added": 0,
+        **attention_metadata(attention_key),
+        "errors": errors,
+        "last_error": last_error,
+    } if "attention_key" in condition else {}
+    if failed_attention_audit:
+        write_json(run_dir / "attention_module_audit.json", failed_attention_audit)
+    write_json(run_dir / "run_audit.json", {
+        **failed_run_config,
+        **failed_context,
+        **existing_audit,
+        "config_hash": failed_hash,
+        "status": "failed",
+        "failed_at": failed_at,
+        "errors": errors,
+        "requested_attention_key": attention_key if "attention_key" in condition else "",
+        "attention_module_audit_path": str((run_dir / "attention_module_audit.json").resolve()) if "attention_key" in condition else "",
+    })
     write_status(
         run_dir,
         "failed",
