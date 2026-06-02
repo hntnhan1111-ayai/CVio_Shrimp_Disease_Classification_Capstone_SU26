@@ -608,13 +608,13 @@ def yolo_run_id(model_name: str, condition: dict[str, Any]) -> str:
 
 
 def list_core_yolo_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
-    conditions = config.CORE_CONDITIONS[:1] if smoke_test else config.CORE_CONDITIONS
+    conditions = config.YOLO_CORE_CONDITIONS[:1] if smoke_test else config.YOLO_CORE_CONDITIONS
     return [{"run_id": yolo_run_id(config.YOLO_CORE_MODEL, condition), "backend": "ultralytics", "model": config.YOLO_CORE_MODEL, **condition} for condition in conditions]
 
 
 def list_yolo_family_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
     models = [config.YOLO_CORE_MODEL] if smoke_test else config.YOLO_FAMILY_MODELS
-    return [{"run_id": yolo_run_id(model_name, condition), "backend": "ultralytics", "model": model_name, **condition} for model_name in models for condition in config.FAMILY_CONDITIONS]
+    return [{"run_id": yolo_run_id(model_name, condition), "backend": "ultralytics", "model": model_name, **condition} for model_name in models for condition in config.YOLO_FAMILY_CONDITIONS]
 
 
 def get_custom_trainer_class():
@@ -662,6 +662,8 @@ def yolo_dependency_unavailable(reason: str) -> bool:
 
 
 def yolo_train_kwargs(run_id: str, condition: dict[str, Any], output_dir: str | Path, batch: int, smoke_test: bool) -> tuple[dict[str, Any], dict[str, Any]]:
+    if condition.get("randaugment") is not True and not condition.get("allow_disable_yolo_randaugment", False):
+        raise ValueError("yolo_randaugment_required: YOLO classification runs must use auto_augment='randaugment'.")
     supports_auto, support_reason = yolo_supports_auto_augment()
     auto_augment = "randaugment" if condition["randaugment"] else None
     epochs = int(condition.get("epochs", config.epochs_for(smoke_test)))

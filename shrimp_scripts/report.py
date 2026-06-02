@@ -118,7 +118,7 @@ def write_reproducibility_report(output_dir: str | Path, metrics_frame: pd.DataF
         "",
         "ASLSingleLabel is an existing ASL baseline, not a custom contribution.",
         "PairwiseCoInfectionRankingASL is treated as a dataset-specific co-infection-aware ASL variant.",
-        "YOLO runs use native Ultralytics classification training and Ultralytics auto_augment when available.",
+        "YOLO runs use native Ultralytics classification training with auto_augment='randaugment' when supported.",
         "These scripts generate classification experiment artifacts only.",
         "",
         f"XAI rows recorded: {len(xai_frame)}",

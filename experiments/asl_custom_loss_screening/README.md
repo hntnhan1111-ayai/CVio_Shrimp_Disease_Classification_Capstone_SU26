@@ -11,7 +11,7 @@ The screening matrix runs CE, ASLSingleLabel, and 10 ASL-derived candidates on:
 - `efficientnet_b0`
 - YOLO classification models from `config.YOLO_FAMILY_MODELS`
 
-Torch/TIMM screening rows always use `randaugment=False`. YOLO rows use the existing YOLO training path and set the screening condition to `randaugment=True`, which keeps Ultralytics classification RandAugment handling explicit in `train_kwargs.json` and `run_audit.json`.
+Torch/TIMM screening rows always use `randaugment=False` with neutral loss-only condition keys. YOLO rows use the existing YOLO training path and set the screening condition to `randaugment=True`, which keeps Ultralytics classification RandAugment handling explicit in `train_kwargs.json` and `run_audit.json`.
 
 YOLO screening rows use a module-level `PaperClassificationTrainer` for CE, ASLSingleLabel, and custom losses so the Ultralytics `ImageFolder` labels are remapped to the paper class order: `Healthy`, `BG`, `WSSV`, `WSSV_BG`.
 

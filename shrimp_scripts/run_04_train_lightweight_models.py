@@ -56,6 +56,7 @@ def condition_from_row(row: dict) -> dict:
     }
     if row.get("diagnostic_extra"):
         condition["diagnostic_extra"] = True
+        condition["experiment_key"] = row.get("experiment_key", "lightweight_diagnostic")
         condition["experiment_group"] = row.get("experiment_group", "lightweight_diagnostic")
     return condition
 

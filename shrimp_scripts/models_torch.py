@@ -53,7 +53,7 @@ def torch_run_id(model_key: str, condition: dict[str, Any]) -> str:
 
 
 def list_core_torch_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
-    conditions = config.CORE_CONDITIONS[:1] if smoke_test else config.CORE_CONDITIONS
+    conditions = config.TORCH_CORE_CONDITIONS[:1] if smoke_test else config.TORCH_CORE_CONDITIONS
     return [{
         "run_id": torch_run_id(config.CONVNEXT_CORE_MODEL_KEY, condition),
         "backend": "torchvision",
@@ -67,7 +67,7 @@ def list_lightweight_runs(smoke_test: bool = False, start: int | None = None, li
     models = config.LIGHTWEIGHT_MODELS[:1] if smoke_test else config.LIGHTWEIGHT_MODELS
     rows: list[dict[str, Any]] = []
     for model_key in models:
-        for condition in config.FAMILY_CONDITIONS:
+        for condition in config.TORCH_FAMILY_CONDITIONS:
             rows.append({
                 "run_id": torch_run_id(model_key, condition),
                 "backend": "torchvision" if model_key in {"mobilenet_v3_large", "shufflenet_v2_x1_0", "squeezenet1_1"} else "timm",
@@ -84,8 +84,9 @@ def list_lightweight_runs(smoke_test: bool = False, start: int | None = None, li
 
 def list_lightweight_diagnostic_runs(smoke_test: bool = False) -> list[dict[str, Any]]:
     condition = {
-        **config.CORE_CONDITIONS[2],
+        **config.TORCH_CORE_CONDITIONS[2],
         "diagnostic_extra": True,
+        "experiment_key": "lightweight_diagnostic",
         "experiment_group": "lightweight_diagnostic",
     }
     model_key = "convnext_tiny_in22k"

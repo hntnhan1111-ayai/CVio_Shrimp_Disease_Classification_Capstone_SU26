@@ -29,31 +29,28 @@ python shrimp_scripts/run_03_train_yolo_family.py --output_dir /kaggle/working/s
 
 The Kaggle notebook `kaggle_step_by_step_runner.ipynb` provides the same real-stage command order with command logs written to `/kaggle/working/notebook_command_logs`.
 
-Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with PairwiseCoInfectionRankingASL and no RandAugment. It is not part of the default 51-run lightweight paper plan. Launch only that run with:
+Stage 04 also has one opt-in diagnostic extra for `convnext_tiny_in22k` with PairwiseCoInfectionRankingASL using the same Torch baseline transform recipe. It is not part of the default 51-run lightweight paper plan. Launch only that run with:
 
 ```bash
-python shrimp_scripts/run_04_train_lightweight_models.py --output_dir /kaggle/working/shrimp_outputs --resume --progress --run_id timm_convnext_tiny_in22k_pairwise_no_randaugment_seed42_repeat1
+python shrimp_scripts/run_04_train_lightweight_models.py --output_dir /kaggle/working/shrimp_outputs --resume --progress --run_id lightweight_diagnostic_timm_convnext_tiny_in22k_pairwise_seed42_repeat1
 ```
 
 Additional ASL-derived loss screening scripts live in `experiments/asl_custom_loss_screening/`. They are a short pre-final screening experiment and do not change the main Stage 02/03/04 experiment definitions.
 
 ## Core Ablation
 
-Core ablation is the main experiment of the paper. It contains 12 runs:
+Core comparison is the main experiment of the paper. It contains 6 runs:
 
-- ConvNeXt/ShrimpXNet-style model x 6 conditions
-- YOLOv26m-cls model x 6 conditions
+- ConvNeXt/ShrimpXNet-style model x 3 loss conditions with the Torch baseline transform recipe
+- YOLOv26m-cls model x 3 loss conditions with the YOLO-default RandAugment training recipe
 
-The 6 conditions are:
+The 3 loss conditions are:
 
-1. CE without RandAugment
-2. ASLSingleLabel without RandAugment
-3. PairwiseCoInfectionRankingASL without RandAugment
-4. CE with RandAugment
-5. ASLSingleLabel with RandAugment
-6. PairwiseCoInfectionRankingASL with RandAugment
+1. CE
+2. ASLSingleLabel
+3. PairwiseCoInfectionRankingASL
 
-This experiment tests whether the co-infection-aware loss and RandAugment improve classification of BG, WSSV, and WSSV_BG.
+This experiment tests whether the co-infection-aware loss improves classification of BG, WSSV, and WSSV_BG under each backend's intended training recipe. YOLO classification runs keep Ultralytics `auto_augment='randaugment'` when supported; Torch/TIMM runs do not use RandAugment in this workflow.
 
 ## File Guide
 
@@ -70,7 +67,7 @@ This experiment tests whether the co-infection-aware loss and RandAugment improv
 | `shrimp_scripts/report.py` | Builds final paper tables, figures, Excel files, reproducibility report, and downloadable zip. |
 | `shrimp_scripts/progress.py` | Provides timestamped console/JSONL progress logging and optional tqdm progress bars that degrade gracefully when tqdm is unavailable. |
 | `shrimp_scripts/run_01_prepare_dataset.py` | Entry point for dataset download, dataset audit, split creation, and YOLO dataset preparation. |
-| `shrimp_scripts/run_02_train_core_ablation.py` | Entry point for the main 12-run ablation: ConvNeXt and YOLOv26m across CE, ASL, Pairwise loss, with and without RandAugment. |
+| `shrimp_scripts/run_02_train_core_ablation.py` | Entry point for the main core comparison: ConvNeXt and YOLOv26m across CE, ASL, and Pairwise loss under each backend's intended training recipe. |
 | `shrimp_scripts/run_03_train_yolo_family.py` | Entry point for YOLO family comparison across YOLO classification m-variants. |
 | `shrimp_scripts/run_04_train_lightweight_models.py` | Entry point for lightweight/mobile-friendly model comparison with resume and chunking support. |
 | `shrimp_scripts/run_05_generate_reports_and_xai.py` | Entry point for final result aggregation, XAI generation, tables, figures, reports, and zip packaging. |

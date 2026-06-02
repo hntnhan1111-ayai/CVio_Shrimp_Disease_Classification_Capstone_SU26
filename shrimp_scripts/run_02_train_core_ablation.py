@@ -1,4 +1,4 @@
-"""Run the main 12-run ConvNeXt/ShrimpXNet and YOLOv26m-cls core ablation."""
+"""Run the main ConvNeXt/ShrimpXNet and YOLOv26m-cls core comparison."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from shrimp_scripts.utils import ensure_dir, save_csv, stable_hash, validate_run
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train the 12-run main paper core ablation.")
+    parser = argparse.ArgumentParser(description="Train the main paper core comparison.")
     parser.add_argument("--output_dir", default=str(config.DEFAULT_OUTPUT_DIR))
     parser.add_argument("--resume", dest="resume", action="store_true", default=True)
     parser.add_argument("--no_resume", dest="resume", action="store_false")

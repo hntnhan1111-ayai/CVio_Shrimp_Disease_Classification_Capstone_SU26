@@ -73,19 +73,23 @@ YOLO_LR0 = 1.25e-3
 YOLO_LRF = 0.01
 YOLO_COS_LR = True
 
-CORE_CONDITIONS = [
-    {"condition_key": "ce_no_randaugment", "loss_key": "baseline_ce", "randaugment": False},
-    {"condition_key": "asl_no_randaugment", "loss_key": "asl_single_label", "randaugment": False},
-    {"condition_key": "pairwise_no_randaugment", "loss_key": "pairwise_coinfection_ranking_asl", "randaugment": False},
+TORCH_CORE_CONDITIONS = [
+    {"condition_key": "ce", "loss_key": "baseline_ce", "randaugment": False},
+    {"condition_key": "asl", "loss_key": "asl_single_label", "randaugment": False},
+    {"condition_key": "pairwise", "loss_key": "pairwise_coinfection_ranking_asl", "randaugment": False},
+]
+YOLO_CORE_CONDITIONS = [
     {"condition_key": "ce_randaugment", "loss_key": "baseline_ce", "randaugment": True},
     {"condition_key": "asl_randaugment", "loss_key": "asl_single_label", "randaugment": True},
     {"condition_key": "pairwise_randaugment", "loss_key": "pairwise_coinfection_ranking_asl", "randaugment": True},
 ]
-FAMILY_CONDITIONS = [
-    CORE_CONDITIONS[0],
-    CORE_CONDITIONS[1],
-    CORE_CONDITIONS[5],
-]
+TORCH_FAMILY_CONDITIONS = TORCH_CORE_CONDITIONS
+YOLO_FAMILY_CONDITIONS = YOLO_CORE_CONDITIONS
+
+# Backward-compatible aliases for older callers. Official run builders use the
+# backend-specific condition lists above.
+CORE_CONDITIONS = YOLO_CORE_CONDITIONS
+FAMILY_CONDITIONS = YOLO_FAMILY_CONDITIONS
 
 CONVNEXT_CORE_MODEL_KEY = "convnext_tiny_shrimpxnet"
 CONVNEXT_CORE_MODEL_NAME = "ConvNeXt-Tiny ShrimpXNet-style"
@@ -142,4 +146,3 @@ def output_paths(output_dir: str | Path) -> dict[str, Path]:
 
 def epochs_for(smoke_test: bool) -> int:
     return SMOKE_TEST_EPOCHS if smoke_test else EPOCHS
-

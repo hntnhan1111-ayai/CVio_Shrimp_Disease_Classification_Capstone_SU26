@@ -185,7 +185,7 @@ def write_report(output_dir: Path, planned: list[dict[str, Any]], results: pd.Da
     lines = [
         "# YOLOv26m-cls Attention Screening Reproducibility Report",
         "",
-        "Screening design: YOLOv26m-cls, cross-entropy only, RandAugment disabled, fixed paper class order and dataset split.",
+        "Screening design: YOLOv26m-cls, cross-entropy with RandAugment enabled as the default YOLO classification recipe, fixed paper class order and dataset split.",
         "",
         f"Planned variants: {len(planned)}",
         f"Completed valid variants: {len(results)}",

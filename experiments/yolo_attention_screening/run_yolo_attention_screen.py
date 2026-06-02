@@ -30,7 +30,7 @@ from experiments.yolo_attention_screening.screening_lib import (
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Screen attention modules on YOLOv26m-cls with CE and RandAugment disabled.")
+    parser = argparse.ArgumentParser(description="Screen attention modules on YOLOv26m-cls with CE + RandAugment enabled.")
     parser.add_argument("--output_dir", default=str(DEFAULT_OUTPUT_DIR))
     parser.add_argument("--epochs", type=int, default=YOLO_ATTENTION_SCREEN_EPOCHS)
     parser.add_argument("--resume", dest="resume", action="store_true", default=True)

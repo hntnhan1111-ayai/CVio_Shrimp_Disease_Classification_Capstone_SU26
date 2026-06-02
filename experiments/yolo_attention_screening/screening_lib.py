@@ -33,14 +33,14 @@ ATTENTION_RANKING_COLUMNS = [
 def condition_for_attention(attention_key: str, epochs: int = YOLO_ATTENTION_SCREEN_EPOCHS) -> dict[str, Any]:
     key = normalize_attention_key(attention_key)
     return {
-        "condition_key": f"attention_{key}_ce_no_randaugment",
+        "condition_key": f"attention_{key}_ce_randaugment",
         "loss_key": "baseline_ce",
-        "randaugment": False,
+        "randaugment": True,
         "attention_key": key,
         "epochs": int(epochs),
         "experiment_key": EXPERIMENT_KEY,
         "experiment_group": EXPERIMENT_GROUP,
-        "screening_note": "YOLOv26m-cls attention screening; CE only; RandAugment disabled.",
+        "screening_note": "YOLOv26m-cls attention screening; CE + RandAugment default YOLO classification recipe.",
     }
 
 

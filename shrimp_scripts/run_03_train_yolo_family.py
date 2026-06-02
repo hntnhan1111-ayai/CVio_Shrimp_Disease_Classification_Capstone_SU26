@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--list_runs", action="store_true")
     parser.add_argument("--skip_probe", action="store_true")
     parser.add_argument("--only_model", "--model", dest="only_model", default=None, help="Optional exact model filter for smoke/debug runs, e.g. yolo26m-cls.")
-    parser.add_argument("--only_condition", default=None, help="Optional exact condition_key filter, e.g. asl_no_randaugment.")
+    parser.add_argument("--only_condition", default=None, help="Optional exact condition_key filter, e.g. asl_randaugment.")
     parser.add_argument("--only_loss", "--loss", dest="only_loss", default=None, help="Optional exact loss_key filter, e.g. asl_single_label.")
     parser.add_argument("--validate_resume", action="store_true", help="Validate skip/fresh-rerun decisions without training.")
     parser.add_argument("--verify_artifacts", action="store_true", help="Verify completed run artifacts and checkpoint loadability for selected runs without training.")

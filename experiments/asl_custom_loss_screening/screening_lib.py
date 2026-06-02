@@ -54,9 +54,8 @@ def loss_role(loss_key: str) -> str:
 
 
 def condition_for_loss(loss_key: str, randaugment: bool) -> dict[str, Any]:
-    suffix = "randaugment" if randaugment else "no_randaugment"
     return {
-        "condition_key": f"{loss_key}_{suffix}",
+        "condition_key": f"{loss_key}_randaugment" if randaugment else loss_key,
         "loss_key": loss_key,
         "randaugment": bool(randaugment),
         "experiment_key": EXPERIMENT_KEY,
