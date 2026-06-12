@@ -1,0 +1,5 @@
+class_dir,class_display,selected_image,copied_image
+1. Healthy,Healthy,/home/drnguyenvinh/notebooks/processed-images/processed_images/1. Healthy/Healthy-1-img-1_nobg.png,/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED/images/sample_no_bg/Healthy__Healthy-1-img-1_nobg.png
+2. BG,BG,/home/drnguyenvinh/notebooks/processed-images/processed_images/2. BG/BG-1-img-1_nobg.png,/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED/images/sample_no_bg/BG__BG-1-img-1_nobg.png
+3. WSSV,WSSV,/home/drnguyenvinh/notebooks/processed-images/processed_images/3. WSSV/WSSV-1-img-1_nobg.png,/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED/images/sample_no_bg/WSSV__WSSV-1-img-1_nobg.png
+4. WSSV_BG,WSSV_BG,/home/drnguyenvinh/notebooks/processed-images/processed_images/4. WSSV_BG/WSSV_BG-1-img-1_nobg.png,/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED/images/sample_no_bg/WSSV_BG__WSSV_BG-1-img-1_nobg.png

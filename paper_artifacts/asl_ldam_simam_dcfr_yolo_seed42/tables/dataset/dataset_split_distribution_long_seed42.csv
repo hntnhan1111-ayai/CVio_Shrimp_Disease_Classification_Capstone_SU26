@@ -1,0 +1,13 @@
+split,class,n_images
+train,Healthy,282
+val,Healthy,60
+test,Healthy,61
+train,BG,139
+val,BG,30
+test,BG,29
+train,WSSV,229
+val,WSSV,49
+test,WSSV,50
+train,WSSV_BG,154
+val,WSSV_BG,33
+test,WSSV_BG,33

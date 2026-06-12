@@ -1,0 +1,5 @@
+model,variant_key,seed,class,precision,recall,f1_score,support
+yolo26m-cls,asl_ldam_simam_dcfr_top1,42,Healthy,1.0,0.8688524590163934,0.9298245614035088,61.0
+yolo26m-cls,asl_ldam_simam_dcfr_top1,42,BG,0.9,0.9310344827586207,0.9152542372881356,29.0
+yolo26m-cls,asl_ldam_simam_dcfr_top1,42,WSSV,0.9,0.9,0.9,50.0
+yolo26m-cls,asl_ldam_simam_dcfr_top1,42,WSSV_BG,0.8,0.9696969696969697,0.8767123287671232,33.0

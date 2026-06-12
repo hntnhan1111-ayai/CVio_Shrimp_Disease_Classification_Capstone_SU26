@@ -1,0 +1,77 @@
+{
+  "source_zip": "/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED.zip",
+  "output_zip": "/home/drnguyenvinh/notebooks/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED_NO_TITLES.zip",
+  "total_images_scanned": 22,
+  "images_cropped": 17,
+  "images_unchanged": 5,
+  "changed_files": [
+    {
+      "file": "figures/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/confusion_matrices/baseline_ce_clean_confusion_matrix.png",
+      "crop_top_pixels": 23
+    },
+    {
+      "file": "figures/confusion_matrices/best_method_clean_confusion_matrix.png",
+      "crop_top_pixels": 23
+    },
+    {
+      "file": "figures/baselines/timm_baseline_macro_f1_seed42.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/baselines/yolo_baseline_macro_f1_seed42.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/training_curves/best_method_training_curves_top1_only.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/noise/top5_noise_baseline_vs_best_mean_macro_f1.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/noise/best_method_top5_noise_macro_f1_by_severity.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/xai/xai_best_method_4class_grid.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/improvements/timm_delta_macro_f1_seed42.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/improvements/yolo26m_key_result_macro_f1_seed42.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/improvements/yolo_delta_macro_f1_seed42.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "figures/samples/sample_no_bg_4class_panel.png",
+      "crop_top_pixels": 22
+    },
+    {
+      "file": "xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_BG__pred_BG__panel.png",
+      "crop_top_pixels": 18
+    },
+    {
+      "file": "xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_Healthy__pred_Healthy__panel.png",
+      "crop_top_pixels": 18
+    },
+    {
+      "file": "xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV_BG__pred_WSSV_BG__panel.png",
+      "crop_top_pixels": 18
+    },
+    {
+      "file": "xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV__pred_WSSV__panel.png",
+      "crop_top_pixels": 18
+    }
+  ]
+}
