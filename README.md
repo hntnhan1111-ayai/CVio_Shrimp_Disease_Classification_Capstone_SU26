@@ -54,7 +54,7 @@ Class-wise performance on the clean test set:
 | WSSV | 0.900 | 0.900 | 0.900 | 50 |
 | WSSV_BG | 0.800 | 0.970 | 0.877 | 33 |
 
-## YOLO Baseline Comparison (Top-5)
+## YOLO Baseline Comparison (All Models)
 
 | Model | Macro-F1 | Accuracy | Kappa | Params (M) | Size (MB) |
 |---|---|---|---|---|---|
@@ -63,8 +63,18 @@ Class-wise performance on the clean test set:
 | yolov8m-cls | 0.8718 | 0.8786 | 0.8342 | 15.77 | 30.22 |
 | yolov8s-cls | 0.8710 | 0.8786 | 0.8343 | 5.08 | 9.79 |
 | yolo11m-cls | 0.8675 | 0.8728 | 0.8263 | 10.35 | 19.92 |
+| yolov8x-cls | 0.8622 | 0.8671 | 0.8192 | 56.13 | 107.28 |
+| yolov8l-cls | 0.8586 | 0.8671 | 0.8184 | 36.19 | 69.23 |
+| yolo26l-cls | 0.8576 | 0.8613 | 0.8109 | 12.82 | 24.74 |
+| yolo26n-cls | 0.8420 | 0.8555 | 0.8014 | 1.53 | 3.05 |
+| yolo11x-cls | 0.8374 | 0.8497 | 0.7944 | 28.34 | 54.37 |
+| yolo11s-cls | 0.8317 | 0.8382 | 0.7787 | 5.44 | 10.52 |
+| yolo11n-cls | 0.8283 | 0.8382 | 0.7775 | 1.53 | 3.05 |
+| yolov8n-cls | 0.8271 | 0.8439 | 0.7858 | 1.44 | 2.83 |
+| yolo26s-cls | 0.8215 | 0.8324 | 0.7713 | 5.44 | 10.52 |
+| yolo11l-cls | 0.8123 | 0.8208 | 0.7560 | 12.82 | 24.74 |
 
-Full table: `paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/yolo_baseline_comparison_seed42.csv`
+Full CSV: `paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/yolo_baseline_comparison_seed42.csv`
 
 ## TIMM Baseline Comparison (Top-5)
 
