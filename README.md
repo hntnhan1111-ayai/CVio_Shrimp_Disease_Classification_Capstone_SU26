@@ -70,11 +70,11 @@ Full table: `paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/yo
 
 | Model | Macro-F1 | Accuracy | Kappa | Params (M) | FPS | Latency (ms) |
 |---|---|---|---|---|---|---|
-| convnext_tiny_in22k | 0.8416 | 0.8522 | - | 27.82 | 49.2 | 20.34 |
-| mobilenet_v3_large | 0.8010 | 0.8261 | - | 4.21 | 45.6 | 21.93 |
-| efficientnet_b0 | 0.7701 | 0.7913 | - | 4.01 | 46.5 | 21.52 |
-| repvgg_a0 | 0.7688 | 0.7739 | - | 7.83 | 48.1 | 20.81 |
-| efficientnet_v2_s | 0.7678 | 0.7739 | - | 20.18 | 32.2 | 31.06 |
+| convnext_tiny_in22k | 0.8416 | 0.8522 | 0.7690 | 27.82 | 49.2 | 20.34 |
+| mobilenet_v3_large | 0.8010 | 0.8261 | 0.6114 | 4.21 | 45.6 | 21.93 |
+| efficientnet_b0 | 0.7701 | 0.7913 | 0.5940 | 4.01 | 46.5 | 21.52 |
+| repvgg_a0 | 0.7688 | 0.7739 | 0.5514 | 7.83 | 48.1 | 20.81 |
+| efficientnet_v2_s | 0.7678 | 0.7739 | 0.6627 | 20.18 | 32.2 | 31.06 |
 
 Full table: `paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/timm_baseline_comparison_seed42.csv`
 
