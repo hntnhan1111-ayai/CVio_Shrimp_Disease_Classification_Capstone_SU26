@@ -1,0 +1,3 @@
+dataset_key,images,specimens,parsed_images,labeled_images,healthy_or_empty_images,total_masks,co_infection_images,mean_masks_per_labeled_image,max_images_per_specimen
+ewu,1126,409,1126,574,552,1061,0,1.848432055749129,3
+hand,1149,416,1149,746,403,1031,220,1.3820375335120643,3

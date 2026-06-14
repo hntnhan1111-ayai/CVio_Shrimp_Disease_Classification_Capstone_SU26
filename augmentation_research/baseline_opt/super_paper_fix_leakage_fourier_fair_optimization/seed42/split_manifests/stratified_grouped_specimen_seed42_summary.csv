@@ -1,0 +1,4 @@
+split,images,specimens,labeled_images,healthy_empty_images,mask_instances,split_sha256
+train,905,331,584,321,810,3134a6144652ae1d8f860cc1cc4a9f5275e7734261cfce3162cae507e5017852
+valid,115,40,74,41,102,8bcc79ffea53fd71ef706ef4f9be2654529b84f2281e3ca2b7035c6e80f6c065
+test,129,45,88,41,119,4c5a77d86af83c9b6b0a1e9318bbaa2d63601dd8299f93ccabbb4adff0e4301d

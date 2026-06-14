@@ -1,0 +1,492 @@
+%%%%%%%%%%%%%%%%%%%% manuscript.tex %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% ICIT/Springer svproc manuscript draft.
+% This file intentionally preserves the svproc template structure while
+% replacing the sample content with the shrimp disease segmentation paper.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{svproc}
+
+% RECOMMENDED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{url}
+\usepackage{graphicx}
+\def\UrlFont{\rmfamily}
+
+\begin{document}
+\mainmatter
+
+\title{Specimen-Leakage-Aware Evaluation for Shrimp Disease Segmentation}
+
+\titlerunning{Leakage-Aware Shrimp Disease Segmentation}
+
+% TODO: Replace author placeholders before submission.
+\author{Vinh Dinh Nguyen\inst{1} \and Phong Van Nguyen\inst{1} \and Nhan Huu Tran\inst{1} \and Nhu Huynh Le Thi\inst{1}}
+
+\authorrunning{Vinh Dinh Nguyen et al.}
+
+\tocauthor{Vinh Dinh Nguyen, Phong Van Nguyen, Nhan Huu Tran and Nhu Huynh Le Thi}
+
+% TODO: Replace affiliation placeholders before submission.
+\institute{Department of Artificial Intelligence, FPT University, Can Tho, Viet Nam\\
+\email{vinhnd29@fe.edu.vn}
+\email{phongnv.ce192081@gmail.com}
+\email{nhanthce181655@fpt.edu.vn}
+\email{nhuhuynhlethi1508@gmail.com}}
+
+
+\maketitle
+
+\begin{abstract}
+Shrimp disease segmentation can support aquaculture monitoring by localizing visual disease regions rather than only assigning image-level labels. However, public shrimp disease images often contain multiple views of the same physical specimen, making random image-level train/test splits vulnerable to specimen leakage. This paper constructs an instance segmentation dataset from ShrimpDiseaseImageBD and evaluates YOLO-based instance segmentation under a specimen-grouped, disease-stratified protocol. We show that image-level splits create substantial train/test specimen overlap and higher test scores, while grouped splits provide a stricter estimate of unseen-specimen generalization. Under the leakage-free split, YOLO11n-seg gives the strongest accuracy and healthy-false-positive trade-off among the tested YOLO variants. We further report healthy-aware diagnostics and preliminary preprocessing/augmentation screening to guide future optimization.
+\keywords{shrimp disease, instance segmentation, data leakage, grouped split, YOLO}
+\end{abstract}
+
+\section{Introduction}
+
+Computer vision has become a practical tool for aquaculture health
+monitoring, where early detection of visible disease symptoms can help
+reduce economic loss and improve farm management. For shrimp disease,
+image classification can indicate whether a disease is present, but
+segmentation provides a more informative output by localizing the
+visible diseased regions. This localization is important when symptoms
+are small, spatially sparse, or mixed across disease types.
+
+Reliable segmentation evaluation is difficult when the dataset contains
+multiple images of the same physical shrimp specimen. If ordinary
+image-level random splitting is used, one view of a shrimp may appear
+in training while another view of the same shrimp appears in validation
+or testing. A model can then benefit from specimen-specific appearance,
+such as body texture, lighting, pose, and background, rather than
+learning disease cues that generalize to unseen shrimp. This issue is
+especially important in small biological datasets, where each specimen
+contributes a nontrivial fraction of the available data.
+
+This work addresses that problem for shrimp disease segmentation. We
+derive a consistently hand-labeled segmentation dataset from the public
+ShrimpDiseaseImageBD image dataset \cite{islam2025shrimpdiseaseimagebd},
+define specimen identities from the filename convention, and enforce
+a disease-stratified grouped split in which all images of the same
+shrimp remain in exactly one partition. We then compare leakage-prone
+image-level splits with leakage-free grouped splits, select a YOLO
+segmentation backbone under the grouped protocol, and evaluate
+preprocessing and augmentation strategies using both mAP and
+healthy-aware diagnostics.
+\section{Related Work}
+
+\subsection{Shrimp Disease Image Datasets}
+
+ShrimpDiseaseImageBD was released as a public dataset for
+computer-vision-based shrimp disease detection in Bangladesh
+\cite{islam2025shrimpdiseaseimagebd}. The dataset contains raw images
+organized by health status and disease type, including healthy shrimp,
+black gill (BG), white spot syndrome virus (WSSV), and co-infection
+cases. Its public availability makes it a useful foundation for
+classification and segmentation research, but its multi-image-per-specimen
+structure requires careful splitting when evaluating generalization.
+Recent shrimp-vision studies have explored transfer learning,
+augmentation, explainability, and lightweight detection for shrimp
+disease recognition \cite{jone2026shrimpxnet,fei2025lightweight}. These
+works show the promise of image-based shrimp health monitoring, but they
+primarily emphasize classification or detection accuracy. In contrast,
+our study focuses on instance-level disease localization and on whether
+the evaluation split is independent at the physical-specimen level.
+
+\subsection{Instance Segmentation and YOLO}
+
+YOLO-family models are widely used for real-time object detection and
+segmentation because they provide a strong accuracy/speed trade-off and
+are easy to train on custom datasets. In this work, we evaluate YOLOv8,
+YOLO11, and YOLO26 segmentation variants using the Ultralytics training
+framework \cite{ultralytics2026}. We focus on nano and small models
+because shrimp disease segmentation is intended to remain practical for
+iterative experimentation and future lightweight deployment.
+
+\subsection{Data Leakage in Visual Learning}
+
+Data leakage occurs when information unavailable at deployment time is
+implicitly used during model development or evaluation
+\cite{kaufman2012leakage}. In visual datasets, leakage can arise from
+near-duplicate images, repeated subjects, or repeated specimens across
+splits. The resulting test score can be overly optimistic because the
+test images are no longer independent of the training images. Similar
+concerns have been reported in medical imaging, where acquisition-site,
+patient, or repeated-scan confounding can inflate apparent performance
+\cite{zech2018confounding,roberts2021common,tampu2022inflation}. Our
+setting is a specimen-level version of this problem: several images can
+show the same shrimp, and all such images must be assigned to the same
+split to estimate unseen-specimen performance.
+
+\subsection{Preprocessing and Augmentation}
+
+Small biological image datasets often benefit from augmentation and
+preprocessing, but these methods must be evaluated under the same
+leakage-free protocol as the baseline. We consider clean geometric and
+photometric YOLO augmentations, copy-paste policies, Fourier high-pass
+detail boosting, and wavelet-based enhancement as candidate methods.
+Fourier preprocessing is motivated by the possibility that high-frequency
+texture and boundary information may reveal subtle shrimp disease
+patterns, but it is treated as an ablation rather than as an assumed
+improvement.
+
+\section{Dataset and Annotation}
+
+\subsection{Source Dataset}
+
+The image source is ShrimpDiseaseImageBD version 3
+\cite{islam2025shrimpdiseaseimagebd}. The Mendeley record reports 1149
+raw images across four disease-status folders: 403 healthy, 198 BG, 328
+WSSV, and 220 BG\_WSSV images. These images were captured from 416
+shrimp specimens, ranging from one to three images per specimen. The
+original filename convention has the
+form
+\begin{center}
+\texttt{<Disease>-<ShrimpID>-img-<ImageNumber>.jpg}.
+\end{center}
+We use this structure to infer specimen groups as
+\texttt{<Disease>::<ShrimpID>} and use this identifier as the specimen
+group.
+
+\subsection{Hand-Labeled Segmentation Dataset}
+
+The segmentation dataset used in this paper was relabeled by a single
+annotator to reduce inter-annotator variation in mask placement,
+granularity, and disease-region interpretation. This decision is
+important because disease segmentation masks are more sensitive to
+annotation style than image-level labels. Inconsistent boundaries,
+fragmented masks, and incomplete disease labels can directly change
+mask mAP and healthy false-positive behavior. For repeated images of the same specimen, disease regions were annotated according to anatomical location rather than image position. 
+
+Figure~\ref{fig:hand-labeled} visualizes how images of the same specimen differ and 
+are segmented consistently across changes in position, pose, and capture
+angle. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{hand-labeled.png}
+    \caption{Consistent labels for multiple images of the same specimen.}
+    \label{fig:hand-labeled}
+\end{figure}
+
+Table~\ref{tab:dataset_stats} summarizes the analyzed hand-labeled
+dataset. Empty label files represent healthy images, while diseased
+images can contain BG masks, WSSV masks, or both.
+
+\begin{table}
+\caption{Dataset statistics for the hand-labeled shrimp segmentation set.}
+\label{tab:dataset_stats}
+\begin{center}
+\begin{tabular}{lr}
+\hline
+Property & Count \\
+\hline
+Images & 1149 \\
+Specimens & 416 \\
+Labeled diseased images & 746 \\
+Healthy or empty-label images & 403 \\
+Mask instances & 1031 \\
+BG mask instances & 462 \\
+WSSV mask instances & 569 \\
+Co-infection images & 220 \\
+Maximum images per specimen & 3 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+% TODO: Add a figure with four panels: healthy, BG, WSSV, and BG+WSSV
+% overlays. Suggested label:
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.95\textwidth]{figures/dataset_examples.pdf}
+% \caption{Example hand-labeled shrimp disease segmentation masks.}
+% \label{fig:dataset_examples}
+% \end{center}
+% \end{figure}
+
+\section{Specimen-Grouped Evaluation Protocol}
+
+\subsection{Problem Definition}
+
+Let $G_i$ denote the specimen group for image $i$. A leakage-free split
+must satisfy
+\begin{equation}
+G_i = G_j \Rightarrow S_i = S_j,
+\end{equation}
+where $S_i$ is the assigned split for image $i$. In other words, all
+images of the same shrimp specimen must be placed together in training,
+validation, or testing. If this constraint is violated, the test set may
+contain shrimp that the model has already seen from another view during
+training.
+
+\subsection{Split Policies}
+
+We compare three split policies:
+\begin{itemize}
+\item \textbf{Plain random image split}: images are shuffled and split
+without disease stratification or specimen grouping.
+\item \textbf{Stratified random image split}: image-level splitting
+preserves disease distribution but still allows specimen leakage.
+\item \textbf{Stratified grouped-specimen split}: specimens are grouped
+first, stratified by disease status, and assigned so that train/test
+specimen overlap is zero.
+\end{itemize}
+
+The final paper-facing protocol is the stratified grouped-specimen split.
+The random image splits are retained only as leakage-prone references
+for quantifying how much image-level evaluation can overstate
+performance. The stratified random image split separates the effect of
+class-distribution preservation from the effect of specimen grouping.
+
+\subsection{Leakage Verification}
+
+For every run, we save a split manifest, split summary, and split
+fingerprint. We also compute train/test and validation/test specimen
+overlap. A grouped split is accepted only when both overlap values are
+zero. This makes the leakage constraint directly auditable rather than
+being an informal assumption.
+
+\section{Experimental Setup}
+
+\subsection{Training Configuration}
+
+All main experiments use instance segmentation models from the YOLO
+family. Models are trained at image size 640 for
+up to 100 epochs with patience 30. The default paper baseline uses the
+Ultralytics augmentation hook and a clean-light YOLO augmentation policy:
+horizontal flip probability 0.5, HSV perturbation
+$(h=0.01,s=0.35,v=0.20)$, translation 0.05, scale 0.20, and no mosaic,
+mixup, cutmix, or copy-paste. The best checkpoint is selected using
+validation metrics only, and all test metrics are reported after
+checkpoint selection. We use this simple default training configuration
+to establish a fair baseline, select one backbone for later optimization,
+and keep subsequent preprocessing or augmentation gains interpretable.
+
+\subsection{Evaluation Sets}
+
+We report metrics on two test views:
+\begin{itemize}
+\item \textbf{Full test}: includes both diseased and healthy images.
+\item \textbf{Labeled-only test}: includes only images with disease
+masks, allowing disease localization quality to be measured without
+healthy background images diluting the instance metrics.
+\end{itemize}
+This separation is necessary because practical disease monitoring
+requires both strong disease localization and low false-positive
+prediction on healthy shrimp.
+
+\subsection{Metrics}
+
+The primary segmentation metrics are mask mAP50 and mask mAP50-95. We
+also record box mAP for completeness. To evaluate practical behavior on
+healthy shrimp and multi-mask disease images, we additionally report:
+\begin{itemize}
+\item healthy mask false-positive rate, the fraction of healthy images
+with at least one predicted disease mask;
+\item healthy false-positive masks per image;
+\item disease mask missed-image rate, the fraction of diseased images
+where no disease mask is predicted;
+\item mask count mean absolute error (MAE), measuring disagreement
+between predicted and ground-truth mask counts.
+\end{itemize}
+
+For validation-based model selection, we use a healthy-aware score:
+\begin{equation}
+S = \mathrm{mAP50}_{lab}
+- 0.05 \cdot \mathrm{MAE}_{count}
+- 0.15 \cdot R_{miss}
+- 0.10 \cdot R_{healthyFP},
+\end{equation}
+where $\mathrm{mAP50}_{lab}$ is labeled-only mask mAP50,
+$R_{miss}$ is the disease missed-image rate, and $R_{healthyFP}$ is the
+healthy false-positive rate. Test-set healthy-aware scores are reported
+only for analysis and are not used for model selection. The weights keep
+mask mAP50 as the dominant term while penalizing clinically undesirable
+missed diseased images, poor mask-count behavior, and false alarms on
+healthy shrimp.
+
+\section{Results}
+
+\subsection{Three-Seed Split Policy Comparison}
+To test whether the split-policy conclusion is stable, we repeat the
+comparison using seeds 42, 123, and 3407.
+
+Table~\ref{tab:split_policy_summary} summarizes YOLO11n-seg across
+three seeds (42, 123, and 3407) under the three split policies. Both
+image-level policies retain substantial train/test specimen overlap,
+with 98.7 overlapping specimen groups for plain random splitting and
+94.0 for stratified random splitting on average. In contrast, the
+stratified grouped-specimen split keeps train/test overlap at zero for
+every seed. The image-level splits obtain higher mAP values, but these
+scores are not independent estimates of unseen-specimen performance
+because test specimens are often represented by related images in
+training.
+
+\begin{table}
+\caption{Three-seed split-policy summary using YOLO11n-seg. Values are mean $\pm$ standard deviation.}
+\label{tab:split_policy_summary}
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrrrr}
+\hline
+Split policy & Overlap & Full mAP50 & Labeled mAP50 & Labeled mAP50-95 & Healthy FP & Healthy-aware \\
+\hline
+Plain random image & $98.7 \pm 1.2$ & $0.671 \pm 0.013$ & $0.677 \pm 0.013$ & $0.299 \pm 0.024$ & $0.054 \pm 0.027$ & $0.648 \pm 0.012$ \\
+Stratified random image & $94.0 \pm 6.1$ & $0.651 \pm 0.060$ & $0.659 \pm 0.062$ & $0.282 \pm 0.016$ & $0.098 \pm 0.024$ & $0.628 \pm 0.053$ \\
+Stratified grouped specimen & $0.0 \pm 0.0$ & $0.451 \pm 0.027$ & $0.473 \pm 0.035$ & $0.144 \pm 0.021$ & $0.236 \pm 0.110$ & $0.415 \pm 0.039$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+Stratified random splitting has a lower mean score than plain random
+splitting and higher variance across seeds. This suggests that
+distribution balancing alone does not remove specimen leakage and that
+image-level split performance remains sensitive to which related
+specimen views are assigned to each partition.
+The grouped score is lower, but it is more faithful to the deployment
+question: how well does the model generalize to shrimp specimens that
+were not observed during training? The grouped protocol also shows that
+small leakage-free datasets still have meaningful split variance, so
+final claims should report seed summaries rather than relying on a
+single split. 
+
+\begin{table}
+\caption{Per-seed split-policy results using YOLO11n-seg.}
+\label{tab:split_policy_per_seed}
+\begin{center}
+\scriptsize
+\begin{tabular}{llrrrrr}
+\hline
+Split policy & Seed & Overlap & Full mAP50 & Labeled mAP50 & Healthy FP & Healthy-aware \\
+\hline
+Plain random image & 42 & 98 & 0.658 & 0.664 & 0.068 & 0.636 \\
+Plain random image & 123 & 100 & 0.685 & 0.690 & 0.071 & 0.660 \\
+Plain random image & 3407 & 98 & 0.671 & 0.676 & 0.023 & 0.647 \\
+Stratified random image & 42 & 98 & 0.584 & 0.589 & 0.073 & 0.567 \\
+Stratified random image & 123 & 87 & 0.699 & 0.706 & 0.098 & 0.666 \\
+Stratified random image & 3407 & 97 & 0.669 & 0.682 & 0.122 & 0.650 \\
+Stratified grouped specimen & 42 & 0 & 0.482 & 0.512 & 0.244 & 0.460 \\
+Stratified grouped specimen & 123 & 0 & 0.440 & 0.462 & 0.341 & 0.388 \\
+Stratified grouped specimen & 3407 & 0 & 0.432 & 0.445 & 0.122 & 0.399 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{YOLO Model Selection Under the Fair Split}
+Before studying preprocessing and augmentation, we first choose a fixed
+segmentation backbone under the leakage-free grouped protocol. We train
+the same baseline configuration across YOLOv8-seg, YOLO11-seg, and
+YOLO26-seg nano/small variants.
+Table~\ref{tab:model_sweep} reports the grouped-specimen model sweep.
+YOLO11n-seg provides the best labeled-only test mask mAP50, the best
+full-test mask mAP50, and the best healthy-aware test score among the
+tested variants. YOLO26s-seg gives the highest mAP50-95, and YOLO26n-seg
+has the lowest healthy false-positive rate, but neither provides the
+best overall trade-off. We therefore use YOLO11n-seg as the fixed
+backbone for subsequent preprocessing and augmentation experiments.
+
+\begin{table}
+\caption{YOLO model sweep under the stratified grouped-specimen split.}
+\label{tab:model_sweep}
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrrrr}
+\hline
+Model & Params (M) & Full mAP50 & Labeled mAP50 & mAP50-95 & Healthy FP & Healthy-aware \\
+\hline
+YOLO11n-seg & 2.877 & 0.482 & 0.512 & 0.168 & 0.244 & 0.460 \\
+YOLO26s-seg & 11.506 & 0.417 & 0.460 & 0.182 & 0.268 & 0.397 \\
+YOLOv8n-seg & 3.410 & 0.395 & 0.432 & 0.139 & 0.341 & 0.353 \\
+YOLOv8s-seg & 11.821 & 0.391 & 0.444 & 0.159 & 0.341 & 0.364 \\
+YOLO26n-seg & 3.126 & 0.430 & 0.463 & 0.160 & 0.195 & 0.393 \\
+YOLO11s-seg & 10.113 & 0.297 & 0.361 & 0.124 & 0.512 & 0.250 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Preprocessing and Augmentation Screening}
+
+Preprocessing and augmentation experiments screen several lightweight
+ways to improve the grouped YOLO11n-seg baseline: copy-paste, train-only
+photometric augmentation, Fourier high-pass preprocessing, and
+wavelet-based enhancement. Fourier and wavelet variants are evaluated
+either as train-only transformed copies or as deterministic preprocessing
+applied to all splits. Table~\ref{tab:preproc_partial} summarizes the
+representative completed rows. None improves the healthy-aware baseline:
+some methods slightly increase labeled-only mAP50, but the gain is
+offset by lower mAP50-95, lower full-test mAP50, or higher false
+positives on healthy shrimp.
+
+\begin{table}
+\caption{Preliminary preprocessing and augmentation screening.}
+\label{tab:preproc_partial}
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrrr}
+\hline
+Method & Full mAP50 & Labeled mAP50 & mAP50-95 & Healthy FP & Healthy-aware \\
+\hline
+YOLO11n clean-light baseline & 0.482 & 0.512 & 0.168 & 0.244 & 0.460 \\
+Copy-paste 0.10 mixup & 0.464 & 0.515 & 0.144 & 0.488 & 0.424 \\
+Photometric medium, train only & 0.443 & 0.477 & 0.168 & 0.244 & 0.420 \\
+Noise/blur/compression, train only & 0.449 & 0.470 & 0.136 & 0.366 & 0.401 \\
+Fourier s50 a0.30, hook on, train only & 0.436 & 0.468 & 0.163 & 0.341 & 0.403 \\
+Fourier s50 a0.30, hook off, all splits & 0.452 & 0.498 & 0.166 & 0.244 & 0.426 \\
+Wavelet db2, hook on, all splits & 0.406 & 0.435 & 0.131 & 0.293 & 0.352 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Discussion}
+
+The experiments support three observations. First, specimen leakage is
+not a minor implementation detail. In the three-seed split-policy study,
+plain random and stratified random image-level splits place 98.7 and
+94.0 specimen groups across train and test on average, whereas the
+grouped split eliminates this overlap for every seed. The corresponding
+metric drop should be interpreted as a correction toward fairer
+unseen-specimen evaluation, not as a failure of the model.
+
+Second, stratified grouped splitting has an unavoidable cost on small
+datasets. Once all images of a shrimp must move together, the number of
+possible balanced train/validation/test combinations decreases. This
+can make the test set harder or easier depending on which specimens are
+assigned to it. The three-seed results show that leakage-free
+evaluation is fairer, but still needs seed reporting or confidence
+intervals when dataset size is limited.
+
+Third, a strong default YOLO baseline is difficult to improve with
+simple preprocessing. The default augmentation hook already includes
+low-probability blur, grayscale, and CLAHE-style operations. Additional
+photometric transforms or frequency-domain enhancement may help under
+specific settings, but they can also increase healthy false positives or
+overfit validation appearance. This justifies the use of healthy-aware
+metrics rather than selecting only by labeled-test mAP.
+
+The code for this study will be released at
+\url{https://github.com/your-org/shrimp-leakage-aware-segmentation}.
+
+The labeled instance segmentation dataset is publicly available as a Roboflow Universe dataset \cite{nguyen2026shrimpseg}; Roboflow was used for annotation management and YOLO-format export \cite{roboflow}.
+\section{Conclusion}
+
+This paper presents a leakage-aware evaluation study for shrimp disease
+instance segmentation. We construct a single-annotator segmentation
+dataset from ShrimpDiseaseImageBD, define specimen identities from the
+filename convention, and enforce a disease-stratified grouped split to
+prevent same-shrimp train/test leakage. The split-policy experiments
+show that image-level splitting creates substantial specimen overlap and
+higher apparent test performance. Under the leakage-free protocol,
+YOLO11n-seg provides the strongest baseline among the tested YOLO
+variants. Ongoing preprocessing and augmentation experiments will be
+reported as secondary optimization results, with selection guided by
+both segmentation mAP and healthy false-positive behavior.
+
+% ---- Bibliography ----
+
+\bibliographystyle{splncs03_unsrt}
+\bibliography{references}
+
+\end{document}

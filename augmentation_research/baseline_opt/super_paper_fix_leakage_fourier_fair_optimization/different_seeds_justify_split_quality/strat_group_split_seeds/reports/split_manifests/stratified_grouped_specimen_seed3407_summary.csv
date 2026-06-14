@@ -1,0 +1,4 @@
+split,images,specimens,labeled_images,healthy_empty_images,bg_mask_images,wssv_mask_images,coinfection_images,mask_instances,split_sha256
+train,913,331,593,320,333,435,175,821,3eec91828026dcb06a4a104653af9fb67a9ff5b6df8251b690f7d1896608da4d
+valid,113,40,71,42,39,52,20,97,8d7251671adead12988dd1611989e87b94d47d9e6d79343822de24859edbbf8d
+test,123,45,82,41,46,61,25,113,3450c05701411e3d9f0a9519a89b9f740e34f7107a0107f0b73ef5dba208114e

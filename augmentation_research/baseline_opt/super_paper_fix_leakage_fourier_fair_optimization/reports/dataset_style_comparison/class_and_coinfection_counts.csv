@@ -1,0 +1,7 @@
+dataset_key,split,class_name,instances,image_mentions
+ewu,train,blackgill,101,101
+ewu,train,empty_label_healthy,0,552
+ewu,train,whitespot,960,960
+hand,train,BG,462,462
+hand,train,WSSV,569,569
+hand,train,empty_label_healthy,0,403
