@@ -1,0 +1,10 @@
+name: asl-ldam-shrimp
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.12.3
+  - pip
+  - pip:
+      - -r requirements.txt

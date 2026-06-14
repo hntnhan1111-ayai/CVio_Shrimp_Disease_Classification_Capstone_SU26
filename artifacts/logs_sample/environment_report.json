@@ -1,0 +1,27 @@
+{
+  "python_version": "3.14.0",
+  "python_full": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cuda_available": false,
+  "gpu_names": [],
+  "packages": {
+    "torch": "not installed (ModuleNotFoundError)",
+    "torchvision": "not installed (ModuleNotFoundError)",
+    "ultralytics": "not installed (ModuleNotFoundError)",
+    "timm": "not installed (ModuleNotFoundError)",
+    "numpy": "2.4.0",
+    "pandas": "2.3.3",
+    "sklearn": "not installed (ModuleNotFoundError)",
+    "cv2": "not installed (ModuleNotFoundError)",
+    "matplotlib": "not installed (ModuleNotFoundError)",
+    "seaborn": "not installed (ModuleNotFoundError)",
+    "yaml": "6.0.3",
+    "kagglehub": "1.0.2"
+  },
+  "paper_runtime_reference": {
+    "platform": "Kaggle Notebook",
+    "gpu": "T4x2 GPU",
+    "python": "3.12.3"
+  },
+  "note": "Package versions describe the machine that generated this report. Regenerate on Kaggle before a reproduction run."
+}

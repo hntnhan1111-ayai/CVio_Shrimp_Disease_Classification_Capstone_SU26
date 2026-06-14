@@ -1,0 +1,5 @@
+method: gradcam
+imgsz: 224
+examples_per_class: 1
+target_layer: auto_last_conv
+output_dir: artifacts/xai/generated

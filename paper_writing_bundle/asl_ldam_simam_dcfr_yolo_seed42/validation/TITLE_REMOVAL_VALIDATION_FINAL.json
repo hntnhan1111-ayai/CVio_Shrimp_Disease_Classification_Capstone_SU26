@@ -1,8 +1,0 @@
-{
-  "source_zip": "/mnt/data/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED_NO_TITLES_V2.zip",
-  "output_zip": "/mnt/data/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED_NO_TITLES_FINAL.zip",
-  "final_cleaning": [
-    "figures/training_curves/best_method_training_curves_top1_only.png"
-  ],
-  "note": "Final no-title package. Core figures regenerated without titles; training curve raster was top-cropped to remove remaining title/subplot-title text. Tables and metrics unchanged."
-}

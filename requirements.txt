@@ -1,0 +1,21 @@
+# Exact package versions are intentionally not fabricated.
+# Run `python scripts/99_env_report.py` in the Kaggle runtime to record them.
+kagglehub
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+opencv-python
+PyYAML
+tqdm
+Pillow
+torch
+torchvision
+ultralytics
+timm
+grad-cam
+pytest
+
+# Optional only for regenerating background-removed data:
+# rembg[cpu]

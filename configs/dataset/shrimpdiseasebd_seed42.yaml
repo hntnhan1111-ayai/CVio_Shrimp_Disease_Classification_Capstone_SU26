@@ -1,0 +1,35 @@
+dataset_id: uynnhy/processed-images
+dataset_name: processed-images
+seed: 42
+split_protocol: stratified_image_level_70_15_15
+reference_manifest: artifacts/manifests/split_manifest_seed42.csv
+image_extensions: [.jpg, .jpeg, .png, .bmp, .webp]
+classes:
+  - name: Healthy
+    label: 0
+    aliases: [Healthy, "1. Healthy"]
+    total: 403
+    train: 282
+    val: 60
+    test: 61
+  - name: BG
+    label: 1
+    aliases: [BG, "2. BG"]
+    total: 198
+    train: 139
+    val: 30
+    test: 29
+  - name: WSSV
+    label: 2
+    aliases: [WSSV, "3. WSSV"]
+    total: 328
+    train: 229
+    val: 49
+    test: 50
+  - name: WSSV_BG
+    label: 3
+    aliases: [WSSV_BG, "4. WSSV_BG"]
+    total: 220
+    train: 154
+    val: 33
+    test: 33

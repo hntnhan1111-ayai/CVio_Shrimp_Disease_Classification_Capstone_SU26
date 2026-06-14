@@ -1,0 +1,227 @@
+A  .gitattributes
+MM .gitignore
+A  CITATION.cff
+A  LICENSE
+M  README.md
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/baseline_ce_clean_confusion_matrix.csv -> artifacts/confusion_matrices/baseline_ce_clean_confusion_matrix.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/best_method_clean_confusion_matrix.csv -> artifacts/confusion_matrices/best_method_clean_confusion_matrix.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv -> artifacts/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/baselines/timm_baseline_macro_f1_seed42.png -> artifacts/figures/baselines/timm_baseline_macro_f1_seed42.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/baselines/yolo_baseline_macro_f1_seed42.png -> artifacts/figures/baselines/yolo_baseline_macro_f1_seed42.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/baseline_ce_clean_confusion_matrix.png -> artifacts/figures/confusion_matrices/baseline_ce_clean_confusion_matrix.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/best_method_clean_confusion_matrix.png -> artifacts/figures/confusion_matrices/best_method_clean_confusion_matrix.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.png -> artifacts/figures/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/timm_delta_macro_f1_seed42.png -> artifacts/figures/improvements/timm_delta_macro_f1_seed42.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/yolo26m_key_result_macro_f1_seed42.png -> artifacts/figures/improvements/yolo26m_key_result_macro_f1_seed42.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/yolo_delta_macro_f1_seed42.png -> artifacts/figures/improvements/yolo_delta_macro_f1_seed42.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/noise/best_method_top5_noise_macro_f1_by_severity.png -> artifacts/figures/noise/best_method_top5_noise_macro_f1_by_severity.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/noise/top5_noise_baseline_vs_best_mean_macro_f1.png -> artifacts/figures/noise/top5_noise_baseline_vs_best_mean_macro_f1.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/samples/sample_no_bg_4class_panel.png -> artifacts/figures/samples/sample_no_bg_4class_panel.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/source_evidence/timm_baseline_previous_seed42_table_screenshot.png -> artifacts/figures/source_evidence/timm_baseline_previous_seed42_table_screenshot.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/training_curves/best_method_training_curves_top1_only.png -> artifacts/figures/training_curves/best_method_training_curves_top1_only.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/figures/xai/xai_best_method_4class_grid.png -> artifacts/figures/xai/xai_best_method_4class_grid.png
+A  artifacts/logs_sample/README.md
+A  artifacts/logs_sample/environment_report.json
+A  artifacts/manifests/split_manifest_seed42.csv
+A  artifacts/predictions/README.md
+A  artifacts/tables/baselines/coverage_timm_seed42.csv
+A  artifacts/tables/baselines/coverage_yolo_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/timm_baseline_comparison_seed42.csv -> artifacts/tables/baselines/timm_baseline_comparison_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/yolo_baseline_comparison_seed42.csv -> artifacts/tables/baselines/yolo_baseline_comparison_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/classwise/best_method_classwise_metrics_seed42.csv -> artifacts/tables/classwise/best_method_classwise_metrics_seed42.csv
+A  artifacts/tables/classwise/best_method_classwise_overall_metrics_seed42.json
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/config/kaggle_reference_configuration_table.csv -> artifacts/tables/config/kaggle_reference_configuration_table.csv
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/baseline_ce_clean_confusion_matrix.csv -> artifacts/tables/confusion_matrices/baseline_ce_clean_confusion_matrix.csv
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/best_method_clean_confusion_matrix.csv -> artifacts/tables/confusion_matrices/best_method_clean_confusion_matrix.csv
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv -> artifacts/tables/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/dataset_class_distribution_total_seed42.csv -> artifacts/tables/dataset/dataset_class_distribution_total_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/dataset_split_distribution_long_seed42.csv -> artifacts/tables/dataset/dataset_split_distribution_long_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/dataset_split_distribution_table_seed42.csv -> artifacts/tables/dataset/dataset_split_distribution_table_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/efficiency/model_efficiency_summary_seed42.csv -> artifacts/tables/efficiency/model_efficiency_summary_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/efficiency/model_params_size_latency_fps_seed42.csv -> artifacts/tables/efficiency/model_params_size_latency_fps_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv -> artifacts/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv
+A  artifacts/tables/improvements/timm_best_method_vs_baseline_seed42.csv
+A  artifacts/tables/improvements/yolo_best_method_vs_baseline_seed42.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/best_method_top5_noise_by_severity.csv -> artifacts/tables/noise/best_method_top5_noise_by_severity.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/best_method_top5_noise_mean_summary.csv -> artifacts/tables/noise/best_method_top5_noise_mean_summary.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv -> artifacts/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/top5_noise_selection_from_ce_baseline.csv -> artifacts/tables/noise/top5_noise_selection_from_ce_baseline.csv
+A  artifacts/tables/sample_images/sample_image_selection.csv
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/README_XAI_BEST_ONLY.md -> artifacts/xai/metadata/README_XAI_BEST_ONLY.md
+A  artifacts/xai/metadata/xai_summary.csv
+A  artifacts/xai/metadata/xai_summary.json
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_BG__pred_BG__panel.png -> artifacts/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_BG__pred_BG__panel.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_Healthy__pred_Healthy__panel.png -> artifacts/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_Healthy__pred_Healthy__panel.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV_BG__pred_WSSV_BG__panel.png -> artifacts/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV_BG__pred_WSSV_BG__panel.png
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV__pred_WSSV__panel.png -> artifacts/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV__pred_WSSV__panel.png
+A  configs/dataset/shrimpdiseasebd_seed42.yaml
+A  configs/noise/top5_noise.yaml
+A  configs/train/yolo26m_asl_ldam_simam_dcfr.yaml
+A  configs/train/yolo26m_ce.yaml
+A  configs/xai/gradcam.yaml
+A  docs/ARTIFACT_INDEX.md
+A  docs/CLAIMS_AND_LIMITATIONS.md
+A  docs/DATA.md
+A  docs/ENVIRONMENT.md
+A  docs/MODEL_CARD.md
+A  docs/REPRODUCE.md
+A  docs/RESULTS.md
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/paper_ready_summary/CORRECTIONS_AND_SOURCES.md -> docs/maintenance/legacy/CORRECTIONS_AND_SOURCES.md
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/PACKAGE_VALIDATION.json -> docs/maintenance/legacy/PACKAGE_VALIDATION.json
+R  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/TITLE_REMOVAL_VALIDATION_FINAL.json -> docs/maintenance/legacy/TITLE_REMOVAL_VALIDATION_FINAL.json
+A  docs/maintenance/post_refactor_file_inventory.txt
+AM docs/maintenance/post_refactor_git_status.txt
+A  docs/maintenance/post_refactor_largest_files.txt
+AM docs/maintenance/pre_refactor_file_inventory.txt
+AM docs/maintenance/pre_refactor_git_status.txt
+AM docs/maintenance/pre_refactor_largest_files.txt
+A  environment.yml
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/collect_v5_timm_results.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/collect_v5_yolo_timm_all_results.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/README.md
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/collect_v5_all_results.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/inspect_v5_one_model_results.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_full_all_yolo_models.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_full_one_model.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_smoke_all_yolo_models.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_smoke_one_model.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/verify_v5_stage1_split.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/inspect_v5_timm_one_model_results.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_full_all_models.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_full_one_model.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_smoke_all_models.sh
+D  experiments/asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_smoke_one_model.sh
+A  experiments/legacy_reference/README.md
+R  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/final_loss_cbam_top5_noise_stage1split_native_yolo_runner_v5.py -> experiments/legacy_reference/final_loss_cbam_top5_noise_stage1split_native_yolo_runner_v5.py
+R  experiments/asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_stage1split_timm_runner_v5.py -> experiments/legacy_reference/final_loss_cbam_top5_noise_stage1split_timm_runner_v5.py
+A  experiments/noise_robustness/README.md
+A  experiments/stage1_timm_baselines/README.md
+A  experiments/stage1_yolo_baselines/README.md
+A  experiments/yolo26m_asl_ldam_simam_dcfr/README.md
+A  notebooks/README.md
+A  notebooks/final_yolo26m_improvements_stage1_reference_rtx4090.ipynb
+A  notebooks/stage1_timm16_shrimpxnet_baseline_reference.ipynb
+A  paper/README_paper_scope.md
+D  paper/asl_ldam_simam_dcfr_yolo_seed42/README_paper_scope.md
+A  paper/figures/README.md
+RM paper/asl_ldam_simam_dcfr_yolo_seed42/paper_title_latex.tex -> paper/latex/paper_title_latex.tex
+A  paper/tables/README.md
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/CLAIMS_AND_LIMITATIONS.md -> paper/writing_bundle/CLAIMS_AND_LIMITATIONS_LEGACY.md
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/FIGURE_INDEX.md -> paper/writing_bundle/FIGURE_INDEX.md
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/PAPER_WRITING_BRIEF.md -> paper/writing_bundle/PAPER_WRITING_BRIEF.md
+R  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/TABLE_INDEX.md -> paper/writing_bundle/TABLE_INDEX.md
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/PACKAGE_MANIFEST.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/README.md
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/README_CURATED_PAPER_PACKAGE.md
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/TITLE_REMOVAL_NOTE.md
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/TITLE_REMOVAL_VALIDATION.json
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/TITLE_REMOVAL_VALIDATION_REVIEWED.json
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/BG__BG-1-img-1_nobg.png
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/Healthy__Healthy-1-img-1_nobg.png
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/WSSV_BG__WSSV_BG-1-img-1_nobg.png
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/WSSV__WSSV-1-img-1_nobg.png
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/coverage_timm_seed42.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/coverage_yolo_seed42.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/classwise/best_method_classwise_overall_metrics_seed42.json
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/config/kaggle_reference_configuration_table.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/split_manifest_source.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/timm_best_method_vs_baseline_seed42.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/yolo_best_method_vs_baseline_seed42.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/tables/sample_images/sample_image_selection.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/README_XAI_BEST_ONLY.md
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/xai_summary.csv
+D  paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/xai_summary.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/README_PAPER_WRITING_BUNDLE.md
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/code_reference/README.md
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/code_reference/collect_v5_yolo_timm_all_results.sh
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/code_reference/final_loss_cbam_top5_noise_stage1split_native_yolo_runner_v5.py
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/code_reference/final_loss_cbam_top5_noise_stage1split_timm_runner_v5.py
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/baselines/timm_baseline_macro_f1_seed42.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/baselines/yolo_baseline_macro_f1_seed42.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/baseline_ce_clean_confusion_matrix.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/best_method_clean_confusion_matrix.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/timm_delta_macro_f1_seed42.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/yolo26m_key_result_macro_f1_seed42.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/improvements/yolo_delta_macro_f1_seed42.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/noise/best_method_top5_noise_macro_f1_by_severity.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/noise/top5_noise_baseline_vs_best_mean_macro_f1.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/samples/sample_no_bg_4class_panel.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/training_curves/best_method_training_curves_top1_only.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/figures/xai/xai_best_method_4class_grid.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/BG__BG-1-img-1_nobg.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/Healthy__Healthy-1-img-1_nobg.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/WSSV_BG__WSSV_BG-1-img-1_nobg.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/images/sample_no_bg/WSSV__WSSV-1-img-1_nobg.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/source_evidence/CORRECTIONS_AND_SOURCES.md
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/source_evidence/timm_baseline_previous_seed42_table_screenshot.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/timm_baseline_comparison_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/baselines/yolo_baseline_comparison_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/classwise/best_method_classwise_metrics_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/classwise/best_method_classwise_overall_metrics_seed42.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/dataset_class_distribution_total_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/dataset/dataset_split_distribution_table_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/efficiency/model_efficiency_summary_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/efficiency/model_params_size_latency_fps_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/timm_best_method_vs_baseline_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/improvements/yolo_best_method_vs_baseline_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/best_method_top5_noise_by_severity.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/tables/noise/top5_noise_selection_from_ce_baseline.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/title/README_paper_scope.md
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/title/paper_title_latex.tex
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/PACKAGE_MANIFEST.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/PACKAGE_VALIDATION.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/TITLE_REMOVAL_VALIDATION_FINAL.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/TITLE_REMOVAL_VALIDATION_REVIEWED.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/coverage_timm_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/validation/coverage_yolo_seed42.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/xai_summary.csv
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/metadata/xai_summary.json
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_BG__pred_BG__panel.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_Healthy__pred_Healthy__panel.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV_BG__pred_WSSV_BG__panel.png
+D  paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/xai/panels/yolo26m-cls__asl_ldam_simam_dcfr_top1__seed42__true_WSSV__pred_WSSV__panel.png
+A  requirements.txt
+A  scripts/00_download_dataset.py
+A  scripts/00_download_dataset.sh
+A  scripts/01_make_seed42_split.sh
+A  scripts/02_run_yolo_baselines.sh
+A  scripts/03_run_timm_baselines.sh
+A  scripts/04_run_yolo26m_asl_ldam.sh
+A  scripts/05_run_noise_eval.sh
+A  scripts/06_run_xai.sh
+A  scripts/07_collect_paper_results.sh
+A  scripts/99_env_report.py
+D  scripts/build_paper_writing_bundle_seed42.py
+A  src/cvio_asl_ldam/__init__.py
+A  src/cvio_asl_ldam/attention/__init__.py
+A  src/cvio_asl_ldam/attention/cbam.py
+A  src/cvio_asl_ldam/attention/patch_yolo.py
+A  src/cvio_asl_ldam/attention/simam_dcfr.py
+A  src/cvio_asl_ldam/evaluation/__init__.py
+A  src/cvio_asl_ldam/evaluation/confusion_matrix.py
+A  src/cvio_asl_ldam/evaluation/metrics.py
+A  src/cvio_asl_ldam/evaluation/robustness.py
+A  src/cvio_asl_ldam/losses/__init__.py
+A  src/cvio_asl_ldam/losses/asl_ldam.py
+A  src/cvio_asl_ldam/losses/balanced_softmax.py
+A  src/cvio_asl_ldam/losses/focal_variants.py
+A  src/cvio_asl_ldam/models/__init__.py
+A  src/cvio_asl_ldam/models/timm_train.py
+A  src/cvio_asl_ldam/models/yolo_train.py
+A  src/cvio_asl_ldam/utils/__init__.py
+A  src/cvio_asl_ldam/utils/io.py
+A  src/cvio_asl_ldam/utils/paths.py
+A  src/cvio_asl_ldam/utils/seed.py
+A  src/cvio_asl_ldam/xai/__init__.py
+A  src/cvio_asl_ldam/xai/gradcam_runner.py
+A  tests/test_attention_patch.py
+A  tests/test_loss_shapes.py
+A  tests/test_noise_corruptions.py
+A  tests/test_split_no_leakage.py
+?? src/cvio_asl_ldam/data/__init__.py
+?? src/cvio_asl_ldam/data/audit_dataset.py
+?? src/cvio_asl_ldam/data/corruptions.py
+?? src/cvio_asl_ldam/data/make_split.py

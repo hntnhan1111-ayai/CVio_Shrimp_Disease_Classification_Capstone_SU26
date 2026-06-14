@@ -1,0 +1,33 @@
+
+SizeBytes Path
+--------- ----
+  1098998 review_artifacts/final_yolo26m_improvements_against_stage1_baseline_for_review.zip
+   450996 review_artifacts/stage1_yolo_baseline_match_run_all_for_review.zip
+   441345 review_artifacts/stage1_timm16_shrimpxnet_for_review.zip
+    43544 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_stage1split_timm_runner_v5.py
+    36961 stage1_baselines/stage1_timm16_shrimpxnet_baseline.ipynb
+    33008 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/final_loss_cbam_top5_noise_stage1split_native_yolo_runner_v5.py
+    27697 stage1_baselines/stage1_yolo_baseline_match_run_all.py
+    22068 yolo26m_asl_ldam/final_yolo26m_improvements_stage1_reference_runner.py
+    17237 docs/maintenance/pre_refactor_git_status.txt
+    10931 yolo26m_asl_ldam/patch_yolo_attention_injection_v2.py
+     8612 README.md
+     3524 yolo26m_asl_ldam/final_yolo26m_improvements_stage1_reference_rtx4090.ipynb
+     3472 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/collect_v5_all_results.sh
+     3452 asl_ldam_simam_dcfr_yolo_seed42/collect_v5_timm_results.sh
+     3441 asl_ldam_simam_dcfr_yolo_seed42/collect_v5_yolo_timm_all_results.sh
+     3341 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_full_one_model.sh
+     2808 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_smoke_one_model.sh
+     2576 .gitignore
+     2304 docs/maintenance/pre_refactor_file_inventory.txt
+     2102 asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_full_one_model.sh
+     2077 asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_smoke_one_model.sh
+     1840 asl_ldam_simam_dcfr_yolo_seed42/inspect_v5_timm_one_model_results.sh
+     1655 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/README.md
+     1635 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/verify_v5_stage1_split.sh
+     1441 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/inspect_v5_one_model_results.sh
+     1211 asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_full_all_models.sh
+     1179 asl_ldam_simam_dcfr_yolo_seed42/run_v5_timm_smoke_all_models.sh
+      856 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_smoke_all_yolo_models.sh
+      851 asl_ldam_simam_dcfr_yolo_seed42/final_loss_cbam_top5_noise_v5_stage1split_native_yolo_pack/run_v5_full_all_yolo_models.sh
+      764 stage1_baselines/run_stage1_yolo_baseline_match_run_all.sh

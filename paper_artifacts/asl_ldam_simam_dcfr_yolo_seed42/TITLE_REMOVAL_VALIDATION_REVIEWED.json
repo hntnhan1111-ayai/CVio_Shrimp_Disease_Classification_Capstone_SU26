@@ -1,8 +1,0 @@
-{
-  "source_zip": "/mnt/data/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED_NO_TITLES_FINAL.zip",
-  "output_zip": "/mnt/data/CVIO_FINAL_PAPER_ARTIFACTS_CURATED_FIXED_NO_TITLES_REVIEWED.zip",
-  "additional_cleaning": [
-    "figures/training_curves/best_method_training_curves_top1_only.png"
-  ],
-  "note": "Reviewed no-title package: remaining title fragments removed from training curve. Metrics/tables unchanged."
-}
