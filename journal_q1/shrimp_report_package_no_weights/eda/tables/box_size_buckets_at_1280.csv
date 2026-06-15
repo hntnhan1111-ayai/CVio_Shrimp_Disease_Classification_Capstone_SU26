@@ -1,0 +1,3 @@
+canonical_cls_name,large(>=96^2),medium(32^2-96^2),small(<32^2)
+BG,95,1137,889
+WSSV,33,1162,2253

@@ -1,0 +1,4 @@
+source_group,images,total_boxes,mean_boxes_per_image,median_boxes_per_image,max_boxes_per_image
+BG,198,510,2.5757575757575757,2.0,23
+WSSV,328,3035,9.253048780487806,7.0,44
+WSSV_BG,220,2024,9.2,8.0,27

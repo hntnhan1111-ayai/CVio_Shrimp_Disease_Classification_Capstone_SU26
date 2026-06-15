@@ -1,0 +1,2 @@
+import { useState } from "react";
+export function ImageFigure({src,caption}:{src:string;caption:string}) { const [failed,setFailed]=useState(false); return <figure className="figure">{failed?<div className="missing">Artifact unavailable: {caption}</div>:<a href={src} target="_blank" rel="noreferrer"><img src={src} alt={caption} loading="lazy" onError={()=>setFailed(true)}/></a>}<figcaption>{caption}</figcaption></figure>; }

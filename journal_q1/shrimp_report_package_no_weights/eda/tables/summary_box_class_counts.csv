@@ -1,0 +1,3 @@
+canonical_cls_name,boxes,images_containing_class,mean_w_px,median_w_px,mean_h_px,median_h_px,mean_area_px2,median_area_px2
+BG,2121,418,68.94082979726544,56.5,66.9974068835455,58.5,6119.661362564828,3274.5
+WSSV,3448,546,47.61905452436195,36.5,47.05742459396752,38.0,2988.441560324826,1429.75
