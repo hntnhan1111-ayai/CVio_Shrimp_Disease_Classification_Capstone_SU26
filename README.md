@@ -48,6 +48,23 @@ The raw ShrimpDiseaseImageBD dataset is not committed. Only derived EDA/report a
 
 The package and notebooks document the current 30-epoch screening. Journal-grade experiments should train the top candidates for 100–200 epochs, use multiple seeds, tune thresholds only on validation data, evaluate the final test set once, and report device-specific latency and model footprint. The next system component should be a Healthy classification gate followed by disease-region detection and BG/WSSV evidence aggregation.
 
+## Latest OD 100-Epoch Canonical Benchmark
+
+The latest canonical object-detection report is available at:
+
+```text
+journal_q1/journal_q1_od_100ep_report/index.html
+```
+
+Key result summary:
+
+- Best detector localization: `yolov9t`.
+- Best mobile-balanced candidate: `yolov5nu`.
+- Best image-level diagnosis from detection evidence: `yolov8s`.
+- mAP remains low across the 14-model, 100-epoch benchmark, so this is not a deployment-readiness result.
+
+Recommended next work: validation-only threshold tuning, 640/1024/1280 resolution ablation, small-object interventions, a Healthy classification gate, and Android latency benchmarking.
+
 ## Citation and acknowledgments
 
 - ShrimpDiseaseImageBD dataset citation: **TODO: insert the verified dataset citation supplied by the dataset authors.**

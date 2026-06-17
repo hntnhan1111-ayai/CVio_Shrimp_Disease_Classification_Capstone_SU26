@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShrimpDiseaseImageBD Canonical OD Benchmark</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="data/report-data.js"></script>
+  <style>
+    :root{--bg:#f4f7f6;--ink:#13272e;--muted:#647a80;--panel:#ffffff;--line:#d8e4e1;--blue:#2563eb;--teal:#0f9f8f;--green:#168451;--amber:#b7791f;--red:#b42318;--dark:#102a31}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at 10% 0,#dff5ef 0,transparent 28rem),var(--bg);color:var(--ink)}a{color:inherit}.top{position:sticky;top:0;z-index:10;display:flex;gap:22px;align-items:center;justify-content:space-between;padding:14px max(22px,calc((100vw - 1320px)/2));background:rgba(16,42,49,.96);color:#fff;border-bottom:1px solid #24444c}.brand{font-weight:900;letter-spacing:.08em}.nav{display:flex;gap:14px;overflow:auto}.nav a{text-decoration:none;font-size:.78rem;color:#c3d6d9;white-space:nowrap}.nav a:hover{color:white}main{max-width:1320px;margin:auto;padding:0 22px 80px}section{padding:64px 0;border-bottom:1px solid var(--line);scroll-margin-top:72px}.hero{padding-top:86px}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-weight:900;color:var(--teal);font-size:.76rem}h1{font-family:Georgia,serif;font-size:clamp(2.5rem,5vw,5.2rem);line-height:.98;margin:16px 0;color:#102b33;letter-spacing:-.045em}h2{font-family:Georgia,serif;font-size:clamp(2rem,3.5vw,3.2rem);margin:0 0 8px;color:#16343b}h3{margin:0 0 12px}.lede{font-size:1.25rem;line-height:1.55;max-width:880px;color:#4d666d}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:34px 0}.card,.panel,.chart,.tablebox,.imgcard{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 28px rgba(22,56,62,.06)}.card{padding:20px;min-height:126px}.card span{display:block;color:var(--muted);font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.card b{display:block;margin-top:16px;font-family:Georgia,serif;font-size:1.9rem}.card small{display:block;margin-top:8px;color:var(--muted)}.notice{padding:17px 19px;border-radius:10px;line-height:1.55;margin:18px 0;border-left:5px solid}.notice.warn{background:#fff7df;color:#5d410a;border-color:var(--amber)}.notice.info{background:#e8f3ff;color:#174a7c;border-color:var(--blue)}.notice.good{background:#e6f6ee;color:#155d3b;border-color:var(--green)}.notice.bad{background:#fff0ee;color:#7a1f18;border-color:var(--red)}.section-title{display:flex;gap:18px;align-items:flex-start;margin-bottom:24px}.section-title .num{font-family:Georgia,serif;color:var(--teal);border-top:2px solid var(--teal);padding-top:5px}.section-title p{margin:0;color:var(--muted)}.grid2,.grid3,.chartgrid,.imagegrid{display:grid;gap:18px}.grid2{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(3,1fr)}.chartgrid{grid-template-columns:repeat(2,1fr)}.panel{padding:22px;line-height:1.7}.panel li{margin-bottom:7px}.tablebox{overflow:hidden;margin-top:18px}.tablehead{display:flex;gap:14px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}.tablehead input,.selector select{border:1px solid #bfd0cc;border-radius:8px;padding:9px 11px;background:#fff;min-width:220px}.scroll{overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse;font-size:.84rem}th,td{padding:11px 13px;border-bottom:1px solid #e5ecea;white-space:nowrap;text-align:left}th{position:sticky;top:0;background:#17363e;color:#edf7f5;cursor:pointer;text-transform:capitalize}tr.highlight-detector{background:#e8f3ff}tr.highlight-mobile{background:#e8f8f2}tr.highlight-diagnosis{background:#fff7df}tr.highlight-warn{background:#fff0ee}.chart{padding:16px;min-height:380px}.plot{height:330px}.selector{display:flex;justify-content:space-between;gap:16px;align-items:center;margin:20px 0}.metriclist{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:#f4faf8;border:1px solid #d7e8e4;padding:10px;border-radius:9px}.mini span{display:block;color:var(--muted);font-size:.76rem}.mini b{font-size:1.05rem}.imagegrid{grid-template-columns:repeat(3,1fr)}.imgcard{overflow:hidden}.imgcard img{display:block;width:100%;height:auto}.imgcard .missing{padding:70px 15px;text-align:center;color:#8a4b12;background:#fff8e8}.imgcard figcaption{padding:12px 14px;color:var(--muted);text-transform:capitalize}.badge{display:inline-block;border-radius:99px;padding:5px 10px;font-weight:800;font-size:.78rem;margin:3px;background:#e7eeee;color:#24464d}.badge.good{background:#dff7eb;color:#14603c}.badge.warn{background:#fff1cc;color:#6a4500}.badge.blue{background:#dfeeff;color:#174a86}.footer{padding:32px;text-align:center;color:#adc5ca;background:var(--dark)}.source{font-family:Consolas,monospace;font-size:.82rem;color:#49656c}.static-plots{grid-template-columns:repeat(3,1fr)}@media(max-width:980px){.nav{display:none}.cards,.grid3,.imagegrid,.static-plots{grid-template-columns:repeat(2,1fr)}.grid2,.chartgrid{grid-template-columns:1fr}.metriclist{grid-template-columns:repeat(2,1fr)}}@media(max-width:680px){main{padding:0 14px}.cards,.grid3,.imagegrid,.static-plots,.metriclist{grid-template-columns:1fr}.hero{padding-top:52px}.tablehead,.selector{display:block}.tablehead input,.selector select{width:100%;margin-top:10px}}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">SHRIMP OD · 100EP CANONICAL</div>
+    <nav class="nav">
+      <a href="#summary">Summary</a><a href="#dataset">Dataset</a><a href="#detector">Detector</a><a href="#diagnosis">Diagnosis</a><a href="#mobile">Mobile</a><a href="#charts">Charts</a><a href="#diagnostics">Diagnostics</a><a href="#interpretation">Interpretation</a><a href="#next">Next</a><a href="#limitations">Limitations</a>
+    </nav>
+  </header>
+  <main>
+    <section id="summary" class="hero">
+      <div class="eyebrow">Canonical object detection benchmark · 70/15/15 split · seed 42</div>
+      <h1>ShrimpDiseaseImageBD Canonical OD Benchmark: 14 YOLO Models, 100 Epochs</h1>
+      <p class="lede">BG/WSSV lesion detection under canonical labels and 70/15/15 split. This report reviews detector localization, image-level diagnosis from detection evidence, and mobile/edge trade-offs without claiming deployment readiness.</p>
+      <div class="cards" id="summaryCards"></div>
+      <div class="notice bad"><b>Key warning:</b> mAP remains low after canonical remapping and 100 epochs. Best mAP50-95 is about 0.0439 and best mAP50 is about 0.1463, so precise disease-region localization is still unresolved.</div>
+    </section>
+
+    <section id="dataset">
+      <div class="section-title"><span class="num">01</span><div><h2>Dataset and Label Canonicalization</h2><p>Final detector classes are canonical BG and WSSV regions only.</p></div></div>
+      <div class="grid2">
+        <article class="panel">
+          <h3>Canonical task definition</h3>
+          <p><span class="badge blue">0 = BG</span><span class="badge blue">1 = WSSV</span></p>
+          <ul>
+            <li><b>WSSV_BG</b> is not a bbox class; it is an image-level diagnosis inferred from co-occurrence of BG and WSSV detections.</li>
+            <li><b>Healthy</b> is not an OD class and should be handled by a later classifier gate/head.</li>
+            <li>This benchmark is valid only after canonical remapping. Training directly on original source IDs would use the wrong target semantics.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3>Training protocol</h3>
+          <p id="protocolText"></p>
+          <p class="source">Source: data/configs/train_config.json and final_model_comparison_14models_100ep_canonical.csv</p>
+        </article>
+      </div>
+      <div id="auditTable"></div>
+    </section>
+
+    <section id="detector">
+      <div class="section-title"><span class="num">02</span><div><h2>Detector Ranking</h2><p>Sorted by strict localization quality, mAP50-95.</p></div></div>
+      <div class="notice info"><b>Best detector localization:</b> yolov9t with mAP50-95 = 0.0439, mAP50 = 0.1414, AP_BG = 0.0526, AP_WSSV = 0.0353, about 228.16 FPS, and about 4.51 MB. <b>Best mAP50 and AP_WSSV:</b> yolo26s, but it is heavier and weaker for diagnosis/miss-rate than yolov9t.</div>
+      <div id="detectorTable"></div>
+    </section>
+
+    <section id="diagnosis">
+      <div class="section-title"><span class="num">03</span><div><h2>Diagnosis Ranking</h2><p>Image-level disease diagnosis aggregated from detection evidence at conf=0.25.</p></div></div>
+      <div class="notice good"><b>Best image-level diagnosis:</b> yolov8s with Macro-F1 = 0.7753 and disease miss rate = 0.0541. Its mAP50-95 is only 0.0348, so it is not the best localization model.</div>
+      <div class="notice info">Diagnosis F1 and detector mAP can disagree because co-occurrence aggregation only needs class evidence somewhere in the image. mAP50-95 penalizes precise box localization across strict IoU thresholds, which is much harder for small WSSV spots.</div>
+      <div id="diagnosisTable"></div>
+    </section>
+
+    <section id="mobile">
+      <div class="section-title"><span class="num">04</span><div><h2>Mobile / Edge Trade-off</h2><p>Sorted by candidate_score, a dashboard helper balancing quality, diagnosis, size, speed, and miss rate.</p></div></div>
+      <div class="notice good"><b>Best mobile-balanced candidate:</b> yolov5nu with candidate_score = 0.4077, mAP50-95 = 0.0406, diagnosis Macro-F1 = 0.6797, disease miss rate = 0.1351, about 211.66 FPS, and about 5.11 MB.</div>
+      <div class="notice warn"><b>Fastest is not best:</b> yolov10n is fast, but its high disease miss rate and weak diagnosis make it unreliable for the next main improvement stage.</div>
+      <div id="mobileTable"></div>
+    </section>
+
+    <section id="charts">
+      <div class="section-title"><span class="num">05</span><div><h2>Interactive Charts</h2><p>Charts are generated from the final benchmark CSV embedded in this report.</p></div></div>
+      <div class="chartgrid">
+        <article class="chart"><h3>mAP50-95 vs FPS</h3><div id="chartMapFps" class="plot"></div></article>
+        <article class="chart"><h3>mAP50 vs mAP50-95</h3><div id="chartMapStrict" class="plot"></div></article>
+        <article class="chart"><h3>Diagnosis Macro-F1 vs Model Size</h3><div id="chartDiagSize" class="plot"></div></article>
+        <article class="chart"><h3>Disease Miss Rate vs Diagnosis Macro-F1</h3><div id="chartMissDiag" class="plot"></div></article>
+        <article class="chart"><h3>AP_BG vs AP_WSSV</h3><div id="chartAp" class="plot"></div></article>
+        <article class="chart"><h3>Model Size vs FPS</h3><div id="chartSizeFps" class="plot"></div></article>
+        <article class="chart"><h3>candidate_score Ranking</h3><div id="chartCandidate" class="plot"></div></article>
+        <article class="chart"><h3>Detector mAP50-95 Ranking</h3><div id="chartDetectorRank" class="plot"></div></article>
+        <article class="chart"><h3>Diagnosis Macro-F1 Ranking</h3><div id="chartDiagnosisRank" class="plot"></div></article>
+      </div>
+      <h3 style="margin-top:26px">Packaged static plots</h3>
+      <div class="imagegrid static-plots">
+        <figure class="imgcard"><img src="assets/plots/map50_95_vs_fps.png" alt="mAP50-95 vs FPS packaged plot"><figcaption>mAP50-95 vs FPS</figcaption></figure>
+        <figure class="imgcard"><img src="assets/plots/map50_vs_map50_95.png" alt="mAP50 vs mAP50-95 packaged plot"><figcaption>mAP50 vs mAP50-95</figcaption></figure>
+        <figure class="imgcard"><img src="assets/plots/diag_f1_vs_model_size.png" alt="Diagnosis F1 vs model size packaged plot"><figcaption>Diagnosis F1 vs model size</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="diagnostics">
+      <div class="section-title"><span class="num">06</span><div><h2>Per-model Diagnostic Viewer</h2><p>Test diagnostic plots and run metrics for each model.</p></div></div>
+      <div class="selector"><label><b>Choose model</b> <select id="modelSelect"></select></label></div>
+      <div class="panel">
+        <h3 id="selectedTitle"></h3>
+        <div class="metriclist" id="selectedMetrics"></div>
+      </div>
+      <div class="imagegrid" id="diagnosticImages"></div>
+    </section>
+
+    <section id="interpretation">
+      <div class="section-title"><span class="num">07</span><div><h2>Qualitative Model Interpretation</h2><p>Critical reading of the benchmark rather than a table-only ranking.</p></div></div>
+      <div class="grid2">
+        <article class="panel">
+          <h3>Model-specific interpretation</h3>
+          <ul>
+            <li><b>yolov9t:</b> best detector and best strict localization in this benchmark, with strong speed and small size.</li>
+            <li><b>yolo26s:</b> strongest mAP50 and AP_WSSV, but heavier and weaker for diagnosis/miss-rate than yolov9t.</li>
+            <li><b>yolov5nu:</b> best edge-oriented balance by candidate_score.</li>
+            <li><b>yolov8s:</b> best image-level diagnosis, but poor box localization.</li>
+            <li><b>yolov10n:</b> fastest but high disease miss rate, so it should not lead the improvement stage.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3>Scientific interpretation</h3>
+          <p>Low mAP across all models suggests the bottleneck is not simply insufficient epochs. Small-object localization, especially WSSV spots, likely limits strict-IoU performance. Image-level diagnosis can be much higher because it depends on class evidence and co-occurrence aggregation, not exact lesion boundaries.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="next">
+      <div class="section-title"><span class="num">08</span><div><h2>Next-stage Plan</h2><p>Recommended experiments before any Q1-grade claim.</p></div></div>
+      <div class="grid3">
+        <article class="panel"><h3>HPO shortlist</h3><p><span class="badge good">yolov9t</span><span class="badge good">yolov5nu</span><span class="badge good">yolov8s</span></p><p>Optional if compute allows: <span class="badge blue">yolo26s</span><span class="badge blue">yolov5su</span></p></article>
+        <article class="panel"><h3>Remove from main HPO</h3><p><span class="badge warn">yolov10n</span><span class="badge warn">yolov10s</span><span class="badge warn">yolo26n</span><span class="badge warn">yolo11n</span></p><p>Reasons: weak detection/diagnosis and/or high disease miss rate.</p></article>
+        <article class="panel"><h3>Validation-only tuning</h3><p>conf ∈ {0.005, 0.01, 0.03, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30}</p><p>Do not tune on test metrics.</p></article>
+      </div>
+      <div class="grid2" style="margin-top:18px">
+        <article class="panel"><h3>Small-object and resolution work</h3><ul><li>imgsz ∈ {640, 1024, 1280}</li><li>SAHI/sliced inference</li><li>sliced fine-tuning</li><li>high-resolution crop strategy</li></ul></article>
+        <article class="panel"><h3>Hybrid deployment evidence</h3><ul><li>Healthy-vs-disease classifier before detector</li><li>Android benchmark on a fixed 50-image set</li><li>3 Android phones</li><li>model-only and end-to-end latency</li><li>report mean, std, P50, P95, and FPS</li></ul></article>
+      </div>
+    </section>
+
+    <section id="limitations">
+      <div class="section-title"><span class="num">09</span><div><h2>Limitations</h2><p>What this benchmark does not yet prove.</p></div></div>
+      <div class="notice bad">No deployment-readiness claim should be made from these results.</div>
+      <div class="panel">
+        <ul>
+          <li>Single seed only.</li>
+          <li>Single 70/15/15 split only.</li>
+          <li>No validation-threshold tuning yet.</li>
+          <li>No Healthy gate yet.</li>
+          <li>No Android benchmark yet.</li>
+          <li>No SAHI/sliced inference or sliced fine-tuning yet.</li>
+          <li>mAP is low, so precise disease-region localization remains an open problem.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">Static report · ShrimpDiseaseImageBD canonical BG/WSSV OD · safe artifacts only</footer>
+
+  <script>
+    const D = window.REPORT_DATA;
+    const rows = D.finalRows.map(r => Object.fromEntries(Object.entries(r).map(([k,v]) => [k, isFinite(Number(v)) && v !== "" ? Number(v) : v])));
+    const n = v => Number(v);
+    const f3 = v => Number.isFinite(n(v)) ? n(v).toFixed(3) : "N/A";
+    const f4 = v => Number.isFinite(n(v)) ? n(v).toFixed(4) : "N/A";
+    const f1 = v => Number.isFinite(n(v)) ? n(v).toFixed(1) : "N/A";
+    const f2 = v => Number.isFinite(n(v)) ? n(v).toFixed(2) : "N/A";
+    const diagKey = "diagnosis_macro_f1_disease_only_conf0.25";
+    const missKey = "disease_miss_rate_no_det_conf0.25";
+    const accKey = "diagnosis_accuracy_disease_only_conf0.25";
+    const kappaKey = "diagnosis_kappa_disease_only_conf0.25";
+    const byMax = key => [...rows].sort((a,b)=>n(b[key])-n(a[key]))[0];
+    const byMin = key => [...rows].sort((a,b)=>n(a[key])-n(b[key]))[0];
+    const bestDetector = byMax("map50_95");
+    const bestMap50 = byMax("map50");
+    const bestMobile = byMax("candidate_score");
+    const bestDiag = byMax(diagKey);
+    const fastest = byMax("fps_total");
+    const okCount = rows.filter(r => r.status === "ok" && n(r.epochs_recorded) === 100).length;
+
+    function card(label, value, note="") { return `<article class="card"><span>${label}</span><b>${value}</b>${note ? `<small>${note}</small>` : ""}</article>`; }
+    document.getElementById("summaryCards").innerHTML = [
+      card("Models completed", `${okCount}/14`, "status=ok · epochs_recorded=100"),
+      card("Image size", "1024", "batch=8 · seed=42"),
+      card("Split", "70/15/15", "train/val/test"),
+      card("Best detector", bestDetector.model, `mAP50-95 ${f4(bestDetector.map50_95)}`),
+      card("Best mobile-balanced", bestMobile.model, `score ${f4(bestMobile.candidate_score)}`),
+      card("Best diagnosis", bestDiag.model, `Macro-F1 ${f4(bestDiag[diagKey])}`),
+      card("Fastest FPS", fastest.model, `${f1(fastest.fps_total)} FPS`),
+      card("mAP warning", "Low", "localization bottleneck remains")
+    ].join("");
+
+    document.getElementById("protocolText").innerHTML = `<b>${rows.length} YOLO models</b>, <b>100 epochs</b>, imgsz=<b>${bestDetector.imgsz}</b>, batch=<b>${bestDetector.batch}</b>, seed=<b>${bestDetector.seed}</b>. All 14 models completed successfully.`;
+
+    function makeTable(id, data, cols, formatters={}, highlight=()=>"", title="") {
+      const box = document.createElement("div");
+      box.className = "tablebox";
+      box.innerHTML = `<div class="tablehead"><h3>${title}</h3><input placeholder="Search table" aria-label="Search ${title}"></div><div class="scroll"><table><thead><tr>${cols.map(c=>`<th data-col="${c}">${c.replaceAll("_"," ")}</th>`).join("")}</tr></thead><tbody></tbody></table></div>`;
+      document.getElementById(id).appendChild(box);
+      const input = box.querySelector("input"), tbody = box.querySelector("tbody");
+      let state = {data:[...data], sort:null, dir:1};
+      const fmt = (c,v) => formatters[c] ? formatters[c](v) : (Number.isFinite(n(v)) ? (Number.isInteger(n(v)) ? String(v) : f3(v)) : (v ?? "N/A"));
+      function render(){
+        const q = input.value.toLowerCase();
+        tbody.innerHTML = state.data.filter(r => JSON.stringify(r).toLowerCase().includes(q)).map(r => `<tr class="${highlight(r)}">${cols.map(c=>`<td>${fmt(c,r[c])}</td>`).join("")}</tr>`).join("");
+      }
+      box.querySelectorAll("th").forEach(th => th.onclick = () => {
+        const c = th.dataset.col; state.dir = state.sort === c ? -state.dir : 1; state.sort = c;
+        state.data.sort((a,b) => Number.isFinite(n(a[c])) && Number.isFinite(n(b[c])) ? state.dir*(n(a[c])-n(b[c])) : state.dir*String(a[c]).localeCompare(String(b[c])));
+        render();
+      });
+      input.oninput = render; render();
+    }
+
+    const pctFmt = v => f3(v);
+    const mbFmt = v => `${f2(v)} MB`;
+    const fpsFmt = v => f1(v);
+    makeTable("auditTable", D.auditRows, ["split","images","labels","empty_labels","total_boxes","BG_boxes","WSSV_boxes","bad_labels"], {}, () => "", "Canonical dataset audit before training");
+    makeTable("detectorTable", [...rows].sort((a,b)=>b.map50_95-a.map50_95), ["model","map50","map50_95","map75","ap_BG","ap_WSSV","precision_mp","recall_mr","train_best_epoch"], {map50:f4,map50_95:f4,map75:f4,ap_BG:f4,ap_WSSV:f4,precision_mp:pctFmt,recall_mr:pctFmt}, r => r.model==="yolov9t" ? "highlight-detector" : r.model==="yolo26s" ? "highlight-mobile" : "", "Detector metrics");
+    makeTable("diagnosisTable", [...rows].sort((a,b)=>b[diagKey]-a[diagKey]), ["model",diagKey,accKey,kappaKey,missKey,"recall_BG_diag_conf0.25","recall_WSSV_diag_conf0.25","recall_WSSV_BG_diag_conf0.25"], {[diagKey]:f4,[accKey]:f4,[kappaKey]:f4,[missKey]:f4}, r => r.model==="yolov8s" ? "highlight-diagnosis" : "", "Diagnosis metrics");
+    makeTable("mobileTable", [...rows].sort((a,b)=>b.candidate_score-a.candidate_score), ["model","candidate_score","map50_95",diagKey,missKey,"fps_total","model_size_mb","params_m"], {candidate_score:f4,map50_95:f4,[diagKey]:f4,[missKey]:f4,fps_total:fpsFmt,model_size_mb:mbFmt,params_m:v=>`${f2(v)} M`}, r => r.model==="yolov5nu" ? "highlight-mobile" : r.model==="yolov10n" ? "highlight-warn" : r.model==="yolov9t" ? "highlight-detector" : "", "Mobile/edge trade-off");
+
+    function scatter(id, x, y, xTitle, yTitle) {
+      if (!window.Plotly) { document.getElementById(id).innerHTML = "<div class='notice warn'>Plotly CDN unavailable.</div>"; return; }
+      Plotly.newPlot(id, [{x:rows.map(r=>r[x]), y:rows.map(r=>r[y]), text:rows.map(r=>r.model), mode:"markers+text", textposition:"top center", marker:{size:11,color:"#0f9f8f"}}], {margin:{l:55,r:18,t:12,b:55}, xaxis:{title:xTitle}, yaxis:{title:yTitle}, hovermode:"closest"}, {responsive:true,displaylogo:false});
+    }
+    function bar(id, key, title, color) {
+      if (!window.Plotly) { document.getElementById(id).innerHTML = "<div class='notice warn'>Plotly CDN unavailable.</div>"; return; }
+      const d=[...rows].sort((a,b)=>b[key]-a[key]);
+      Plotly.newPlot(id, [{x:d.map(r=>r.model), y:d.map(r=>r[key]), type:"bar", marker:{color}}], {margin:{l:55,r:18,t:12,b:80}, yaxis:{title}, xaxis:{tickangle:-35}}, {responsive:true,displaylogo:false});
+    }
+    scatter("chartMapFps","fps_total","map50_95","FPS","mAP50-95");
+    scatter("chartMapStrict","map50","map50_95","mAP50","mAP50-95");
+    scatter("chartDiagSize","model_size_mb",diagKey,"Model size (MB)","Diagnosis Macro-F1");
+    scatter("chartMissDiag",missKey,diagKey,"Disease miss rate","Diagnosis Macro-F1");
+    scatter("chartAp","ap_BG","ap_WSSV","AP_BG","AP_WSSV");
+    scatter("chartSizeFps","model_size_mb","fps_total","Model size (MB)","FPS");
+    bar("chartCandidate","candidate_score","candidate_score","#0f9f8f");
+    bar("chartDetectorRank","map50_95","mAP50-95","#2563eb");
+    bar("chartDiagnosisRank",diagKey,"Diagnosis Macro-F1","#b7791f");
+
+    const select = document.getElementById("modelSelect");
+    rows.forEach(r => select.insertAdjacentHTML("beforeend", `<option value="${r.model}">${r.model}</option>`));
+    select.value = "yolov9t";
+    function metric(label,value){ return `<div class="mini"><span>${label}</span><b>${value}</b></div>`; }
+    function imageCard(src, caption) {
+      return `<figure class="imgcard">${src ? `<a href="${src}" target="_blank"><img src="${src}" alt="${caption}" onerror="this.parentElement.parentElement.innerHTML='<div class=&quot;missing&quot;>Not available</div><figcaption>${caption}</figcaption>'"></a>` : `<div class="missing">Not available</div>`}<figcaption>${caption}</figcaption></figure>`;
+    }
+    function updateModel(){
+      const model = select.value, r = rows.find(x=>x.model===model), d = D.diagnostics[model] || {eval:{},train:{}};
+      document.getElementById("selectedTitle").textContent = `${model} metrics`;
+      document.getElementById("selectedMetrics").innerHTML = [
+        metric("mAP50-95", f4(r.map50_95)), metric("mAP50", f4(r.map50)), metric("AP_BG", f4(r.ap_BG)), metric("AP_WSSV", f4(r.ap_WSSV)), metric("Macro-F1", f4(r[diagKey])), metric("Miss rate", f4(r[missKey])), metric("FPS", f1(r.fps_total)), metric("Size", `${f2(r.model_size_mb)} MB`), metric("Best epoch", r.train_best_epoch)
+      ].join("");
+      const evalFiles = ["confusion_matrix.png","confusion_matrix_normalized.png","BoxPR_curve.png","BoxF1_curve.png","BoxP_curve.png","BoxR_curve.png"];
+      document.getElementById("diagnosticImages").innerHTML = evalFiles.map(f => imageCard(d.eval[f], f.replace(".png","").replaceAll("_"," "))).join("");
+    }
+    select.onchange = updateModel; updateModel();
+  </script>
+</body>
+</html>

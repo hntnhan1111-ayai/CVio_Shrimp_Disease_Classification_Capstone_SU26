@@ -1,0 +1,84 @@
+{
+  "protocol": "14-model canonical 2-class OD baseline",
+  "data_yaml": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15/data.yaml",
+  "dataset_dir": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15",
+  "classes": {
+    "0": "BG",
+    "1": "WSSV"
+  },
+  "split": "70/15/15",
+  "epochs": 100,
+  "patience": 100,
+  "imgsz": 1024,
+  "batch": 8,
+  "val_batch": 8,
+  "seed": 42,
+  "device": 0,
+  "workers": 8,
+  "conf_for_diagnosis": 0.25,
+  "iou_for_diagnosis": 0.7,
+  "models": [
+    {
+      "name": "yolov5nu",
+      "weights": "yolov5nu.pt"
+    },
+    {
+      "name": "yolov5su",
+      "weights": "yolov5su.pt"
+    },
+    {
+      "name": "yolov8n",
+      "weights": "yolov8n.pt"
+    },
+    {
+      "name": "yolov8s",
+      "weights": "yolov8s.pt"
+    },
+    {
+      "name": "yolov9t",
+      "weights": "yolov9t.pt"
+    },
+    {
+      "name": "yolov9s",
+      "weights": "yolov9s.pt"
+    },
+    {
+      "name": "yolov10n",
+      "weights": "yolov10n.pt"
+    },
+    {
+      "name": "yolov10s",
+      "weights": "yolov10s.pt"
+    },
+    {
+      "name": "yolo11n",
+      "weights": "yolo11n.pt"
+    },
+    {
+      "name": "yolo11s",
+      "weights": "yolo11s.pt"
+    },
+    {
+      "name": "yolo12n",
+      "weights": "yolo12n.pt"
+    },
+    {
+      "name": "yolo12s",
+      "weights": "yolo12s.pt"
+    },
+    {
+      "name": "yolo26n",
+      "weights": "yolo26n.pt"
+    },
+    {
+      "name": "yolo26s",
+      "weights": "yolo26s.pt"
+    }
+  ],
+  "notes": [
+    "Uses prebuilt canonical dataset; no remapping/conversion inside this notebook.",
+    "Fixed batch size avoids repeated AutoBatch OOM probes and keeps comparison consistent.",
+    "patience equals epochs; no intended early stopping before 100 epochs.",
+    "best epoch is parsed from results.csv by validation mAP50-95."
+  ]
+}

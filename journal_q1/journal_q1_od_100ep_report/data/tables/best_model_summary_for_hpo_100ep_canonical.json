@@ -1,0 +1,38 @@
+{
+  "notes": [
+    "Use this 100-epoch canonical benchmark to choose HPO candidates.",
+    "Do not tune based on test metrics. Use validation for threshold tuning and HPO in the next stage.",
+    "candidate_score is a dashboard helper, not an official metric."
+  ],
+  "best_by_map50_95": {
+    "model": "yolov9t",
+    "map50_95": 0.0439192446524048,
+    "map50": 0.1413948925823311,
+    "fps_total": 228.15628537749288,
+    "model_size_mb": 4.514534950256348,
+    "candidate_score": 0.3997161812043419
+  },
+  "best_by_map50": {
+    "model": "yolo26s",
+    "map50": 0.1463167410187063,
+    "map50_95": 0.0421278530459196,
+    "fps_total": 166.66340046363214,
+    "model_size_mb": 19.45892810821533,
+    "candidate_score": 0.3033422932713082
+  },
+  "best_by_candidate_score": {
+    "model": "yolov5nu",
+    "candidate_score": 0.4077292996644742,
+    "map50_95": 0.0406410146397851,
+    "map50": 0.1239122675625312,
+    "fps_total": 211.66280353333144,
+    "model_size_mb": 5.112550735473633
+  },
+  "recommended_hpo_candidates": [
+    "yolov9t",
+    "yolo26s",
+    "yolo11s",
+    "yolov5su",
+    "yolov5nu"
+  ]
+}

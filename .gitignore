@@ -1,6 +1,10 @@
 # Raw data and caches
 datasets/
 **/datasets/
+images/
+**/images/
+labels/
+**/labels/
 kaggle_raw/
 **/kaggle_raw/
 Raw Images/

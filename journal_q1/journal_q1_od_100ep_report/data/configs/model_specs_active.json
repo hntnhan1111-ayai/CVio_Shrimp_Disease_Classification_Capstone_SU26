@@ -1,0 +1,58 @@
+[
+  {
+    "name": "yolov5nu",
+    "weights": "yolov5nu.pt"
+  },
+  {
+    "name": "yolov5su",
+    "weights": "yolov5su.pt"
+  },
+  {
+    "name": "yolov8n",
+    "weights": "yolov8n.pt"
+  },
+  {
+    "name": "yolov8s",
+    "weights": "yolov8s.pt"
+  },
+  {
+    "name": "yolov9t",
+    "weights": "yolov9t.pt"
+  },
+  {
+    "name": "yolov9s",
+    "weights": "yolov9s.pt"
+  },
+  {
+    "name": "yolov10n",
+    "weights": "yolov10n.pt"
+  },
+  {
+    "name": "yolov10s",
+    "weights": "yolov10s.pt"
+  },
+  {
+    "name": "yolo11n",
+    "weights": "yolo11n.pt"
+  },
+  {
+    "name": "yolo11s",
+    "weights": "yolo11s.pt"
+  },
+  {
+    "name": "yolo12n",
+    "weights": "yolo12n.pt"
+  },
+  {
+    "name": "yolo12s",
+    "weights": "yolo12s.pt"
+  },
+  {
+    "name": "yolo26n",
+    "weights": "yolo26n.pt"
+  },
+  {
+    "name": "yolo26s",
+    "weights": "yolo26s.pt"
+  }
+]
