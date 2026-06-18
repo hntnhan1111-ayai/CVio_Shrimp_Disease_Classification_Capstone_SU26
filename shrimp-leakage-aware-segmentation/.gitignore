@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Secrets and local config
+*.secret
+secrets.json
+kaggle.json
+roboflow.json
+.env.*
+!.env.example
+
+# Training outputs
+runs/
+wandb/
+mlruns/
+outputs/
+checkpoints/
+weights/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+
+# Downloaded/generated datasets
+datasets/
+dataset/
+data/
+roboflow/
+*_yolo*/
+shrimp_yolo*/
+
+# YOLO caches and generated reports
+*.cache
+labels.cache
+*.tmp
+
+# Large archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# LaTeX build outputs
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.pdf

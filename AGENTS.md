@@ -3,6 +3,14 @@
 ## Project Objective
 Improve and optimize a YOLOv11n-seg baseline model for automated shrimp disease segmentation to achieve better detection accuracy, speed, and robustness under fair specimen-grouped evaluation protocol.
 
+## Active Working Folder
+
+The current GitHub-facing working folder is:
+
+`shrimp-leakage-aware-segmentation/`
+
+Use this folder as the primary location for paper-ready code, notebooks, manuscript files, repo documentation, and current research plans. Older files under `augmentation_research/baseline_opt/` are historical/exploratory context unless the user explicitly asks to work there.
+
 ## Current State & Key Findings
 
 ### Baseline Established ✓
@@ -26,14 +34,28 @@ Improve and optimize a YOLOv11n-seg baseline model for automated shrimp disease 
 - EWU prior dataset is unreliable: incomplete labeling, inconsistent masks per specimen
 - Visual-hash analysis confirms EWU and hand-labeled show different annotation standards
 
-## Current Focus: Preprocessing & Augmentation (Phase B: YOLO Policy Screening)
+## Current Focus: Preprocessing & Augmentation Optimization
 
 ### Primary Hypothesis
-> Shrimp disease segmentation improves under fair grouped-specimen evaluation when augmentation is tuned toward disease visibility, healthy false-positive control, and small-data generalization—not through generic preprocessing but through disease-aware YOLO policy search.
+> Shrimp disease segmentation may improve under fair grouped-specimen evaluation when augmentation is tuned around the current hook-enabled clean-light baseline, disease visibility, healthy false-positive control, and small-data generalization.
 
-### Research & Screening Strategy (NEW)
+### Research & Screening Strategy
 
-**We have conducted a comprehensive literature review of recent (2023-2026) methods** across:
+The earlier broad literature review remains useful as an idea bank, but current experiments show the hook-enabled clean-light YOLO baseline is strong. The active optimization plan is therefore targeted rather than broad.
+
+Primary current plan:
+
+- Start from the accepted hook-enabled clean-light baseline.
+- Prioritize low-risk YOLO-native policy tuning.
+- Treat healthy false positives as a hard practical constraint.
+- Move to hard-negative mining if generic augmentation does not improve the baseline.
+- Confirm only successful candidates across multiple grouped-specimen seeds.
+
+Current active research plan:
+
+- `shrimp-leakage-aware-segmentation/research/optimization_deep_research_2026.md`
+
+Earlier research package / idea bank:
 - Segmentation-specific augmentation (MaskMix, CopyPaste variants)
 - Medical/domain-specific preprocessing (color normalization, CLAHE)
 - Small-data optimization strategies
@@ -42,54 +64,49 @@ Improve and optimize a YOLOv11n-seg baseline model for automated shrimp disease 
 - AutoML policy search approaches
 
 **Deliverables**:
+0. `shrimp-leakage-aware-segmentation/research/optimization_deep_research_2026.md` - active targeted optimization plan based on current evidence
 1. RESEARCH_SYNTHESIS_WEB_BASED_2023_2026.md - 22 methods evaluated from CVPR/ICCV/ECCV/MICCAI 2024
 2. PREPROCESSING_AUGMENTATION_CHECKLIST_FINAL.md - Ready-to-use checklist with 16 methods across 6 phases
 
-### Screening Checklist: 16 Methods in 6 Phases
+### Active Targeted Optimization Checklist
 
-**PHASE B (Weeks 1-2): YOLO NATIVE + QUICK WINS** ← You are here
-- 9 methods | ~40-60 GPU hours | HIGH PRIORITY
-- Key methods: Auto-Augment, Color Normalization (Macenko/Reinhard), CLAHE, GridMask, Mosaic, HSV, Geometric, Copy-Paste
-- Expected gain: +0.02 to +0.06 mAP50
+**Phase 1: YOLO-native policy tuning**
+- low mosaic + close mosaic
+- copy-paste + low mosaic
+- conservative HSV/geometric middle policies
+- hook remains enabled unless the experiment is explicitly a hook-ablation control
 
-**PHASE C (Weeks 2-3): COPY-PASTE FOCUSED VARIANTS** (conditional)
-- 3 methods | ~20-30 GPU hours
-- Key methods: MaskMix, CopyPaste in Context, Augmentation Scheduling
-- Expected gain: +0.01 to +0.04 mAP50
+**Phase 2: Healthy hard-negative mining**
+- collect healthy images where the baseline predicts false masks
+- retrain with emphasized/duplicated healthy negatives
+- accept only if healthy FP improves without collapsing diseased mAP
 
-**PHASE D (Weeks 3-4): DOMAIN-SPECIFIC EXTENSIONS** (on-demand)
-- Test only if Phase B+C combined gain < +0.03 mAP50
+**Phase 3: Candidate combinations**
+- combine only methods that individually help
+- reject combinations that increase healthy FP, disease miss rate, or count error
 
-**PHASE E (Weeks 4-5): FREQUENCY-DOMAIN METHODS** (on-demand, low priority)
-- Test only if plateau observed
+**Phase 4: Threshold/calibration sweep**
+- run for baseline and finalists
+- report healthy FP, missed disease, and count MAE across confidence thresholds
 
-**PHASE F (Weeks 5-6): MULTI-SEED CONFIRMATION** (critical)
-- Top 2-3 methods across 5+ grouped-split seeds
-- Report mean ± std, 95% CI
+**Phase 5: Multi-seed confirmation**
+- run only after a candidate beats baseline on seed 42
+- minimum seeds: 42, 123, 3407
 
 ### Planned Experiment Phases (in order)
 
-**Phase B: YOLO Augmentation Policy Screening** ← Current
-- Run 9 candidates on baseline split and model
-- Key hyperparameters: Auto-augment, color norm, CLAHE, mosaic, copy_paste, HSV, geometric
-- Best 2-3 policies move to Phase C & multi-seed confirmation
-- Success metric: +0.02 to +0.05 absolute labeled-only mAP50 improvement
+Current recommended next notebook:
 
-**Phase C: Copy-Paste Focused Sweep** (if Phase B shows copy-paste promise)
-- Fine-tune copy-paste modes and variants
-- Visual validation on augmented training images
+- `shrimp-leakage-aware-segmentation/notebooks/yolo_aug_policy_search/yolo_aug_policy_search_v2_targeted.ipynb`
 
-**Phase D: Segmentation-Safe Photometric & Domain-Specific** (if needed)
-- Test color/brightness robustness policies
-- Build robustness tables for noisy/compressed test images
+It should test only a compact baseline-centered search:
 
-**Phase E: Frequency/Wavelet Revisit** (lower priority, if plateau)
-- Limited variants only: Fourier train-only, wavelet detail-enhancement
-- Decide whether to include in main paper or appendix
+1. baseline sanity row
+2. low mosaic candidates
+3. copy-paste + low mosaic candidates
+4. conservative HSV/geometric middle policies
 
-**Phase F: Multi-Seed Confirmation** (critical for reproducibility)
-- Top 2-3 methods run across 3+ grouped-specimen seeds
-- Report mean, std, confidence intervals
+Do not expand into Fourier, wavelet, broad photometric copies, or diffusion augmentation unless the user explicitly changes direction.
 
 ## Working Patterns & Cues
 
@@ -132,6 +149,8 @@ Improve and optimize a YOLOv11n-seg baseline model for automated shrimp disease 
 `
 C:\Users\Admin\workspace\CVio_Shrimp_Disease_Classification_Capstone_SU26\
 ├── shrimp-leakage-aware-segmentation/
+│   ├── research/
+│   │   └── optimization_deep_research_2026.md  (active targeted optimization plan)
 │   ├── notebooks/
 │   │   ├── baseline/
 │   │   ├── copy_paste_focused_sweep/
@@ -157,18 +176,20 @@ C:\Users\Admin\workspace\CVio_Shrimp_Disease_Classification_Capstone_SU26\
 ## Quick Reference
 - **Roboflow Dataset**: https://app.roboflow.com/lets-try-this/shrimpdishandsegv2
 - **Model**: YOLOv11n-seg
-- **Screening Checklist**: PREPROCESSING_AUGMENTATION_CHECKLIST_FINAL.md (START HERE for Phase B)
+- **Working repo**: shrimp-leakage-aware-segmentation/
+- **Active optimization plan**: shrimp-leakage-aware-segmentation/research/optimization_deep_research_2026.md
+- **Screening Checklist**: PREPROCESSING_AUGMENTATION_CHECKLIST_FINAL.md (older broad checklist / idea bank)
 - **Literature Review**: RESEARCH_SYNTHESIS_WEB_BASED_2023_2026.md (22 methods with papers)
 - **Baseline mAP50**: 0.512 (labeled-only)
 - **Primary Augmentation Hyperparams to Tune**: hsv_h, hsv_s, hsv_v, mosaic, close_mosaic, copy_paste, degrees, scale, translate
 - **Validation Focus**: Healthy-aware score (balance mAP50 with false positive control)
-- **Success Threshold**: +0.03 absolute labeled-only mAP50 with no healthy FP increase
-- **Next Action**: Start Phase B testing with Method 1.1 (Auto-Augment) - quickest test
+- **Success Threshold**: improve healthy-aware score or achieve at least +0.010 labeled-only mAP50 with no meaningful healthy FP increase
+- **Next Action**: generate/run targeted YOLO-native augmentation policy notebook
 
-## Important: Before Starting Phase B Experiments
+## Important: Before Starting Optimization Experiments
 1. Confirm grouped-split seed 42 manifest exists and is deterministic
 2. Verify Ultralytics version matches baseline runs
 3. Confirm hidden Albumentations hook is enabled in YOLO config
 4. Document exact training command and config before each run
 5. Save split manifests alongside results for reproducibility
-6. Read the relevant test card in PREPROCESSING_AUGMENTATION_CHECKLIST_FINAL.md before implementing
+6. Read `shrimp-leakage-aware-segmentation/research/optimization_deep_research_2026.md` before implementing
