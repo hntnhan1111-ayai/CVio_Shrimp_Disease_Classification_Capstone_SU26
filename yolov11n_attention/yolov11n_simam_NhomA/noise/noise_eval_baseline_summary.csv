@@ -1,0 +1,12 @@
+noise,labeled_test_mask_map50,healthy_aware_labeled_test_mask_map50,labeled_test_disease_box_miss_rate,healthy_test_mask_fp_rate,labeled_test_mask_count_mae,healthy_fp_masks_per_image
+N01_gaussian,0.1813,0.0635,0.3295,0.3415,0.6837,0.4878
+N02_salt_pepper,0.1597,0.0254,0.4318,0.3415,0.7083,0.3902
+N03_jpeg_artifact,0.3658,0.2959,0.2045,0.1463,0.4924,0.1463
+N04_color_cast,0.2981,0.1806,0.5227,0.0732,0.6345,0.0732
+N05_low_contrast,0.183,0.0082,0.8636,0.0,0.9053,0.0
+N06_gauss_blur,0.4253,0.3486,0.1364,0.2195,0.6856,0.2683
+N07_heavy_erase,0.3075,0.214,0.3523,0.122,0.5682,0.122
+N08_motion_blur,0.4271,0.3508,0.2045,0.1707,0.572,0.1951
+N09_overexposure,0.3521,0.2842,0.1932,0.1707,0.4356,0.2195
+N10_glare,0.3347,0.2425,0.3295,0.122,0.6117,0.122
+N11_turbidity,0.2503,0.1037,0.7045,0.0,0.8182,0.0
