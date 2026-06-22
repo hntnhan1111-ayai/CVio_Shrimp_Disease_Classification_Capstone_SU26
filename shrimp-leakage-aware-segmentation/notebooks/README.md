@@ -30,6 +30,10 @@ These notebooks reproduce the paper-facing experiments for leakage-aware shrimp 
    - `architecture/simam_ca_baseline_recipe_diagnostic_kaggle.ipynb`
    - Seed-43 Kaggle diagnostic for SimAM-CA with baseline clean-light augmentation, hook on/off controls, and teammate heavy-augmentation control.
 
+7. Noise robustness notebook:
+   - `noise_ablation/yolo11n_grouped_clean_baseline_noise_ablation_kaggle.ipynb`
+   - Retrains the grouped clean-light YOLO11n baseline, then evaluates the trained checkpoint on clean and five noisy test conditions.
+
 ## Shared Conventions
 
 - Paper-facing baseline uses `DISABLE_ULTRALYTICS_ALBUMENTATIONS = False`.
