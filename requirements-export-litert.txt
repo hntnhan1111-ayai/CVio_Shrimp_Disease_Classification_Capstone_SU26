@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# Export-only environment for LiteRT/TFLite conversion of the ASL-LDAM model.
+#
+# The pinned versions below are the known-good combination that successfully
+# exported both FP32 and FP16 TFLite files. Use a CLEAN Python 3.12.2 venv;
+# the base/3.13 environment caused TensorFlow/tf-keras version problems.
+#
+# Usage:
+#   python -m venv .venv-export
+#   .venv-export\Scripts\activate            # Windows
+#   source .venv-export/bin/activate          # Linux/macOS
+#   python -m pip install -r requirements-export-litert.txt
+#
+# Then run:
+#   python scripts/06_export_litert_fp32_fp16.py --weights <best.pt> --out-dir export --imgsz 224
+# ---------------------------------------------------------------------------
+
+python_requires = ">=3.12.2,<3.13"
+
+# --- Core Ultralytics (export entry point) --------------------------------
+ultralytics==8.4.75
+
+# --- TensorFlow stack (export backend) ------------------------------------
+tensorflow==2.19.1
+tf-keras==2.19.0
+
+# --- ONNX intermediate conversion chain -----------------------------------
+onnx==1.22.0
+onnxslim==0.1.94
+onnxruntime==1.27.0
+onnx2tf==1.28.8
+sng4onnx==2.0.1
+onnx-graphsurgeon==0.6.1
+
+# --- LiteRT runtime (TFLite interpreter sanity checks) --------------------
+ai-edge-litert==2.1.5
+
+# --- Numeric / serialization pins used by the export chain ----------------
+numpy==2.1.3
+protobuf==5.29.6

@@ -72,9 +72,9 @@ def run(config_path: str | Path, args: argparse.Namespace) -> Path:
     paths = ProjectPaths.from_environment()
     dataset_config_path = Path(config["dataset_config"])
     dataset_config = load_yaml(dataset_config_path)
-    data_dir = Path(args.data_dir or paths.data_dir)
+    data_dir = Path(getattr(args, "data_dir", None) or paths.data_dir)
     dataset_root, _candidates = resolve_dataset_root(data_dir, dataset_config)
-    output_root = Path(args.output_dir or paths.output_dir)
+    output_root = Path(getattr(args, "output_dir", None) or paths.output_dir)
     manifest_dir = output_root / "manifests"
     manifest = manifest_dir / "split_manifest_seed42_generated.csv"
     if not manifest.is_file():
@@ -90,10 +90,10 @@ def run(config_path: str | Path, args: argparse.Namespace) -> Path:
         output_root / "prepared_seed42",
     )
 
-    seed = int(args.seed or config["seed"])
+    seed = int(getattr(args, "seed", None) or config["seed"])
     seed_everything(seed)
-    device = resolve_device(args.device or config.get("device", "auto"))
-    model_name = args.model or str(config["model"])
+    device = resolve_device(getattr(args, "device", None) or config.get("device", "auto"))
+    model_name = getattr(args, "model", None) or str(config["model"])
     method = str(config.get("method", "baseline_ce"))
     run_name = f"{model_name.replace('-', '_')}__{method}__seed{seed}"
     project = output_root / "training"
@@ -101,7 +101,7 @@ def run(config_path: str | Path, args: argparse.Namespace) -> Path:
         "data": str(prepared),
         "task": "classify",
         "imgsz": int(config["imgsz"]),
-        "epochs": 1 if args.smoke_test else int(config["epochs"]),
+        "epochs": 1 if getattr(args, "smoke_test", False) else int(config["epochs"]),
         "patience": int(config["patience"]),
         "batch": config["batch"],
         "workers": int(config["workers"]),
@@ -118,13 +118,18 @@ def run(config_path: str | Path, args: argparse.Namespace) -> Path:
         "exist_ok": True,
         "plots": False,
         "verbose": True,
+        "resume": bool(getattr(args, "resume", False)),
     }
+    resume_weights = getattr(args, "resume_weights", None)
     if config.get("auto_augment"):
         train_kwargs["auto_augment"] = config["auto_augment"]
 
     from ultralytics import YOLO
 
-    model = YOLO(f"{model_name}.pt")
+    if resume_weights and getattr(args, "resume", False):
+        model = YOLO(str(resume_weights))
+    else:
+        model = YOLO(f"{model_name}.pt")
     if method == "asl_ldam_simam_dcfr":
         os.environ["CVIO_YOLO_LOSS"] = "asl_ldam"
         os.environ["CVIO_YOLO_ATTENTION"] = "simam_dcfr"

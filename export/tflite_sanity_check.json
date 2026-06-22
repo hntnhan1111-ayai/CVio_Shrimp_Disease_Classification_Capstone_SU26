@@ -1,0 +1,55 @@
+{
+  "generated_in_env": {
+    "python": "3.13.13",
+    "interpreter_backend_available": true
+  },
+  "fp32": {
+    "model_path": "export/yolo26m_asl_ldam_simam_dcfr_fp32.tflite",
+    "size_bytes": 41443690,
+    "status": "skipped",
+    "skip_reason": "Neither ai_edge_litert nor tensorflow is installed; cannot run TFLite sanity check. Install requirements-export-litert.txt."
+  },
+  "fp16": {
+    "model_path": "export/yolo26m_asl_ldam_simam_dcfr_fp16.tflite",
+    "size_bytes": 20767070,
+    "status": "skipped",
+    "skip_reason": "Neither ai_edge_litert nor tensorflow is installed; cannot run TFLite sanity check. Install requirements-export-litert.txt."
+  },
+  "note": "Interpreter validation skipped in this env (no ai_edge_litert/tensorflow).",
+  "recorded_successful_run": {
+    "fp32": {
+      "input_shape": [
+        1,
+        224,
+        224,
+        3
+      ],
+      "input_dtype": "float32",
+      "output_shape": [
+        1,
+        4
+      ],
+      "output_dtype": "float32"
+    },
+    "fp16": {
+      "input_shape": [
+        1,
+        224,
+        224,
+        3
+      ],
+      "input_dtype": "float32",
+      "output_shape": [
+        1,
+        4
+      ],
+      "output_dtype": "float32"
+    }
+  },
+  "class_order": [
+    "Healthy",
+    "BG",
+    "WSSV",
+    "WSSV_BG"
+  ]
+}

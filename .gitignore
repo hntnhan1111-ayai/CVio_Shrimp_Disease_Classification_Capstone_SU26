@@ -35,9 +35,23 @@ env/
 *.pt
 *.pth
 *.onnx
-*.tflite
 *.engine
 *.safetensors
+*_saved_model/
+saved_model.pb
+variables/
+*.pb
+*.npy
+*.npz
+
+# TFLite: ignore by default, but keep the two reviewer-facing export files.
+*.tflite
+!export/yolo26m_asl_ldam_simam_dcfr_fp32.tflite
+!export/yolo26m_asl_ldam_simam_dcfr_fp16.tflite
+
+# Export intermediates (transient; never committed)
+export/_export_work/
+export/export_log.txt
 
 # Large archives
 *.zip
