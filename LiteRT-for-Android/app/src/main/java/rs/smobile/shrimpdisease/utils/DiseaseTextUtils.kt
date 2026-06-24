@@ -68,6 +68,31 @@ object DiseaseTextUtils {
         }
     }
 
+    fun diseaseDescription(label: String): String? {
+        val normalized = label.trim().lowercase()
+
+        return when {
+            normalized.isBlank() -> null
+
+            normalized.contains("healthy") ->
+                "Mẫu được xếp vào nhóm khỏe: chưa thấy đốm trắng bất thường hoặc vùng mang sẫm màu rõ trong ảnh."
+
+            isBgWssvLabel(normalized) ->
+                "Bệnh đen mang kết hợp đốm trắng thể hiện đồng thời hai nhóm dấu hiệu: vùng mang gần đầu tôm bị sẫm màu và bề mặt vỏ có đốm trắng hoặc mảng trắng bất thường."
+
+            isBgLabel(normalized) ->
+                "Bệnh đen mang, còn gọi là Black Gill, thường biểu hiện ở vùng mang gần đầu tôm bị sẫm màu, nâu hoặc đen. Dấu hiệu này có thể liên quan đến môi trường nước kém, chất hữu cơ cao, ký sinh trùng, nấm hoặc vi khuẩn."
+
+            normalized.contains("wssv") ->
+                "Bệnh đốm trắng, hay White Spot Syndrome Virus, thường tạo các đốm trắng hoặc vùng trắng bất thường trên vỏ, đặc biệt ở phần đầu ngực và thân tôm."
+
+            normalized.contains("unknown") || normalized.contains("background") ->
+                "Ảnh chưa đủ rõ hoặc không thuộc nhóm bệnh mà mô hình đang hỗ trợ, nên chưa thể mô tả dấu hiệu bệnh đáng tin cậy."
+
+            else -> null
+        }
+    }
+
     private fun isBgLabel(normalized: String): Boolean {
         return normalized == "bg" ||
                 normalized == "black_gill" ||

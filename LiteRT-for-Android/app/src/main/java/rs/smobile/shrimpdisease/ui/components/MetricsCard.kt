@@ -30,7 +30,7 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "Thời gian xử lý",
-                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "N/A",
+                value = result?.inferenceTimeMs?.let(BenchmarkUtils::latencyText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
@@ -43,7 +43,7 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "Tốc độ",
-                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "N/A",
+                value = result?.speed?.let(BenchmarkUtils::speedText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.secondary,
             )
@@ -56,7 +56,7 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "FPS",
-                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "N/A",
+                value = result?.fps?.let(BenchmarkUtils::fpsText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
             )
             CVioMetricTile(
@@ -69,7 +69,7 @@ fun MetricsCard(
         MetricTileRow {
             CVioMetricTile(
                 label = "Độ chính xác",
-                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "N/A",
+                value = benchmarkMetrics.accuracy?.let(BenchmarkUtils::confidenceText) ?: "Chưa có",
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.primary,
             )

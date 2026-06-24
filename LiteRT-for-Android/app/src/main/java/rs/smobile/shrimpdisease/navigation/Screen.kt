@@ -15,6 +15,7 @@ sealed class Screen(
     object AdminUsers : Screen("admin_users", "Người dùng")
     object AdminInference : Screen("admin_inference", "Kiểm tra")
     object AdminData : Screen("admin_data", "Dữ liệu")
+    object AdminLogs : Screen("admin_logs", "Nhật ký")
 }
 
 val topLevelScreens = listOf(

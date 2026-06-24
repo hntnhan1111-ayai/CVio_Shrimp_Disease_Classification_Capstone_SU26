@@ -3,6 +3,7 @@ package rs.smobile.shrimpdisease.ui.admin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,11 +19,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -66,8 +69,12 @@ import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
 import rs.smobile.shrimpdisease.ui.theme.DiseaseRed
 import rs.smobile.shrimpdisease.ui.theme.HealthyGreen
+import rs.smobile.shrimpdisease.ui.theme.WarningOrange
+import rs.smobile.shrimpdisease.utils.DiseaseTextUtils
 import java.util.Locale
 import kotlin.math.max
+
+private val AdminDataLabelOptions = listOf("Healthy", "BG", "WSSV", "WSSV_BG")
 
 @Composable
 fun AdminDashboardScreen(
@@ -89,9 +96,12 @@ fun AdminDashboardScreen(
         item {
             AdminTopBar(
                 currentUserName = currentUserName,
-                navigationIcon = ShrimpNavIcon.Profile,
+                navigationIcon = ShrimpNavIcon.Settings,
                 navigationContentDescription = "Mở cài đặt quản trị",
                 onNavigationClick = onOpenSettings,
+                trailingIcon = ShrimpNavIcon.Refresh,
+                trailingContentDescription = "Làm mới bảng điều khiển",
+                onTrailingClick = onRefresh,
             )
         }
 
@@ -151,7 +161,7 @@ fun AdminDashboardScreen(
                         label = "Cảnh báo",
                         value = compactNumber(uiState.activeAlerts),
                         icon = ShrimpNavIcon.Diagnose,
-                        accent = MaterialTheme.colorScheme.error,
+                        accent = if (uiState.activeAlerts > 0) WarningOrange else MaterialTheme.colorScheme.secondary,
                         trend = if (uiState.activeAlerts > 0) "Cần xử lý" else "Ổn định",
                         trendIsWarning = uiState.activeAlerts > 0,
                         onClick = onOpenInference,
@@ -184,9 +194,9 @@ fun AdminDashboardScreen(
 fun AdminUsersScreen(
     users: List<AdminUserSummary>,
     currentUserName: String?,
-    onCreateUser: (AdminCreateUserInput) -> Boolean,
-    onUpdateUser: (String, AdminUpdateUserInput) -> Boolean,
-    onDeleteUser: (AdminUserSummary) -> Boolean,
+    onCreateUser: (AdminCreateUserInput, (Boolean) -> Unit) -> Unit,
+    onUpdateUser: (String, AdminUpdateUserInput, (Boolean) -> Unit) -> Unit,
+    onDeleteUser: (AdminUserSummary, (Boolean) -> Unit) -> Unit,
     onHome: () -> Unit,
     onSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -311,8 +321,8 @@ fun AdminUsersScreen(
         AddUserDialog(
             onDismiss = { showCreateDialog = false },
             onCreateUser = { input ->
-                if (onCreateUser(input)) {
-                    showCreateDialog = false
+                onCreateUser(input) { created ->
+                    if (created) showCreateDialog = false
                 }
             },
         )
@@ -323,13 +333,13 @@ fun AdminUsersScreen(
             user = user,
             onDismiss = { selectedUser = null },
             onUpdateUser = { input ->
-                if (onUpdateUser(user.id, input)) {
-                    selectedUser = null
+                onUpdateUser(user.id, input) { updated ->
+                    if (updated) selectedUser = null
                 }
             },
             onDeleteUser = {
-                if (onDeleteUser(user)) {
-                    selectedUser = null
+                onDeleteUser(user) { deleted ->
+                    if (deleted) selectedUser = null
                 }
             },
         )
@@ -340,9 +350,9 @@ fun AdminUsersScreen(
 fun AdminDataControlScreen(
     dataItems: List<AdminDataReviewItem>,
     currentUserName: String?,
-    onCreateData: (AdminDataMutationInput) -> Boolean,
-    onUpdateData: (AdminDataReviewItem, AdminDataMutationInput) -> Boolean,
-    onDeleteData: (AdminDataReviewItem) -> Boolean,
+    onCreateData: (AdminDataMutationInput, (Boolean) -> Unit) -> Unit,
+    onUpdateData: (AdminDataReviewItem, AdminDataMutationInput, (Boolean) -> Unit) -> Unit,
+    onDeleteData: (AdminDataReviewItem, (Boolean) -> Unit) -> Unit,
     onMarkReviewed: (AdminDataReviewItem) -> Unit,
     onExcludeFromTraining: (AdminDataReviewItem) -> Unit,
     onExportMetadata: () -> Unit,
@@ -428,8 +438,8 @@ fun AdminDataControlScreen(
             confirmText = "Tạo",
             onDismiss = { showCreateDialog = false },
             onSubmit = { input ->
-                if (onCreateData(input)) {
-                    showCreateDialog = false
+                onCreateData(input) { created ->
+                    if (created) showCreateDialog = false
                 }
             },
         )
@@ -442,8 +452,8 @@ fun AdminDataControlScreen(
             item = item,
             onDismiss = { editingItem = null },
             onSubmit = { input ->
-                if (onUpdateData(item, input)) {
-                    editingItem = null
+                onUpdateData(item, input) { updated ->
+                    if (updated) editingItem = null
                 }
             },
         )
@@ -455,8 +465,8 @@ fun AdminDataControlScreen(
             message = "Bạn có chắc muốn xóa dữ liệu của ${item.farmerName} tại ${item.pond}?",
             onDismiss = { deletingItem = null },
             onConfirm = {
-                if (onDeleteData(item)) {
-                    deletingItem = null
+                onDeleteData(item) { deleted ->
+                    if (deleted) deletingItem = null
                 }
             },
         )
@@ -557,11 +567,10 @@ private fun SearchUsersField(
         singleLine = true,
         shape = RoundedCornerShape(999.dp),
         leadingIcon = {
-            Text(
-                text = "S",
-                style = MaterialTheme.typography.labelMedium,
+            ShrimpLineIcon(
+                icon = ShrimpNavIcon.Search,
+                modifier = Modifier.size(18.dp),
                 color = MaterialTheme.colorScheme.outline,
-                fontWeight = FontWeight.Bold,
             )
         },
         placeholder = {
@@ -699,11 +708,10 @@ private fun UserBentoCard(
                         color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Bold,
                     )
-                    Text(
-                        text = " ->",
-                        style = MaterialTheme.typography.labelMedium,
+                    ShrimpLineIcon(
+                        icon = ShrimpNavIcon.ArrowRight,
+                        modifier = Modifier.size(18.dp),
                         color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
@@ -772,11 +780,10 @@ private fun AddUserCard(
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = "+",
-                    style = MaterialTheme.typography.displayLarge,
+                ShrimpLineIcon(
+                    icon = ShrimpNavIcon.Users,
+                    modifier = Modifier.size(30.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
                 )
             }
             Text(
@@ -1055,6 +1062,11 @@ private fun DataMutationDialog(
     var confidenceText by rememberSaveable(item?.id) {
         mutableStateOf(item?.confidence?.let { value -> String.format(Locale.US, "%.2f", value) } ?: "")
     }
+    val labelOptions = remember(item?.id) {
+        (AdminDataLabelOptions + item?.label.orEmpty())
+            .filter { option -> option.isNotBlank() }
+            .distinct()
+    }
     val confidence = confidenceText.trim().toFloatOrNull()?.let { value ->
         if (value > 1f) value / 100f else value
     }?.coerceIn(0f, 1f) ?: 0f
@@ -1085,13 +1097,34 @@ private fun DataMutationDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    value = label,
-                    onValueChange = { label = it },
-                    label = { Text("Nhãn bệnh") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Nhãn bệnh",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        labelOptions.forEach { option ->
+                            FilterChip(
+                                selected = label == option,
+                                onClick = { label = option },
+                                label = {
+                                    Text(
+                                        text = DiseaseTextUtils.displayLabel(option),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = confidenceText,
                     onValueChange = { confidenceText = it },
@@ -1385,11 +1418,10 @@ private fun DiagnosisVolumeCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
             )
-            Text(
-                text = "...",
-                style = MaterialTheme.typography.titleMedium,
+            ShrimpLineIcon(
+                icon = ShrimpNavIcon.MoreHorizontal,
+                modifier = Modifier.size(24.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold,
             )
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -1540,11 +1572,10 @@ private fun ActivityRow(activity: AdminActivityItem) {
                 .background(accent.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = activityIcon(activity.kind),
-                style = MaterialTheme.typography.labelMedium,
+            ShrimpLineIcon(
+                icon = activityIcon(activity.kind),
+                modifier = Modifier.size(20.dp),
                 color = accent,
-                fontWeight = FontWeight.Bold,
             )
         }
         Column(
@@ -1572,70 +1603,6 @@ private fun ActivityRow(activity: AdminActivityItem) {
             color = MaterialTheme.colorScheme.outline,
             maxLines = 1,
         )
-    }
-}
-
-@Composable
-private fun UserSummaryCard(
-    user: AdminUserSummary,
-    modifier: Modifier = Modifier,
-) {
-    CVioCard(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(CVioSurfaceContainerLow),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = initialsFor(user.name),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = user.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "${user.diseaseCheckCount} lượt | Hoạt động cuối ${user.lastActive}",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = user.farmLocation,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-            CVioStatusChip(
-                text = displayUserStatus(user.status),
-                containerColor = if (user.status == "Active") {
-                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                },
-                contentColor = if (user.status == "Active") HealthyGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }
 
@@ -1744,12 +1711,12 @@ private fun activityColor(kind: AdminActivityKind): Color {
     }
 }
 
-private fun activityIcon(kind: AdminActivityKind): String {
+private fun activityIcon(kind: AdminActivityKind): ShrimpNavIcon {
     return when (kind) {
-        AdminActivityKind.Alert -> "!"
-        AdminActivityKind.Diagnosis -> "AI"
-        AdminActivityKind.User -> "+"
-        AdminActivityKind.Sync -> "OK"
+        AdminActivityKind.Alert -> ShrimpNavIcon.Diagnose
+        AdminActivityKind.Diagnosis -> ShrimpNavIcon.Inference
+        AdminActivityKind.User -> ShrimpNavIcon.Users
+        AdminActivityKind.Sync -> ShrimpNavIcon.Data
     }
 }
 

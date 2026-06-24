@@ -25,6 +25,7 @@ class ShrimpClassifier @Inject constructor(
         private set
 
     private val backgroundRemover = BackgroundRemover(assetManager)
+    private val diseaseSegmenter = DiseaseSegmenter(assetManager)
     private var interpreterApi: InterpreterApi
     private var inputTensor: Tensor
     private var outputTensor: Tensor
@@ -171,7 +172,8 @@ class ShrimpClassifier @Inject constructor(
             assetManager.list("")
                 ?.filter { assetName ->
                     assetName.lowercase().endsWith(".tflite") &&
-                        assetName != ModelDefaults.BACKGROUND_REMOVER_MODEL_FILE
+                        assetName != ModelDefaults.BACKGROUND_REMOVER_MODEL_FILE &&
+                        assetName != ModelDefaults.DISEASE_SEGMENTATION_MODEL_FILE
                 }
                 ?.sorted()
                 ?: emptyList()
@@ -247,6 +249,11 @@ class ShrimpClassifier @Inject constructor(
             postprocessingStartNanos,
             SystemClock.elapsedRealtimeNanos(),
         )
+        val segmentation = if (shouldRunDiseaseSegmentation(top1.label, isAboveThreshold)) {
+            diseaseSegmenter.segment(bitmap, top1.label)
+        } else {
+            null
+        }
         val totalTimeMs = BenchmarkUtils.calculateInferenceTime(
             totalStartNanos,
             SystemClock.elapsedRealtimeNanos(),
@@ -273,7 +280,17 @@ class ShrimpClassifier @Inject constructor(
             modelInferenceTimeMs = modelInferenceTimeMs,
             postprocessingTimeMs = postprocessingTimeMs,
             totalTimeMs = totalTimeMs,
+            segmentation = segmentation,
         )
+    }
+
+    private fun shouldRunDiseaseSegmentation(label: String, isAboveThreshold: Boolean): Boolean {
+        val normalized = label.trim().lowercase()
+        return isAboveThreshold &&
+            normalized.isNotBlank() &&
+            "healthy" !in normalized &&
+            "unknown" !in normalized &&
+            "background" !in normalized
     }
 
     private fun readOutputValues(): FloatArray {

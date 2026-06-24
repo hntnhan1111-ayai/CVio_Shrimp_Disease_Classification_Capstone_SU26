@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +23,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +44,6 @@ import rs.smobile.shrimpdisease.data.AdminInferenceLogKind
 import rs.smobile.shrimpdisease.data.AdminInferenceLogsUiState
 import rs.smobile.shrimpdisease.data.AdminModelConfigUiState
 import rs.smobile.shrimpdisease.data.AdminModelConfigUpdate
-import rs.smobile.shrimpdisease.data.AdminModelRevision
 import rs.smobile.shrimpdisease.data.BenchmarkMetrics
 import rs.smobile.shrimpdisease.ui.components.BenchmarkSummaryCard
 import rs.smobile.shrimpdisease.ui.components.CVioMetricTile
@@ -55,6 +54,8 @@ import rs.smobile.shrimpdisease.ui.components.MetricsCard
 import rs.smobile.shrimpdisease.ui.components.ModelSelector
 import rs.smobile.shrimpdisease.ui.components.SecondaryActionButton
 import rs.smobile.shrimpdisease.ui.components.SettingsSectionCard
+import rs.smobile.shrimpdisease.ui.components.ShrimpLineIcon
+import rs.smobile.shrimpdisease.ui.components.ShrimpNavIcon
 import rs.smobile.shrimpdisease.ui.components.ThresholdSlider
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLow
 import rs.smobile.shrimpdisease.ui.theme.CVioSurfaceContainerLowest
@@ -86,24 +87,22 @@ fun SettingsScreen(
     adminInferenceLogsUiState: AdminInferenceLogsUiState? = null,
     onAdminModelConfigSave: ((AdminModelConfigUpdate) -> Unit)? = null,
     onAdminModelDeploy: ((String) -> Unit)? = null,
+    onOpenAdminLogs: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     if (
         userRole == "Admin" &&
         adminModelConfigUiState != null &&
-        adminInferenceLogsUiState != null &&
         onAdminModelConfigSave != null &&
         onAdminModelDeploy != null
     ) {
         AdminSettingsContent(
             modelConfig = adminModelConfigUiState,
-            inferenceLogs = adminInferenceLogsUiState,
-            benchmarkMetrics = benchmarkMetrics,
-            currentResult = currentResult,
             userDisplayName = userDisplayName,
             onLogout = onLogout,
             onSaveConfig = onAdminModelConfigSave,
             onDeployModel = onAdminModelDeploy,
+            onOpenLogs = onOpenAdminLogs,
             modifier = modifier,
         )
         return
@@ -273,13 +272,11 @@ fun SettingsScreen(
 @Composable
 private fun AdminSettingsContent(
     modelConfig: AdminModelConfigUiState,
-    inferenceLogs: AdminInferenceLogsUiState,
-    benchmarkMetrics: BenchmarkMetrics,
-    currentResult: ClassificationResult?,
     userDisplayName: String?,
     onLogout: (() -> Unit)?,
     onSaveConfig: (AdminModelConfigUpdate) -> Unit,
     onDeployModel: (String) -> Unit,
+    onOpenLogs: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var threshold by rememberSaveable(modelConfig.activeModelFile, modelConfig.threshold) {
@@ -291,19 +288,6 @@ private fun AdminSettingsContent(
     var autoScaling by rememberSaveable(modelConfig.activeModelFile, modelConfig.autoScalingEnabled) {
         mutableStateOf(modelConfig.autoScalingEnabled)
     }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedResult by rememberSaveable { mutableStateOf("All") }
-    var selectedModel by rememberSaveable { mutableStateOf("All Models") }
-    val modelFilters = listOf("All Models") + inferenceLogs.logs.map { log -> log.modelName }.distinct()
-    val visibleLogs = inferenceLogs.logs.filter { log ->
-        val matchesSearch = searchQuery.isBlank() ||
-            log.farmerId.contains(searchQuery, ignoreCase = true) ||
-            log.farmerName.contains(searchQuery, ignoreCase = true) ||
-            log.resultLabel.contains(searchQuery, ignoreCase = true)
-        val matchesResult = selectedResult == "All" || log.kind.name == selectedResult
-        val matchesModel = selectedModel == "All Models" || log.modelName == selectedModel
-        matchesSearch && matchesResult && matchesModel
-    }
 
     Column(
         modifier = modifier
@@ -312,8 +296,6 @@ private fun AdminSettingsContent(
             .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        AdminSettingsTopBar(userDisplayName = userDisplayName)
-
         if (onLogout != null) {
             SettingsSectionCard(
                 title = "Tài khoản",
@@ -325,6 +307,20 @@ private fun AdminSettingsContent(
                 SecondaryActionButton(
                     text = "Đăng xuất",
                     onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+
+        if (onOpenLogs != null) {
+            SettingsSectionCard(
+                title = "Nhật ký kiểm tra",
+                subtitle = "Xem lại kết quả inference, bộ lọc và hiệu năng theo từng lượt kiểm tra.",
+                containerColor = CVioSurfaceContainerLow,
+            ) {
+                SecondaryActionButton(
+                    text = "Mở nhật ký",
+                    onClick = onOpenLogs,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -349,7 +345,35 @@ private fun AdminSettingsContent(
             },
             onDeployModel = onDeployModel,
         )
+    }
+}
 
+@Composable
+fun AdminLogsScreen(
+    inferenceLogs: AdminInferenceLogsUiState,
+    modifier: Modifier = Modifier,
+) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedResult by rememberSaveable { mutableStateOf("All") }
+    var selectedModel by rememberSaveable { mutableStateOf("All Models") }
+    val modelFilters = listOf("All Models") + inferenceLogs.logs.map { log -> log.modelName }.distinct()
+    val visibleLogs = inferenceLogs.logs.filter { log ->
+        val matchesSearch = searchQuery.isBlank() ||
+            log.farmerId.contains(searchQuery, ignoreCase = true) ||
+            log.farmerName.contains(searchQuery, ignoreCase = true) ||
+            log.resultLabel.contains(searchQuery, ignoreCase = true)
+        val matchesResult = selectedResult == "All" || log.kind.name == selectedResult
+        val matchesModel = selectedModel == "All Models" || log.modelName == selectedModel
+        matchesSearch && matchesResult && matchesModel
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         InferenceLogsSection(
             inferenceLogs = inferenceLogs,
             visibleLogs = visibleLogs,
@@ -361,48 +385,6 @@ private fun AdminSettingsContent(
             onResultSelected = { selectedResult = it },
             onModelSelected = { selectedModel = it },
         )
-
-        BenchmarkSummaryCard(metrics = benchmarkMetrics)
-        MetricsCard(
-            result = currentResult,
-            benchmarkMetrics = benchmarkMetrics,
-        )
-    }
-}
-
-@Composable
-private fun AdminSettingsTopBar(userDisplayName: String?) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = "CVio Admin",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = userDisplayName ?: "Quản trị hệ thống",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-        ) {
-            Text(
-                text = "CV",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontWeight = FontWeight.Bold,
-            )
-        }
     }
 }
 
@@ -471,11 +453,10 @@ private fun ModelConfigurationSection(
                             .padding(22.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = "AI",
-                            style = MaterialTheme.typography.headlineSmall,
+                        ShrimpLineIcon(
+                            icon = ShrimpNavIcon.Models,
+                            modifier = Modifier.size(28.dp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold,
                         )
                     }
                     Column(
@@ -631,59 +612,6 @@ private fun ModelConfigurationSection(
 }
 
 @Composable
-private fun ModelRevisionCard(
-    revision: AdminModelRevision,
-    onDeployModel: (String) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CVioSurfaceContainerLowest),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(18.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = if (revision.isActive) "A" else "H",
-                style = MaterialTheme.typography.labelMedium,
-                color = if (revision.isActive) HealthyGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold,
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                Text(
-                    text = revision.displayName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "${revision.releaseLabel} - ${revision.version}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            ConfigPill(
-                label = if (revision.isActive) "Đang dùng" else "Triển khai",
-                selected = revision.isActive,
-                onClick = {
-                    if (!revision.isActive) onDeployModel(revision.modelFile)
-                },
-            )
-        }
-    }
-}
-
-@Composable
 private fun ConfigPill(
     label: String,
     selected: Boolean,
@@ -777,11 +705,12 @@ private fun InferenceLogsSection(
             singleLine = true,
             shape = RoundedCornerShape(999.dp),
             leadingIcon = {
-                Text(
-                    text = "T",
-                    style = MaterialTheme.typography.labelMedium,
+                ShrimpLineIcon(
+                    icon = ShrimpNavIcon.Search,
+                    modifier = Modifier
+                        .padding(start = 2.dp)
+                        .size(18.dp),
                     color = MaterialTheme.colorScheme.outline,
-                    fontWeight = FontWeight.Bold,
                 )
             },
             placeholder = {

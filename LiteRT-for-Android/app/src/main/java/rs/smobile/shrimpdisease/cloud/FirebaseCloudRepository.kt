@@ -12,6 +12,8 @@ import com.google.firebase.firestore.SetOptions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rs.smobile.shrimpdisease.auth.AuthRole
 import rs.smobile.shrimpdisease.auth.AuthUser
+import rs.smobile.shrimpdisease.data.AdminDataReviewItem
+import rs.smobile.shrimpdisease.data.AdminDataState
 import rs.smobile.shrimpdisease.data.PredictionLogItem
 import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
 import java.util.concurrent.TimeUnit
@@ -200,6 +202,57 @@ class FirebaseCloudRepository @Inject constructor(
         } ?: false
     }
 
+    fun fetchAdminDataState(): AdminDataState? {
+        return withFirebase("fetchAdminDataState") {
+            db().collection(ADMIN_DATA_STATE)
+                .document(DEFAULT_ADMIN_DATA_STATE)
+                .get()
+                .awaitBlocking()
+                .toAdminDataState()
+        }
+    }
+
+    fun upsertAdminDataState(state: AdminDataState): Boolean {
+        return withFirebase("upsertAdminDataState") {
+            db().collection(ADMIN_DATA_STATE)
+                .document(DEFAULT_ADMIN_DATA_STATE)
+                .set(state.toFirestoreMap(), SetOptions.merge())
+                .awaitBlocking()
+            true
+        } ?: false
+    }
+
+    fun fetchManualAdminDataItems(): List<AdminDataReviewItem>? {
+        return withFirebase("fetchManualAdminDataItems") {
+            db().collection(ADMIN_MANUAL_DATA)
+                .get()
+                .awaitBlocking()
+                .documents
+                .mapNotNull { document -> document.toAdminDataReviewItem() }
+                .sortedByDescending { item -> item.timestamp }
+        }
+    }
+
+    fun upsertManualAdminDataItem(item: AdminDataReviewItem): Boolean {
+        return withFirebase("upsertManualAdminDataItem") {
+            db().collection(ADMIN_MANUAL_DATA)
+                .document(item.id)
+                .set(item.toFirestoreMap(), SetOptions.merge())
+                .awaitBlocking()
+            true
+        } ?: false
+    }
+
+    fun deleteManualAdminDataItem(itemId: String): Boolean {
+        return withFirebase("deleteManualAdminDataItem") {
+            db().collection(ADMIN_MANUAL_DATA)
+                .document(itemId)
+                .delete()
+                .awaitBlocking()
+            true
+        } ?: false
+    }
+
     private fun auth(): FirebaseAuth = FirebaseAuth.getInstance()
 
     private fun db(): FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -321,6 +374,82 @@ class FirebaseCloudRepository @Inject constructor(
         )
     }
 
+    private fun AdminDataState.toFirestoreMap(): Map<String, Any?> {
+        return mapOf(
+            "reviewedIds" to reviewedIds.toList().sorted(),
+            "excludedIds" to excludedIds.toList().sorted(),
+            "deletedDataIds" to deletedDataIds.toList().sorted(),
+            "correctedLabels" to correctedLabels,
+            "updatedAt" to System.currentTimeMillis(),
+        )
+    }
+
+    private fun DocumentSnapshot.toAdminDataState(): AdminDataState {
+        if (!exists()) return AdminDataState()
+        return AdminDataState(
+            reviewedIds = getStringSet("reviewedIds"),
+            excludedIds = getStringSet("excludedIds"),
+            deletedDataIds = getStringSet("deletedDataIds"),
+            correctedLabels = getStringMap("correctedLabels"),
+        )
+    }
+
+    private fun AdminDataReviewItem.toFirestoreMap(): Map<String, Any?> {
+        return mapOf(
+            "id" to id,
+            "ownerId" to ownerId,
+            "logId" to logId,
+            "farmerName" to farmerName,
+            "pond" to pond,
+            "label" to label,
+            "permissionStatus" to permissionStatus,
+            "reviewed" to reviewed,
+            "excluded" to excluded,
+            "confidence" to confidence,
+            "timestamp" to timestamp,
+            "isManual" to true,
+            "updatedAt" to System.currentTimeMillis(),
+        )
+    }
+
+    private fun DocumentSnapshot.toAdminDataReviewItem(): AdminDataReviewItem? {
+        if (!exists()) return null
+        val itemId = getString("id").orEmpty().ifBlank { id }
+        val timestamp = getLong("timestamp") ?: return null
+        return AdminDataReviewItem(
+            id = itemId,
+            ownerId = getString("ownerId").orEmpty().ifBlank { ADMIN_OWNER_ID },
+            logId = getLong("logId") ?: timestamp,
+            farmerName = getString("farmerName").orEmpty().ifBlank { "Dữ liệu Admin" },
+            pond = getString("pond").orEmpty().ifBlank { "Ao chưa đặt tên" },
+            label = getString("label").orEmpty().ifBlank { "Chưa xác định" },
+            permissionStatus = getString("permissionStatus").orEmpty().ifBlank { "Allowed" },
+            reviewed = getBoolean("reviewed") ?: false,
+            excluded = getBoolean("excluded") ?: false,
+            confidence = getFloat("confidence").coerceIn(0f, 1f),
+            timestamp = timestamp,
+            isManual = true,
+        )
+    }
+
+    private fun DocumentSnapshot.getStringSet(field: String): Set<String> {
+        return (get(field) as? List<*>)
+            .orEmpty()
+            .mapNotNull { value -> value as? String }
+            .toSet()
+    }
+
+    private fun DocumentSnapshot.getStringMap(field: String): Map<String, String> {
+        return (get(field) as? Map<*, *>)
+            .orEmpty()
+            .mapNotNull { (key, value) ->
+                val stringKey = key as? String ?: return@mapNotNull null
+                val stringValue = value as? String ?: return@mapNotNull null
+                stringKey to stringValue
+            }
+            .toMap()
+    }
+
     private fun DocumentSnapshot.getFloat(field: String): Float {
         return getDouble(field)?.toFloat() ?: 0f
     }
@@ -350,5 +479,9 @@ class FirebaseCloudRepository @Inject constructor(
         private const val USERS = "users"
         private const val FARMER_PROFILES = "farmer_profiles"
         private const val PREDICTION_LOGS = "prediction_logs"
+        private const val ADMIN_DATA_STATE = "admin_data_state"
+        private const val ADMIN_MANUAL_DATA = "admin_manual_data"
+        private const val DEFAULT_ADMIN_DATA_STATE = "default"
+        private const val ADMIN_OWNER_ID = "admin"
     }
 }

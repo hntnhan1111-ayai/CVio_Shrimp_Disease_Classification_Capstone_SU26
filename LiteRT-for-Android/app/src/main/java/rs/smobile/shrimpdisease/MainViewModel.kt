@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import rs.smobile.shrimpdisease.auth.AuthRepository
 import rs.smobile.shrimpdisease.auth.AuthResult
 import rs.smobile.shrimpdisease.auth.AuthRole
@@ -122,14 +123,13 @@ class MainViewModel @Inject constructor(
     private val loggedResultTimestamps = mutableSetOf<Long>()
 
     init {
-        predictionLogRepository.setOwner(authRepository.session.value.user?.id)
-        farmerProfileRepository.setUser(authRepository.session.value.user)
-        refreshAdminDashboard()
         viewModelScope.launch {
             authRepository.session.collect { session ->
                 loggedResultTimestamps.clear()
-                predictionLogRepository.setOwner(session.user?.id)
-                farmerProfileRepository.setUser(session.user)
+                withContext(Dispatchers.IO) {
+                    predictionLogRepository.setOwner(session.user?.id)
+                    farmerProfileRepository.setUser(session.user)
+                }
                 refreshAdminDashboard()
             }
         }
@@ -206,9 +206,16 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun saveCurrentResult(): Boolean {
-        val result = _classificationState.value.result ?: return false
-        return addResultToLog(result)
+    fun saveCurrentResult(onResult: (saved: Boolean, hasResult: Boolean) -> Unit) {
+        val result = _classificationState.value.result
+        if (result == null) {
+            onResult(false, false)
+            return
+        }
+        viewModelScope.launch {
+            val saved = addResultToLog(result)
+            onResult(saved, true)
+        }
     }
 
     fun setGroundTruthLabel(label: String?) {
@@ -222,34 +229,56 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearLogs() {
-        predictionLogRepository.clearLogs()
-        loggedResultTimestamps.clear()
-        refreshAdminDashboard()
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                predictionLogRepository.clearLogs()
+            }
+            loggedResultTimestamps.clear()
+            refreshAdminDashboard()
+        }
     }
 
     fun setHistoryFilter(filter: HistoryFilter) {
         predictionLogRepository.setHistoryFilter(filter)
     }
 
-    fun updateFarmerProfile(update: FarmerProfileUpdate): Boolean {
-        val updated = farmerProfileRepository.updateProfile(update)
-        if (updated) {
-            authRepository.updateDisplayName(farmerProfileRepository.profile.value.displayName)
-            refreshAdminDashboard()
+    fun updateFarmerProfile(
+        update: FarmerProfileUpdate,
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                val saved = farmerProfileRepository.updateProfile(update)
+                if (saved) {
+                    authRepository.updateDisplayName(farmerProfileRepository.profile.value.displayName)
+                }
+                saved
+            }
+            if (updated) refreshAdminDashboard()
+            onResult(updated)
         }
-        return updated
     }
 
-    fun setFarmerDataPermission(enabled: Boolean): Boolean {
-        val updated = farmerProfileRepository.setDataPermissionEnabled(enabled)
-        if (updated) refreshAdminDashboard()
-        return updated
+    fun setFarmerDataPermission(enabled: Boolean) {
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                farmerProfileRepository.setDataPermissionEnabled(enabled)
+            }
+            if (updated) refreshAdminDashboard()
+        }
     }
 
-    fun updateFarmerAvatar(avatarUri: String?): Boolean {
-        val updated = farmerProfileRepository.setAvatarUri(avatarUri)
-        if (updated) refreshAdminDashboard()
-        return updated
+    fun updateFarmerAvatar(
+        avatarUri: String?,
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                farmerProfileRepository.setAvatarUri(avatarUri)
+            }
+            if (updated) refreshAdminDashboard()
+            onResult(updated)
+        }
     }
 
     fun exportLogs(context: Context, uri: Uri): Boolean {
@@ -259,15 +288,29 @@ class MainViewModel @Inject constructor(
     fun login(
         account: String,
         password: String,
-    ): AuthResult {
-        return authRepository.login(account, password).also { refreshAdminDashboard() }
+        onResult: (AuthResult) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                authRepository.login(account, password)
+            }
+            refreshAdminDashboard()
+            onResult(result)
+        }
     }
 
     fun register(
         account: String,
         password: String,
-    ): AuthResult {
-        return authRepository.register(account, password).also { refreshAdminDashboard() }
+        onResult: (AuthResult) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                authRepository.register(account, password)
+            }
+            refreshAdminDashboard()
+            onResult(result)
+        }
     }
 
     fun logout() {
@@ -277,18 +320,57 @@ class MainViewModel @Inject constructor(
     }
 
     fun refreshAdminDashboard() {
-        _adminDashboardUiState.value = adminDashboardRepository.loadDashboard()
-        _adminDiagnosisUiState.value = adminDashboardRepository.loadDiagnosis()
-        refreshAdminSettings()
+        val activeModelFile = _modelInfo.value.modelFile
+        val availableModels = _availableModels.value
+        val threshold = _settingsState.value.confidenceThreshold
+        viewModelScope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    AdminDashboardSnapshot(
+                        dashboard = adminDashboardRepository.loadDashboard(),
+                        diagnosis = adminDashboardRepository.loadDiagnosis(),
+                        modelConfig = adminDashboardRepository.loadModelConfig(
+                            activeModelFile = activeModelFile,
+                            availableModels = availableModels,
+                            threshold = threshold,
+                        ),
+                        inferenceLogs = adminDashboardRepository.loadInferenceLogs(),
+                    )
+                }
+            }.onSuccess { snapshot ->
+                _adminDashboardUiState.value = snapshot.dashboard
+                _adminDiagnosisUiState.value = snapshot.diagnosis
+                _adminModelConfigUiState.value = snapshot.modelConfig
+                _adminInferenceLogsUiState.value = snapshot.inferenceLogs
+            }.onFailure { error ->
+                Log.e(TAG, "Khong tai duoc dashboard quan tri.", error)
+            }
+        }
     }
 
     fun refreshAdminSettings() {
-        _adminModelConfigUiState.value = adminDashboardRepository.loadModelConfig(
-            activeModelFile = _modelInfo.value.modelFile,
-            availableModels = _availableModels.value,
-            threshold = _settingsState.value.confidenceThreshold,
-        )
-        _adminInferenceLogsUiState.value = adminDashboardRepository.loadInferenceLogs()
+        val activeModelFile = _modelInfo.value.modelFile
+        val availableModels = _availableModels.value
+        val threshold = _settingsState.value.confidenceThreshold
+        viewModelScope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    AdminSettingsSnapshot(
+                        modelConfig = adminDashboardRepository.loadModelConfig(
+                            activeModelFile = activeModelFile,
+                            availableModels = availableModels,
+                            threshold = threshold,
+                        ),
+                        inferenceLogs = adminDashboardRepository.loadInferenceLogs(),
+                    )
+                }
+            }.onSuccess { snapshot ->
+                _adminModelConfigUiState.value = snapshot.modelConfig
+                _adminInferenceLogsUiState.value = snapshot.inferenceLogs
+            }.onFailure { error ->
+                Log.e(TAG, "Khong tai duoc cau hinh quan tri.", error)
+            }
+        }
     }
 
     fun saveAdminModelConfig(update: AdminModelConfigUpdate): Boolean {
@@ -304,46 +386,84 @@ class MainViewModel @Inject constructor(
         refreshAdminSettings()
     }
 
-    fun createAdminUser(input: AdminCreateUserInput): AuthResult {
-        val result = adminDashboardRepository.createUser(input)
-        if (result is AuthResult.Success) refreshAdminDashboard()
-        return result
+    fun createAdminUser(
+        input: AdminCreateUserInput,
+        onResult: (AuthResult) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                adminDashboardRepository.createUser(input)
+            }
+            if (result is AuthResult.Success) refreshAdminDashboard()
+            onResult(result)
+        }
     }
 
     fun updateAdminUser(
         userId: String,
         input: AdminUpdateUserInput,
-    ): AuthResult {
-        val result = adminDashboardRepository.updateUser(userId, input)
-        if (result is AuthResult.Success) refreshAdminDashboard()
-        return result
+        onResult: (AuthResult) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                adminDashboardRepository.updateUser(userId, input)
+            }
+            if (result is AuthResult.Success) refreshAdminDashboard()
+            onResult(result)
+        }
     }
 
-    fun deleteAdminUser(userId: String): Boolean {
-        val deleted = adminDashboardRepository.deleteUser(userId)
-        if (deleted) refreshAdminDashboard()
-        return deleted
+    fun deleteAdminUser(
+        userId: String,
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val deleted = withContext(Dispatchers.IO) {
+                adminDashboardRepository.deleteUser(userId)
+            }
+            if (deleted) refreshAdminDashboard()
+            onResult(deleted)
+        }
     }
 
-    fun createAdminData(input: AdminDataMutationInput): Boolean {
-        val created = adminDashboardRepository.createDataItem(input)
-        if (created) refreshAdminDashboard()
-        return created
+    fun createAdminData(
+        input: AdminDataMutationInput,
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val created = withContext(Dispatchers.IO) {
+                adminDashboardRepository.createDataItem(input)
+            }
+            if (created) refreshAdminDashboard()
+            onResult(created)
+        }
     }
 
     fun updateAdminData(
         itemId: String,
         input: AdminDataMutationInput,
-    ): Boolean {
-        val updated = adminDashboardRepository.updateDataItem(itemId, input)
-        if (updated) refreshAdminDashboard()
-        return updated
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                adminDashboardRepository.updateDataItem(itemId, input)
+            }
+            if (updated) refreshAdminDashboard()
+            onResult(updated)
+        }
     }
 
-    fun deleteAdminData(itemId: String): Boolean {
-        val deleted = adminDashboardRepository.deleteDataItem(itemId)
-        if (deleted) refreshAdminDashboard()
-        return deleted
+    fun deleteAdminData(
+        itemId: String,
+        onResult: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val deleted = withContext(Dispatchers.IO) {
+                adminDashboardRepository.deleteDataItem(itemId)
+            }
+            if (deleted) refreshAdminDashboard()
+            onResult(deleted)
+        }
     }
 
     fun markAdminDataReviewed(itemId: String): Boolean {
@@ -423,28 +543,29 @@ class MainViewModel @Inject constructor(
         _settingsState.value = _settingsState.value.copy(cameraFps = fps)
     }
 
-    private fun addResultToLog(result: ClassificationResult): Boolean {
+    private suspend fun addResultToLog(result: ClassificationResult): Boolean {
         if (!loggedResultTimestamps.add(result.timestamp)) return false
 
         val input = _inputState.value
-        val saved = predictionLogRepository.addLog(
-            PredictionLogItem(
-                imageUri = input.imageUri?.toString(),
-                predictedClass = result.predictedClass,
-                confidence = result.confidence,
-                top3Predictions = BenchmarkUtils.top3CsvText(result.top3Predictions),
-                inferenceTimeMs = result.inferenceTimeMs,
-                speed = result.speed,
-                fps = result.fps,
-                modelName = result.modelName,
-                threshold = result.threshold,
-                isAboveThreshold = result.isAboveThreshold,
-                groundTruthLabel = result.groundTruthLabel,
-                isCorrect = result.isCorrect,
-                timestamp = result.timestamp,
-                thumbnail = input.bitmap.takeIf { input.imageUri == null },
-            )
+        val logItem = PredictionLogItem(
+            imageUri = input.imageUri?.toString(),
+            predictedClass = result.predictedClass,
+            confidence = result.confidence,
+            top3Predictions = BenchmarkUtils.top3CsvText(result.top3Predictions),
+            inferenceTimeMs = result.inferenceTimeMs,
+            speed = result.speed,
+            fps = result.fps,
+            modelName = result.modelName,
+            threshold = result.threshold,
+            isAboveThreshold = result.isAboveThreshold,
+            groundTruthLabel = result.groundTruthLabel,
+            isCorrect = result.isCorrect,
+            timestamp = result.timestamp,
+            thumbnail = input.bitmap.takeIf { input.imageUri == null },
         )
+        val saved = withContext(Dispatchers.IO) {
+            predictionLogRepository.addLog(logItem)
+        }
         if (!saved) {
             loggedResultTimestamps.remove(result.timestamp)
         } else {
@@ -452,6 +573,18 @@ class MainViewModel @Inject constructor(
         }
         return saved
     }
+
+    private data class AdminDashboardSnapshot(
+        val dashboard: AdminDashboardUiState,
+        val diagnosis: AdminDiagnosisUiState,
+        val modelConfig: AdminModelConfigUiState,
+        val inferenceLogs: AdminInferenceLogsUiState,
+    )
+
+    private data class AdminSettingsSnapshot(
+        val modelConfig: AdminModelConfigUiState,
+        val inferenceLogs: AdminInferenceLogsUiState,
+    )
 
     private companion object {
         private const val TAG = "ShrimpDisease"

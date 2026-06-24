@@ -14,10 +14,10 @@ data class AdminDashboardUiState(
 )
 
 data class AdminDiagnosisUiState(
-    val overallAccuracyText: String = "N/A",
-    val truePositiveRateText: String = "N/A",
-    val falseNegativeRateText: String = "N/A",
-    val accuracyTrendText: String = "+0.0% from last week",
+    val overallAccuracyText: String = "Chưa có",
+    val truePositiveRateText: String = "Chưa có",
+    val falseNegativeRateText: String = "Chưa có",
+    val accuracyTrendText: String = "+0,0% so với tuần trước",
     val totalScans: Int = 0,
     val pendingCount: Int = 0,
     val verifiedCount: Int = 0,
@@ -28,14 +28,14 @@ data class AdminDiagnosisUiState(
     val prevalence: List<AdminDiseasePrevalenceItem> = emptyList(),
     val outbreakTrend: List<AdminChartPoint> = emptyList(),
     val regionalBreakdown: List<AdminRegionBreakdownItem> = emptyList(),
-    val predictiveInsight: String = "No elevated disease risk detected in the monitored regions.",
+    val predictiveInsight: String = "Chưa phát hiện rủi ro bệnh tăng cao tại các khu vực đang theo dõi.",
 )
 
 data class AdminModelConfigUiState(
     val activeModelFile: String = "",
     val activeModelName: String = "CVioNet",
     val activeVersion: String = "v1.0",
-    val deployedDateText: String = "Local deployment",
+    val deployedDateText: String = "Triển khai cục bộ",
     val statusText: String = "Ổn định",
     val threshold: Float = 0.85f,
     val batchSize: String = "32 frames/s",
@@ -58,8 +58,8 @@ data class AdminModelConfigUpdate(
 )
 
 data class AdminInferenceLogsUiState(
-    val averageInferenceTimeText: String = "N/A",
-    val successRateText: String = "N/A",
+    val averageInferenceTimeText: String = "Chưa có",
+    val successRateText: String = "Chưa có",
     val activeModelFilter: String = "All Models",
     val logs: List<AdminInferenceLogItem> = emptyList(),
 )
@@ -206,6 +206,13 @@ data class AdminDataMutationInput(
     val label: String,
     val permissionStatus: String,
     val confidence: Float,
+)
+
+data class AdminDataState(
+    val reviewedIds: Set<String> = emptySet(),
+    val excludedIds: Set<String> = emptySet(),
+    val deletedDataIds: Set<String> = emptySet(),
+    val correctedLabels: Map<String, String> = emptyMap(),
 )
 
 fun emptyAdminChartPoints(): List<AdminChartPoint> {

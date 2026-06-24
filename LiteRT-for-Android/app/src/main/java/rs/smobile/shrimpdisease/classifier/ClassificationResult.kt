@@ -1,5 +1,6 @@
 package rs.smobile.shrimpdisease.classifier
 
+import android.graphics.Bitmap
 import rs.smobile.shrimpdisease.data.PredictionItem
 
 /** One model class prediction with a normalized confidence score. */
@@ -26,6 +27,7 @@ data class ClassificationResult(
     val modelInferenceTimeMs: Long = inferenceTimeMs,
     val postprocessingTimeMs: Long = 0L,
     val totalTimeMs: Long = inferenceTimeMs,
+    val segmentation: SegmentationResult? = null,
 ) {
     val rawTop1Label: String
         get() = top3Predictions.firstOrNull()?.label ?: predictedClass
@@ -38,3 +40,11 @@ data class ClassificationResult(
             Prediction(prediction.label, prediction.confidence)
         }
 }
+
+data class SegmentationResult(
+    val maskBitmap: Bitmap,
+    val label: String,
+    val confidence: Float,
+    val detectionCount: Int,
+    val classCounts: Map<String, Int> = emptyMap(),
+)

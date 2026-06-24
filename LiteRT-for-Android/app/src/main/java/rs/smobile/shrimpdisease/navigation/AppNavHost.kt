@@ -5,6 +5,13 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +45,7 @@ import rs.smobile.shrimpdisease.ui.home.HomeScreen
 import rs.smobile.shrimpdisease.ui.inference.InferenceScreen
 import rs.smobile.shrimpdisease.ui.onboarding.WelcomeScreen
 import rs.smobile.shrimpdisease.ui.profile.ProfileScreen
+import rs.smobile.shrimpdisease.ui.settings.AdminLogsScreen
 import rs.smobile.shrimpdisease.ui.settings.SettingsScreen
 import rs.smobile.shrimpdisease.utils.BitmapUtils
 
@@ -88,12 +96,13 @@ fun AppNavHost(
 
     val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val updated = viewModel.updateFarmerAvatar(uri.toString())
+        viewModel.updateFarmerAvatar(uri.toString()) { updated ->
         Toast.makeText(
             context,
             if (updated) "Đã cập nhật ảnh đại diện" else "Cập nhật ảnh đại diện thất bại",
             Toast.LENGTH_SHORT,
         ).show()
+        }
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -189,7 +198,7 @@ fun AppNavHost(
             Screen.Inference.route -> {
                 {
                     ShrimpIconButton(
-                        icon = ShrimpNavIcon.Back,
+                        icon = ShrimpNavIcon.Home,
                         contentDescription = "Về trang chủ",
                         onClick = { navController.navigateHomeFromInference() },
                     )
@@ -199,14 +208,9 @@ fun AppNavHost(
             Screen.AdminInference.route -> {
                 {
                     ShrimpIconButton(
-                        icon = ShrimpNavIcon.Back,
-                        contentDescription = "Về bảng quản trị",
-                        onClick = {
-                            navController.navigateTopLevel(
-                                Screen.AdminDashboard,
-                                Screen.AdminDashboard.route,
-                            )
-                        },
+                        icon = ShrimpNavIcon.Home,
+                        contentDescription = "Về trang chủ",
+                        onClick = { navController.navigateAdminHomeFromInference() },
                     )
                 }
             }
@@ -230,11 +234,30 @@ fun AppNavHost(
                 }
             }
 
+            Screen.AdminLogs.route -> {
+                {
+                    ShrimpIconButton(
+                        icon = ShrimpNavIcon.Back,
+                        contentDescription = "Quay lại",
+                        onClick = {
+                            if (!navController.popBackStack()) {
+                                navController.navigateAdminHomeFromInference()
+                            }
+                        },
+                    )
+                }
+            }
+
             else -> null
         },
         onNavigate = { item ->
-            currentTopLevelScreens.firstOrNull { it.route == item.route }?.let { screen ->
-                navController.navigateTopLevel(screen, topLevelAnchor)
+            if (item.route != currentRoute) {
+                when (item.route) {
+                    Screen.Home.route -> navController.navigateHomeFromInference()
+                    else -> currentTopLevelScreens.firstOrNull { it.route == item.route }?.let { screen ->
+                        navController.navigateTopLevel(screen, topLevelAnchor)
+                    }
+                }
             }
         },
     ) { innerPadding ->
@@ -242,6 +265,42 @@ fun AppNavHost(
             navController = navController,
             startDestination = startDestinationFor(authSession.user?.role),
             modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                pageEnterTransition(
+                    forward = isForwardNavigation(
+                        fromRoute = initialState.destination.route,
+                        toRoute = targetState.destination.route,
+                        role = authSession.user?.role,
+                    ),
+                )
+            },
+            exitTransition = {
+                pageExitTransition(
+                    forward = isForwardNavigation(
+                        fromRoute = initialState.destination.route,
+                        toRoute = targetState.destination.route,
+                        role = authSession.user?.role,
+                    ),
+                )
+            },
+            popEnterTransition = {
+                pageEnterTransition(
+                    forward = isForwardNavigation(
+                        fromRoute = initialState.destination.route,
+                        toRoute = targetState.destination.route,
+                        role = authSession.user?.role,
+                    ),
+                )
+            },
+            popExitTransition = {
+                pageExitTransition(
+                    forward = isForwardNavigation(
+                        fromRoute = initialState.destination.route,
+                        toRoute = targetState.destination.route,
+                        role = authSession.user?.role,
+                    ),
+                )
+            },
         ) {
             composable(Screen.Welcome.route) {
                 WelcomeScreen(
@@ -254,7 +313,8 @@ fun AppNavHost(
             composable(Screen.Auth.route) {
                 AuthScreen(
                     onLogin = { account, password ->
-                        when (val result = viewModel.login(account, password)) {
+                        viewModel.login(account, password) { result ->
+                        when (result) {
                             is AuthResult.Success -> {
                                 navController.navigateAuthenticated(result.user.role)
                             }
@@ -263,9 +323,11 @@ fun AppNavHost(
                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
                             }
                         }
+                        }
                     },
                     onRegister = { account, password ->
-                        when (val result = viewModel.register(account, password)) {
+                        viewModel.register(account, password) { result ->
+                        when (result) {
                             is AuthResult.Success -> {
                                 Toast.makeText(
                                     context,
@@ -278,6 +340,7 @@ fun AppNavHost(
                             is AuthResult.Error -> {
                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
                             }
+                        }
                         }
                     },
                 )
@@ -325,8 +388,7 @@ fun AppNavHost(
                     onSelectAnotherImage = { imagePicker.launch("image/*") },
                     onRunInference = viewModel::runInference,
                     onSaveResult = {
-                        val hasResult = classificationState.result != null
-                        val saved = viewModel.saveCurrentResult()
+                        viewModel.saveCurrentResult { saved, hasResult ->
                         Toast.makeText(
                             context,
                             when {
@@ -336,6 +398,7 @@ fun AppNavHost(
                             },
                             Toast.LENGTH_SHORT,
                         ).show()
+                        }
                     },
                     onHome = { navController.navigateHomeFromInference() },
                     onHistory = { navController.navigateTopLevel(Screen.History, Screen.Home.route) },
@@ -373,12 +436,13 @@ fun AppNavHost(
                         avatarPicker.launch("image/*")
                     },
                     onSaveProfile = { update ->
-                        val saved = viewModel.updateFarmerProfile(update)
+                        viewModel.updateFarmerProfile(update) { saved ->
                         Toast.makeText(
                             context,
                             if (saved) "Đã cập nhật hồ sơ" else "Cập nhật hồ sơ thất bại",
                             Toast.LENGTH_SHORT,
                         ).show()
+                        }
                     },
                     onLogout = {
                         viewModel.logout()
@@ -418,6 +482,11 @@ fun AppNavHost(
                         viewModel.deployAdminModel(modelFile)
                         Toast.makeText(context, "Đã triển khai mô hình", Toast.LENGTH_SHORT).show()
                     },
+                    onOpenAdminLogs = {
+                        navController.navigate(Screen.AdminLogs.route) {
+                            launchSingleTop = true
+                        }
+                    },
                     onLogout = {
                         viewModel.logout()
                         navController.navigateLoggedOut()
@@ -449,44 +518,49 @@ fun AppNavHost(
                 AdminUsersScreen(
                     users = adminDashboardUiState.users,
                     currentUserName = authSession.user?.displayName,
-                    onCreateUser = { input ->
-                        when (val result = viewModel.createAdminUser(input)) {
+                    onCreateUser = { input, onComplete ->
+                        viewModel.createAdminUser(input) { result ->
+                        when (result) {
                             is AuthResult.Success -> {
                                 Toast.makeText(
                                     context,
                                     "Đã tạo người dùng",
                                     Toast.LENGTH_SHORT,
                                 ).show()
-                                true
+                                onComplete(true)
                             }
 
                             is AuthResult.Error -> {
                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                                false
+                                onComplete(false)
                             }
                         }
+                        }
                     },
-                    onUpdateUser = { userId, input ->
-                        when (val result = viewModel.updateAdminUser(userId, input)) {
+                    onUpdateUser = { userId, input, onComplete ->
+                        viewModel.updateAdminUser(userId, input) { result ->
+                        when (result) {
                             is AuthResult.Success -> {
                                 Toast.makeText(context, "Đã cập nhật người dùng", Toast.LENGTH_SHORT).show()
-                                true
+                                onComplete(true)
                             }
 
                             is AuthResult.Error -> {
                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                                false
+                                onComplete(false)
                             }
                         }
+                        }
                     },
-                    onDeleteUser = { user ->
-                        val deleted = viewModel.deleteAdminUser(user.id)
+                    onDeleteUser = { user, onComplete ->
+                        viewModel.deleteAdminUser(user.id) { deleted ->
                         Toast.makeText(
                             context,
                             if (deleted) "Đã xóa người dùng" else "Không xóa được người dùng",
                             Toast.LENGTH_SHORT,
                         ).show()
-                        deleted
+                        onComplete(deleted)
+                        }
                     },
                     onHome = {
                         navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
@@ -522,8 +596,7 @@ fun AppNavHost(
                     onSelectAnotherImage = { imagePicker.launch("image/*") },
                     onRunInference = viewModel::runInference,
                     onSaveResult = {
-                        val hasResult = classificationState.result != null
-                        val saved = viewModel.saveCurrentResult()
+                        viewModel.saveCurrentResult { saved, hasResult ->
                         Toast.makeText(
                             context,
                             when {
@@ -533,13 +606,17 @@ fun AppNavHost(
                             },
                             Toast.LENGTH_SHORT,
                         ).show()
+                        }
                     },
-                    onHome = { navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route) },
-                    onHistory = { navController.navigate(Screen.History.route) },
+                    onHome = { navController.navigateAdminHomeFromInference() },
+                    onHistory = {
+                        navController.navigate(Screen.AdminLogs.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    historyActionText = "Nhật ký",
                     showBackButton = true,
-                    onBack = {
-                        navController.navigateTopLevel(Screen.AdminDashboard, Screen.AdminDashboard.route)
-                    },
+                    onBack = { navController.navigateAdminHomeFromInference() },
                     enableGroundTruthSelection = true,
                     showResultMetrics = true,
                 )
@@ -549,32 +626,35 @@ fun AppNavHost(
                 AdminDataControlScreen(
                     dataItems = adminDashboardUiState.dataItems,
                     currentUserName = authSession.user?.displayName,
-                    onCreateData = { input ->
-                        val created = viewModel.createAdminData(input)
+                    onCreateData = { input, onComplete ->
+                        viewModel.createAdminData(input) { created ->
                         Toast.makeText(
                             context,
                             if (created) "Đã thêm dữ liệu" else "Không thêm được dữ liệu",
                             Toast.LENGTH_SHORT,
                         ).show()
-                        created
+                        onComplete(created)
+                        }
                     },
-                    onUpdateData = { item, input ->
-                        val updated = viewModel.updateAdminData(item.id, input)
+                    onUpdateData = { item, input, onComplete ->
+                        viewModel.updateAdminData(item.id, input) { updated ->
                         Toast.makeText(
                             context,
                             if (updated) "Đã cập nhật dữ liệu" else "Không cập nhật được dữ liệu",
                             Toast.LENGTH_SHORT,
                         ).show()
-                        updated
+                        onComplete(updated)
+                        }
                     },
-                    onDeleteData = { item ->
-                        val deleted = viewModel.deleteAdminData(item.id)
+                    onDeleteData = { item, onComplete ->
+                        viewModel.deleteAdminData(item.id) { deleted ->
                         Toast.makeText(
                             context,
                             if (deleted) "Đã xóa dữ liệu" else "Không xóa được dữ liệu",
                             Toast.LENGTH_SHORT,
                         ).show()
-                        deleted
+                        onComplete(deleted)
+                        }
                     },
                     onMarkReviewed = { item ->
                         viewModel.markAdminDataReviewed(item.id)
@@ -593,6 +673,12 @@ fun AppNavHost(
                     onSettings = {
                         navController.navigateTopLevel(Screen.Settings, Screen.AdminDashboard.route)
                     },
+                )
+            }
+
+            composable(Screen.AdminLogs.route) {
+                AdminLogsScreen(
+                    inferenceLogs = adminInferenceLogsUiState,
                 )
             }
         }
@@ -644,9 +730,28 @@ private fun NavHostController.openInference(role: AuthRole?) {
 }
 
 private fun NavHostController.navigateHomeFromInference() {
+    if (popBackStack(Screen.Home.route, inclusive = false)) return
+
+    val currentDestinationId = currentDestination?.id
     navigate(Screen.Home.route) {
-        popUpTo(Screen.Home.route) {
-            inclusive = false
+        if (currentDestinationId != null) {
+            popUpTo(currentDestinationId) {
+                inclusive = true
+            }
+        }
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.navigateAdminHomeFromInference() {
+    if (popBackStack(Screen.AdminDashboard.route, inclusive = false)) return
+
+    val currentDestinationId = currentDestination?.id
+    navigate(Screen.AdminDashboard.route) {
+        if (currentDestinationId != null) {
+            popUpTo(currentDestinationId) {
+                inclusive = true
+            }
         }
         launchSingleTop = true
     }
@@ -665,6 +770,7 @@ private fun screenTitleForRoute(route: String): String {
         Screen.AdminUsers.route -> Screen.AdminUsers.title
         Screen.AdminInference.route -> Screen.AdminInference.title
         Screen.AdminData.route -> Screen.AdminData.title
+        Screen.AdminLogs.route -> Screen.AdminLogs.title
         else -> "CVio AI"
     }
 }
@@ -681,3 +787,64 @@ private val authRoutes = setOf(
     Screen.Welcome.route,
     Screen.Auth.route,
 )
+
+private const val NavAnimationMillis = 260
+
+private fun pageEnterTransition(forward: Boolean): EnterTransition {
+    return fadeIn(animationSpec = tween(durationMillis = NavAnimationMillis)) +
+        slideInHorizontally(animationSpec = tween(durationMillis = NavAnimationMillis)) { width ->
+            if (forward) width / 5 else -width / 5
+        }
+}
+
+private fun pageExitTransition(forward: Boolean): ExitTransition {
+    return fadeOut(animationSpec = tween(durationMillis = NavAnimationMillis - 60)) +
+        slideOutHorizontally(animationSpec = tween(durationMillis = NavAnimationMillis)) { width ->
+            if (forward) -width / 6 else width / 6
+        }
+}
+
+private fun isForwardNavigation(
+    fromRoute: String?,
+    toRoute: String?,
+    role: AuthRole?,
+): Boolean {
+    val routeOrder = routeOrderFor(role)
+    val fromIndex = routeOrder.indexOf(fromRoute)
+    val toIndex = routeOrder.indexOf(toRoute)
+    return if (fromIndex >= 0 && toIndex >= 0) {
+        toIndex >= fromIndex
+    } else {
+        true
+    }
+}
+
+private fun routeOrderFor(role: AuthRole?): List<String> {
+    return when (role) {
+        AuthRole.Admin -> listOf(
+            Screen.Welcome.route,
+            Screen.Auth.route,
+            Screen.AdminDashboard.route,
+            Screen.AdminUsers.route,
+            Screen.AdminInference.route,
+            Screen.AdminData.route,
+            Screen.AdminLogs.route,
+            Screen.Settings.route,
+        )
+
+        AuthRole.Farmer -> listOf(
+            Screen.Welcome.route,
+            Screen.Auth.route,
+            Screen.Home.route,
+            Screen.Inference.route,
+            Screen.History.route,
+            Screen.Profile.route,
+            Screen.Settings.route,
+        )
+
+        null -> listOf(
+            Screen.Welcome.route,
+            Screen.Auth.route,
+        )
+    }
+}

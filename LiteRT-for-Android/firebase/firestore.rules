@@ -10,6 +10,47 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
+    function userFields() {
+      return ['id', 'account', 'role', 'displayName', 'createdAt', 'updatedAt'];
+    }
+
+    function profileFields() {
+      return [
+        'userId',
+        'displayName',
+        'farmLocation',
+        'phoneNumber',
+        'email',
+        'avatarUri',
+        'dataPermissionEnabled',
+        'updatedAt'
+      ];
+    }
+
+    function predictionLogFields() {
+      return [
+        'ownerId',
+        'imageUri',
+        'predictedClass',
+        'confidence',
+        'top3Predictions',
+        'inferenceTimeMs',
+        'speed',
+        'fps',
+        'modelName',
+        'threshold',
+        'isAboveThreshold',
+        'groundTruthLabel',
+        'isCorrect',
+        'timestamp',
+        'averageInferenceTimeMs',
+        'averageSpeed',
+        'averageFps',
+        'runningAccuracy',
+        'updatedAt'
+      ];
+    }
+
     function isAdmin() {
       return signedIn() && userRole() == 'Admin';
     }
@@ -18,23 +59,78 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function isFarmerSelfCreate(userId) {
+      return isOwner(userId)
+        && request.resource.data.keys().hasOnly(userFields())
+        && request.resource.data.id == userId
+        && request.resource.data.role == 'Farmer';
+    }
+
+    function isSafeSelfUserUpdate(userId) {
+      return isOwner(userId)
+        && request.resource.data.keys().hasOnly(userFields())
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['account', 'displayName', 'updatedAt']);
+    }
+
+    function isSafeSelfProfileWrite(userId) {
+      return isOwner(userId)
+        && request.resource.data.keys().hasOnly(profileFields())
+        && request.resource.data.userId == userId;
+    }
+
+    function isSafePredictionLogCreate() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly(predictionLogFields())
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function keepsPredictionLogOwner() {
+      return request.resource.data.ownerId == resource.data.ownerId;
+    }
+
+    function keepsPredictionLogIdentity() {
+      return keepsPredictionLogOwner()
+        && request.resource.data.timestamp == resource.data.timestamp;
+    }
+
+    function isSafePredictionLogOwnerUpdate() {
+      return signedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasOnly(predictionLogFields())
+        && keepsPredictionLogIdentity()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['groundTruthLabel', 'isCorrect', 'updatedAt']);
+    }
+
     match /users/{userId} {
       allow read: if isAdmin() || isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isAdmin() || isOwner(userId);
+      allow create: if isAdmin() || isFarmerSelfCreate(userId);
+      allow update: if isAdmin() || isSafeSelfUserUpdate(userId);
       allow delete: if isAdmin();
     }
 
     match /farmer_profiles/{userId} {
       allow read: if isAdmin() || isOwner(userId);
-      allow write: if isAdmin() || isOwner(userId);
+      allow write: if isAdmin() || isSafeSelfProfileWrite(userId);
     }
 
     match /prediction_logs/{logId} {
       allow read: if isAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
-      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerId == request.auth.uid);
-      allow update: if isAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if isAdmin() || isSafePredictionLogCreate();
+      allow update: if isAdmin() || isSafePredictionLogOwnerUpdate();
       allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
+    }
+
+    match /admin_data_state/{stateId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /admin_manual_data/{itemId} {
+      allow read, write: if isAdmin();
     }
   }
 }

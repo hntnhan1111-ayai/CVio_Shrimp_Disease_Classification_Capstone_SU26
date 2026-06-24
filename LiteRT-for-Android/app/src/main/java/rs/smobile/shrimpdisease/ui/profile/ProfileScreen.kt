@@ -306,10 +306,18 @@ private fun EditProfileDialog(
     onDismiss: () -> Unit,
     onSave: (FarmerProfileUpdate) -> Unit,
 ) {
-    var displayName by remember(profileUiState.userId) { mutableStateOf("") }
-    var farmLocation by remember(profileUiState.userId) { mutableStateOf("") }
-    var phoneNumber by remember(profileUiState.userId) { mutableStateOf("") }
-    var email by remember(profileUiState.userId) { mutableStateOf("") }
+    var displayName by remember(profileUiState.userId, profileUiState.displayName) {
+        mutableStateOf(editableProfileInitialValue(profileUiState.displayName))
+    }
+    var farmLocation by remember(profileUiState.userId, profileUiState.farmLocation) {
+        mutableStateOf(editableProfileInitialValue(profileUiState.farmLocation))
+    }
+    var phoneNumber by remember(profileUiState.userId, profileUiState.phoneNumber) {
+        mutableStateOf(editableProfileInitialValue(profileUiState.phoneNumber))
+    }
+    var email by remember(profileUiState.userId, profileUiState.email) {
+        mutableStateOf(editableProfileInitialValue(profileUiState.email))
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -326,25 +334,25 @@ private fun EditProfileDialog(
                     value = displayName,
                     onValueChange = { displayName = it },
                     label = "Tên",
-                    holder = profileValueText(profileUiState.displayName).ifBlank { "Nhập họ tên" },
+                    holder = "Nhập họ tên",
                 )
                 EditableProfileField(
                     value = farmLocation,
                     onValueChange = { farmLocation = it },
                     label = "Ao/trại nuôi",
-                    holder = profileValueText(profileUiState.farmLocation).ifBlank { "Nhập vị trí ao hoặc trại nuôi" },
+                    holder = "Nhập vị trí ao hoặc trại nuôi",
                 )
                 EditableProfileField(
                     value = phoneNumber,
                     onValueChange = { phoneNumber = it },
                     label = "Số điện thoại",
-                    holder = profileValueText(profileUiState.phoneNumber).ifBlank { "Nhập số điện thoại" },
+                    holder = "Nhập số điện thoại",
                 )
                 EditableProfileField(
                     value = email,
                     onValueChange = { email = it },
                     label = "Email",
-                    holder = profileValueText(profileUiState.email).ifBlank { "Nhập email" },
+                    holder = "Nhập email",
                 )
             }
         },
@@ -429,4 +437,9 @@ private fun profileValueText(value: String): String {
         "Shrimp Farmer" -> "Nông dân nuôi tôm"
         else -> value
     }
+}
+
+private fun editableProfileInitialValue(value: String): String {
+    val displayValue = profileValueText(value)
+    return if (displayValue == "Chưa cập nhật") "" else displayValue
 }

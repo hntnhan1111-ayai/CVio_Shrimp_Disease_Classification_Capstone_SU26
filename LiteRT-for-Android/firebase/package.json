@@ -1,0 +1,15 @@
+{
+  "name": "cvio-firebase-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Trusted Firebase maintenance scripts for the CVio Android app.",
+  "scripts": {
+    "create:admin": "node scripts/create-admin.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

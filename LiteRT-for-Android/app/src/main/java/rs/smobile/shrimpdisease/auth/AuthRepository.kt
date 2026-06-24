@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import rs.smobile.shrimpdisease.BuildConfig
 import rs.smobile.shrimpdisease.cloud.FirebaseCloudRepository
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -28,8 +29,11 @@ class AuthRepository @Inject constructor(
     val session: StateFlow<AuthSession> = _session
 
     init {
-        seedDefaultAdminIfNeeded()
-        refreshUsersFromCloud()
+        if (BuildConfig.SEED_DEFAULT_ADMIN) {
+            seedDefaultAdminIfNeeded()
+        } else {
+            removeDefaultAdminIfPresent()
+        }
     }
 
     fun login(
@@ -40,12 +44,19 @@ class AuthRepository @Inject constructor(
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
-        refreshUsersFromCloud()
+        val refreshedFromCloud = refreshUsersFromCloud()
         cloudRepository.signIn(normalizedAccount, password)?.let { cloudUser ->
             cacheCloudUser(cloudUser, password)
             saveSession(cloudUser.id)
             _session.value = AuthSession(user = cloudUser)
             return AuthResult.Success(cloudUser)
+        }
+
+        if (!BuildConfig.ALLOW_LOCAL_AUTH_FALLBACK) {
+            return cloudAuthRequiredError(
+                refreshedFromCloud = refreshedFromCloud,
+                action = "đăng nhập",
+            )
         }
 
         val record = readUsers().firstOrNull {
@@ -71,7 +82,7 @@ class AuthRepository @Inject constructor(
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
-        refreshUsersFromCloud()
+        val refreshedFromCloud = refreshUsersFromCloud()
         val users = readUsers()
         if (users.any { it.account == normalizedAccount }) {
             return AuthResult.Error("Tài khoản này đã được đăng ký.")
@@ -87,6 +98,13 @@ class AuthRepository @Inject constructor(
             saveSession(record.id)
             _session.value = AuthSession(user = cloudUser)
             return AuthResult.Success(cloudUser)
+        }
+
+        if (!BuildConfig.ALLOW_LOCAL_AUTH_FALLBACK) {
+            return cloudAuthRequiredError(
+                refreshedFromCloud = refreshedFromCloud,
+                action = "tạo tài khoản",
+            )
         }
 
         val salt = generateSalt()
@@ -116,10 +134,17 @@ class AuthRepository @Inject constructor(
         val validationError = validateCredentials(normalizedAccount, password)
         if (validationError != null) return AuthResult.Error(validationError)
 
-        refreshUsersFromCloud()
+        val refreshedFromCloud = refreshUsersFromCloud()
         val users = readUsers()
         if (users.any { it.account == normalizedAccount }) {
             return AuthResult.Error("Tài khoản này đã được đăng ký.")
+        }
+
+        if (!BuildConfig.ALLOW_LOCAL_AUTH_FALLBACK) {
+            return cloudAuthRequiredError(
+                refreshedFromCloud = refreshedFromCloud,
+                action = "tạo người dùng",
+            )
         }
 
         val cleanDisplayName = displayName.trim().ifBlank { displayNameFor(normalizedAccount) }
@@ -219,7 +244,10 @@ class AuthRepository @Inject constructor(
     }
 
     fun getUsers(): List<AuthUser> {
-        refreshUsersFromCloud()
+        val refreshedFromCloud = refreshUsersFromCloud()
+        if (!BuildConfig.ALLOW_LOCAL_AUTH_FALLBACK && !refreshedFromCloud) {
+            return emptyList()
+        }
         return readUsers().map { user -> user.toAuthUser() }
     }
 
@@ -228,20 +256,45 @@ class AuthRepository @Inject constructor(
     }
 
     private fun seedDefaultAdminIfNeeded() {
+        val defaultAdminPassword = BuildConfig.DEFAULT_ADMIN_PASSWORD
+        if (defaultAdminPassword.isBlank()) return
+
         val users = readUsers()
         if (users.any { it.role == AuthRole.Admin }) return
 
         val salt = generateSalt()
         val admin = StoredUser(
             id = DEFAULT_ADMIN_ID,
-            account = DEFAULT_ADMIN_ACCOUNT,
+            account = BuildConfig.DEFAULT_ADMIN_ACCOUNT,
             role = AuthRole.Admin,
             displayName = "CVio Admin",
             salt = salt,
-            passwordHash = hashPassword(DEFAULT_ADMIN_PASSWORD, salt),
+            passwordHash = hashPassword(defaultAdminPassword, salt),
             createdAt = System.currentTimeMillis(),
         )
         writeUsers(users + admin)
+    }
+
+    private fun removeDefaultAdminIfPresent() {
+        val users = readUsers()
+        val defaultAdminAccounts = setOf(
+            BuildConfig.DEFAULT_ADMIN_ACCOUNT,
+            LEGACY_DEFAULT_ADMIN_ACCOUNT,
+        ).filter { account -> account.isNotBlank() }.toSet()
+        val updatedUsers = users.filterNot { user ->
+            user.id == DEFAULT_ADMIN_ID || user.account in defaultAdminAccounts
+        }
+        if (updatedUsers.size == users.size) return
+
+        writeUsers(updatedUsers)
+        val currentUser = _session.value.user
+        val currentAccount = currentUser?.account
+        if (currentUser?.id == DEFAULT_ADMIN_ID || (currentAccount != null && currentAccount in defaultAdminAccounts)) {
+            preferences.edit()
+                .remove(KEY_SESSION_USER_ID)
+                .apply()
+            _session.value = AuthSession(user = null)
+        }
     }
 
     private fun readSessionUser(): AuthUser? {
@@ -249,8 +302,8 @@ class AuthRepository @Inject constructor(
         return readUsers().firstOrNull { it.id == sessionUserId }?.toAuthUser()
     }
 
-    private fun refreshUsersFromCloud() {
-        val cloudUsers = cloudRepository.fetchUsers() ?: return
+    private fun refreshUsersFromCloud(): Boolean {
+        val cloudUsers = cloudRepository.fetchUsers() ?: return false
         val localUsers = readUsers()
         val localById = localUsers.associateBy { user -> user.id }
         val cloudRecords = cloudUsers.map { cloudUser ->
@@ -259,6 +312,21 @@ class AuthRepository @Inject constructor(
         val cloudIds = cloudRecords.map { user -> user.id }.toSet()
         val mergedUsers = cloudRecords + localUsers.filterNot { user -> user.id in cloudIds }
         writeUsers(mergedUsers.distinctBy { user -> user.id })
+        return true
+    }
+
+    private fun cloudAuthRequiredError(
+        refreshedFromCloud: Boolean,
+        action: String,
+    ): AuthResult.Error {
+        val reason = if (refreshedFromCloud) {
+            "Tài khoản chưa có trong Firebase Auth hoặc mật khẩu chưa đúng."
+        } else {
+            "Không kết nối được Firebase hoặc tài khoản hiện tại không có quyền đọc backend."
+        }
+        return AuthResult.Error(
+            "Không thể $action bằng dữ liệu cục bộ ở bản release. $reason"
+        )
     }
 
     private fun cacheCloudUser(
@@ -398,13 +466,11 @@ class AuthRepository @Inject constructor(
     }
 
     companion object {
-        const val DEFAULT_ADMIN_ACCOUNT = "admin@cvio.local"
-        const val DEFAULT_ADMIN_PASSWORD = "Admin@123"
-
         private const val PREFERENCES_NAME = "cvio_auth"
         private const val KEY_USERS = "users"
         private const val KEY_SESSION_USER_ID = "session_user_id"
         private const val DEFAULT_ADMIN_ID = "default-admin"
+        private const val LEGACY_DEFAULT_ADMIN_ACCOUNT = "admin@cvio.local"
         private const val MIN_PASSWORD_LENGTH = 6
     }
 }

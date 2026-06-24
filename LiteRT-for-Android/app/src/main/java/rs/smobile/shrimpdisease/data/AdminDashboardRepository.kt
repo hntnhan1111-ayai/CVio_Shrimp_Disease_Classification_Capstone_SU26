@@ -8,6 +8,7 @@ import rs.smobile.shrimpdisease.auth.AuthResult
 import rs.smobile.shrimpdisease.auth.AuthRepository
 import rs.smobile.shrimpdisease.auth.AuthRole
 import rs.smobile.shrimpdisease.auth.AuthUser
+import rs.smobile.shrimpdisease.cloud.FirebaseCloudRepository
 import rs.smobile.shrimpdisease.profile.FarmerProfileRepository
 import rs.smobile.shrimpdisease.profile.FarmerProfileUiState
 import rs.smobile.shrimpdisease.utils.BenchmarkUtils
@@ -27,10 +28,12 @@ class AdminDashboardRepository @Inject constructor(
     private val authRepository: AuthRepository,
     private val predictionLogRepository: PredictionLogRepository,
     private val farmerProfileRepository: FarmerProfileRepository,
+    private val cloudRepository: FirebaseCloudRepository,
 ) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun loadDashboard(): AdminDashboardUiState {
+        syncAdminDataStateFromCloud()
         val now = System.currentTimeMillis()
         val farmers = authRepository.getUsers()
             .filter { user -> user.role == AuthRole.Farmer }
@@ -185,10 +188,12 @@ class AdminDashboardRepository @Inject constructor(
         readIdSet(KEY_DELETED_DATA_IDS)
             .filterNot { itemId -> itemId.startsWith("$userId-") }
             .let { ids -> preferences.edit().putStringSet(KEY_DELETED_DATA_IDS, ids.toSet()).apply() }
+        pushAdminDataStateToCloud()
         return true
     }
 
     fun loadDiagnosis(): AdminDiagnosisUiState {
+        syncAdminDataStateFromCloud()
         val now = System.currentTimeMillis()
         val contexts = diagnosisContexts()
         val reviewedIds = readIdSet(KEY_REVIEWED_IDS)
@@ -298,13 +303,13 @@ class AdminDashboardRepository @Inject constructor(
 
         return AdminInferenceLogsUiState(
             averageInferenceTimeText = if (filteredContexts.isEmpty()) {
-                "N/A"
+                "Chưa có"
             } else {
                 BenchmarkUtils.latencyText(averageTime.toLong())
             },
             successRateText = successRate?.let { value ->
                 String.format(Locale.US, "%.1f%%", value * 100f)
-            } ?: "N/A",
+            } ?: "Chưa có",
             activeModelFilter = activeModelFilter ?: ALL_MODELS_FILTER,
             logs = logs,
         )
@@ -376,6 +381,7 @@ class AdminDashboardRepository @Inject constructor(
                 confidence = input.confidence.coerceIn(0f, 1f),
             )
             writeManualDataItems(updated)
+            cloudRepository.upsertManualAdminDataItem(updated[manualIndex])
             return true
         }
 
@@ -409,6 +415,7 @@ class AdminDashboardRepository @Inject constructor(
         val manualItems = readManualDataItems(includeState = false)
         if (manualItems.any { item -> item.id == itemId }) {
             writeManualDataItems(manualItems.filterNot { item -> item.id == itemId })
+            cloudRepository.deleteManualAdminDataItem(itemId)
             removeDataItemState(itemId)
             return true
         }
@@ -604,7 +611,7 @@ class AdminDashboardRepository @Inject constructor(
             val end = now - weekOffset * ONE_WEEK_MS
             val start = end - ONE_WEEK_MS
             AdminChartPoint(
-                label = "Week ${4 - weekOffset}",
+                label = "Tuần ${4 - weekOffset}",
                 value = contexts.count { context ->
                     context.log.timestamp in start until end &&
                         context.log.predictedClass.isDiseaseLabel()
@@ -616,7 +623,7 @@ class AdminDashboardRepository @Inject constructor(
 
     private fun regionalBreakdown(items: List<AdminDiagnosisReviewItem>): List<AdminRegionBreakdownItem> {
         return items
-            .groupBy { item -> item.farmLocation.ifBlank { "Unknown Region" } }
+            .groupBy { item -> item.farmLocation.ifBlank { "Khu vực chưa rõ" } }
             .map { (region, regionItems) ->
                 val activeCases = regionItems.count { item ->
                     item.displayLabel.isDiseaseLabel() &&
@@ -645,13 +652,13 @@ class AdminDashboardRepository @Inject constructor(
     ): String {
         val riskiestRegion = items
             .filter { item -> item.displayLabel.isDiseaseLabel() }
-            .groupingBy { item -> item.farmLocation.ifBlank { "Unknown Region" } }
+            .groupingBy { item -> item.farmLocation.ifBlank { "Khu vực chưa rõ" } }
             .eachCount()
             .maxByOrNull { entry -> entry.value }
         return if (riskiestRegion == null || activeOutbreaks == 0) {
-            "No elevated disease risk detected in the monitored regions."
+            "Chưa phát hiện rủi ro bệnh tăng cao tại các khu vực đang theo dõi."
         } else {
-            "Machine learning review suggests elevated disease risk in ${riskiestRegion.key}; $activeOutbreaks active cases should be reviewed in the next 48 hours."
+            "AI ghi nhận rủi ro bệnh tăng tại ${riskiestRegion.key}; cần rà soát $activeOutbreaks ca đang hoạt động trong 48 giờ tới."
         }
     }
 
@@ -660,12 +667,12 @@ class AdminDashboardRepository @Inject constructor(
             label.contains("healthy", ignoreCase = true) -> "Healthy"
             label.contains("wssv", ignoreCase = true) -> "WSSV"
             label.contains("bg", ignoreCase = true) -> "BG"
-            else -> label.ifBlank { "Unknown" }
+            else -> label.ifBlank { "Không xác định" }
         }
     }
 
     private fun percentText(value: Float?): String {
-        return value?.let { String.format(Locale.US, "%.1f%%", it * 100f) } ?: "N/A"
+        return value?.let { String.format(Locale.US, "%.1f%%", it * 100f) } ?: "Chưa có"
     }
 
     private fun loadModelRuntimeConfig(defaultThreshold: Float): AdminModelConfigUpdate {
@@ -848,6 +855,7 @@ class AdminDashboardRepository @Inject constructor(
         preferences.edit()
             .putStringSet(key, updated)
             .apply()
+        pushAdminDataStateToCloud()
     }
 
     private fun readCorrectionMap(): Map<String, String> {
@@ -859,6 +867,10 @@ class AdminDashboardRepository @Inject constructor(
     }
 
     private fun writeCorrectionMap(labels: Map<String, String>) {
+        writeCorrectionMapLocal(labels)
+    }
+
+    private fun writeCorrectionMapLocal(labels: Map<String, String>) {
         val json = JSONObject()
         labels.forEach { (key, value) -> json.put(key, value) }
         preferences.edit()
@@ -867,9 +879,32 @@ class AdminDashboardRepository @Inject constructor(
     }
 
     private fun readManualDataItems(includeState: Boolean = true): List<AdminDataReviewItem> {
+        val localItems = readLocalManualDataItems()
+        val cloudItems = cloudRepository.fetchManualAdminDataItems()
+        val baseItems = if (cloudItems != null) {
+            val merged = (cloudItems + localItems)
+                .distinctBy { item -> item.id }
+                .sortedByDescending { item -> item.timestamp }
+            writeManualDataItemsLocal(merged)
+            merged
+        } else {
+            localItems
+        }
+
+        if (!includeState) return baseItems
+
+        val reviewedIds = readIdSet(KEY_REVIEWED_IDS)
+        val excludedIds = readIdSet(KEY_EXCLUDED_IDS)
+        return baseItems.map { item ->
+            item.copy(
+                reviewed = item.reviewed || reviewedIds.contains(item.id),
+                excluded = item.excluded || excludedIds.contains(item.id),
+            )
+        }
+    }
+
+    private fun readLocalManualDataItems(): List<AdminDataReviewItem> {
         val json = preferences.getString(KEY_MANUAL_DATA_ITEMS, null) ?: return emptyList()
-        val reviewedIds = if (includeState) readIdSet(KEY_REVIEWED_IDS) else emptySet()
-        val excludedIds = if (includeState) readIdSet(KEY_EXCLUDED_IDS) else emptySet()
         return runCatching {
             val array = JSONArray(json)
             List(array.length()) { index ->
@@ -883,8 +918,8 @@ class AdminDashboardRepository @Inject constructor(
                     pond = item.optString("pond", "Ao chưa đặt tên"),
                     label = item.optString("label", "Chưa xác định"),
                     permissionStatus = item.optString("permissionStatus", "Allowed"),
-                    reviewed = reviewedIds.contains(id),
-                    excluded = excludedIds.contains(id),
+                    reviewed = item.optBoolean("reviewed", false),
+                    excluded = item.optBoolean("excluded", false),
                     confidence = item.optDouble("confidence", 0.0).toFloat().coerceIn(0f, 1f),
                     timestamp = item.optLong("timestamp", System.currentTimeMillis()),
                     isManual = true,
@@ -894,6 +929,11 @@ class AdminDashboardRepository @Inject constructor(
     }
 
     private fun writeManualDataItems(items: List<AdminDataReviewItem>) {
+        writeManualDataItemsLocal(items)
+        items.forEach { item -> cloudRepository.upsertManualAdminDataItem(item) }
+    }
+
+    private fun writeManualDataItemsLocal(items: List<AdminDataReviewItem>) {
         val array = JSONArray()
         items.forEach { item ->
             array.put(
@@ -904,6 +944,8 @@ class AdminDashboardRepository @Inject constructor(
                     .put("pond", item.pond)
                     .put("label", item.label)
                     .put("permissionStatus", item.permissionStatus)
+                    .put("reviewed", item.reviewed)
+                    .put("excluded", item.excluded)
                     .put("confidence", item.confidence.toDouble())
                     .put("timestamp", item.timestamp)
             )
@@ -919,6 +961,28 @@ class AdminDashboardRepository @Inject constructor(
         val correctedLabels = readCorrectionMap().toMutableMap()
         correctedLabels.remove(itemId)
         writeCorrectionMap(correctedLabels)
+        pushAdminDataStateToCloud()
+    }
+
+    private fun syncAdminDataStateFromCloud() {
+        val state = cloudRepository.fetchAdminDataState() ?: return
+        preferences.edit()
+            .putStringSet(KEY_REVIEWED_IDS, state.reviewedIds)
+            .putStringSet(KEY_EXCLUDED_IDS, state.excludedIds)
+            .putStringSet(KEY_DELETED_DATA_IDS, state.deletedDataIds)
+            .apply()
+        writeCorrectionMapLocal(state.correctedLabels)
+    }
+
+    private fun pushAdminDataStateToCloud() {
+        cloudRepository.upsertAdminDataState(
+            AdminDataState(
+                reviewedIds = readIdSet(KEY_REVIEWED_IDS),
+                excludedIds = readIdSet(KEY_EXCLUDED_IDS),
+                deletedDataIds = readIdSet(KEY_DELETED_DATA_IDS),
+                correctedLabels = readCorrectionMap(),
+            )
+        )
     }
 
     private fun AdminDataReviewItem.toCsvRow(): String {

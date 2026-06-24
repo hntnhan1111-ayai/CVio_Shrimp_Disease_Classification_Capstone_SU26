@@ -121,3 +121,29 @@ app.*.symbols
 # Models
 LiteRT-for-Android/app/src/main/assets/convnext_tiny_in22k_sim_float16.tflite
 LiteRT-for-Android/app/src/main/assets/convnext_tiny_in22k_sim_float32.tflite
+
+# Local Python environments and notebooks
+.v/
+.venv/
+.venv_*/
+**/__pycache__/
+**/.ipynb_checkpoints/
+
+# Local app configuration
+LiteRT-for-Android/local.properties
+LiteRT-for-Android/android-sdk/
+LiteRT-for-Android/app/google-services.json
+
+# ML training/export outputs that should live in DVC, Git LFS, or release assets
+runs/
+wandb/
+**/runs/
+**/best_saved_model/
+**/*.onnx
+**/*.pt
+Ultralytics/
+yolov11n_attention/
+
+# Local assistant/editor state
+.claude/
+.idea/

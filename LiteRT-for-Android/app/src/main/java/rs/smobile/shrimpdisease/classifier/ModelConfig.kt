@@ -7,8 +7,10 @@ import org.tensorflow.lite.DataType
  * Keep DEFAULT_MODEL_FILE and LABEL_FILE aligned with app/src/main/assets.
  */
 object ModelDefaults {
-    const val DEFAULT_MODEL_FILE = "efficientnet_b0_float16.tflite"
+    const val DEFAULT_MODEL_FILE = "yolo26m_asl_ldam_simam_dcfr_fp32.tflite"
     const val BACKGROUND_REMOVER_MODEL_FILE = "u2net_dynamic_range_int8.tflite"
+    const val DISEASE_SEGMENTATION_MODEL_FILE = "yolo11n_seg_float16.tflite"
+    const val DISEASE_SEGMENTATION_LABEL_FILE = "seg_labels.txt"
     const val LABEL_FILE = "labels.txt"
 
     const val INPUT_SIZE = 224

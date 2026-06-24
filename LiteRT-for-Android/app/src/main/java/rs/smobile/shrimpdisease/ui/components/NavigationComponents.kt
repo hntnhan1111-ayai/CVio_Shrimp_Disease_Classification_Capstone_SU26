@@ -1,5 +1,13 @@
 package rs.smobile.shrimpdisease.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
@@ -26,6 +34,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 data class ShrimpNavigationItem(
@@ -50,7 +59,11 @@ fun AppScaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            if (showTopBar) {
+            AnimatedVisibility(
+                visible = showTopBar,
+                enter = fadeIn(tween(180)) + expandVertically(tween(220)),
+                exit = fadeOut(tween(120)) + shrinkVertically(tween(180)),
+            ) {
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
@@ -70,7 +83,11 @@ fun AppScaffold(
             }
         },
         bottomBar = {
-            if (showBottomBar) {
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = fadeIn(tween(180)) + slideInVertically(tween(220)) { height -> height / 2 },
+                exit = fadeOut(tween(120)) + slideOutVertically(tween(180)) { height -> height / 2 },
+            ) {
                 ShrimpBottomNavigation(
                     items = navigationItems,
                     currentRoute = currentRoute,
@@ -110,7 +127,13 @@ fun ShrimpBottomNavigation(
                         },
                     )
                 },
-                label = null,
+                label = {
+                    Text(
+                        text = compactNavigationLabel(item),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -133,11 +156,15 @@ enum class ShrimpNavIcon {
     Phone,
     Email,
     Camera,
+    Search,
+    ArrowRight,
+    MoreHorizontal,
     Dashboard,
     Users,
     Data,
     Models,
     Inference,
+    Refresh,
 }
 
 @Composable
@@ -293,6 +320,70 @@ fun ShrimpLineIcon(
                 drawCircle(color, radius = w * 0.12f, center = Offset(w * 0.5f, h * 0.55f), style = Stroke(thinStroke))
             }
 
+            ShrimpNavIcon.Search -> {
+                drawCircle(
+                    color = color,
+                    radius = w * 0.22f,
+                    center = Offset(w * 0.43f, h * 0.43f),
+                    style = Stroke(stroke),
+                )
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.6f, h * 0.6f),
+                    end = Offset(w * 0.8f, h * 0.8f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+
+            ShrimpNavIcon.ArrowRight -> {
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.22f, h * 0.5f),
+                    end = Offset(w * 0.76f, h * 0.5f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.56f, h * 0.3f),
+                    end = Offset(w * 0.76f, h * 0.5f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.56f, h * 0.7f),
+                    end = Offset(w * 0.76f, h * 0.5f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+
+            ShrimpNavIcon.MoreHorizontal -> {
+                drawCircle(color, radius = w * 0.055f, center = Offset(w * 0.28f, h * 0.5f))
+                drawCircle(color, radius = w * 0.055f, center = Offset(w * 0.5f, h * 0.5f))
+                drawCircle(color, radius = w * 0.055f, center = Offset(w * 0.72f, h * 0.5f))
+            }
+
+            ShrimpNavIcon.Refresh -> {
+                drawArc(
+                    color = color,
+                    startAngle = 30f,
+                    sweepAngle = 275f,
+                    useCenter = false,
+                    topLeft = Offset(w * 0.18f, h * 0.18f),
+                    size = Size(w * 0.64f, h * 0.64f),
+                    style = Stroke(stroke, cap = StrokeCap.Round),
+                )
+                val arrow = Path().apply {
+                    moveTo(w * 0.77f, h * 0.24f)
+                    lineTo(w * 0.78f, h * 0.43f)
+                    lineTo(w * 0.6f, h * 0.36f)
+                }
+                drawPath(arrow, color, style = Stroke(stroke, cap = StrokeCap.Round))
+            }
+
             ShrimpNavIcon.Dashboard -> {
                 drawRoundRect(color, Offset(w * 0.18f, h * 0.18f), Size(w * 0.24f, h * 0.26f), CornerRadius(4.dp.toPx()), style = Stroke(stroke))
                 drawRoundRect(color, Offset(w * 0.58f, h * 0.18f), Size(w * 0.24f, h * 0.18f), CornerRadius(4.dp.toPx()), style = Stroke(stroke))
@@ -314,6 +405,21 @@ fun ShrimpLineIcon(
                 drawArc(color, 0f, 180f, false, Offset(w * 0.24f, h * 0.62f), Size(w * 0.52f, h * 0.2f), style = Stroke(stroke, cap = StrokeCap.Round))
             }
         }
+    }
+}
+
+private fun compactNavigationLabel(item: ShrimpNavigationItem): String {
+    return when (item.route) {
+        "home" -> "Trang chủ"
+        "inference" -> "Kiểm tra"
+        "history" -> "Lịch sử"
+        "profile" -> "Hồ sơ"
+        "settings" -> "Cài đặt"
+        "admin_dashboard" -> "Tổng quan"
+        "admin_users" -> "Người dùng"
+        "admin_inference" -> "Kiểm tra"
+        "admin_data" -> "Dữ liệu"
+        else -> item.label
     }
 }
 

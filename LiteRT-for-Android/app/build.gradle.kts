@@ -12,6 +12,18 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+fun String.asBuildConfigString(): String {
+    return "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+}
+
+val defaultAdminAccount = providers.gradleProperty("CVIO_DEFAULT_ADMIN_ACCOUNT")
+    .orElse(providers.environmentVariable("CVIO_DEFAULT_ADMIN_ACCOUNT"))
+    .orElse("admin@cvio.local")
+
+val defaultAdminPassword = providers.gradleProperty("CVIO_DEFAULT_ADMIN_PASSWORD")
+    .orElse(providers.environmentVariable("CVIO_DEFAULT_ADMIN_PASSWORD"))
+    .orElse("")
+
 android {
     namespace = "rs.smobile.shrimpdisease"
     compileSdk = 36
@@ -27,7 +39,18 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "SEED_DEFAULT_ADMIN", "true")
+            buildConfigField("boolean", "ALLOW_LOCAL_AUTH_FALLBACK", "true")
+            buildConfigField("String", "DEFAULT_ADMIN_ACCOUNT", defaultAdminAccount.get().asBuildConfigString())
+            buildConfigField("String", "DEFAULT_ADMIN_PASSWORD", defaultAdminPassword.get().asBuildConfigString())
+        }
+
         release {
+            buildConfigField("boolean", "SEED_DEFAULT_ADMIN", "false")
+            buildConfigField("boolean", "ALLOW_LOCAL_AUTH_FALLBACK", "false")
+            buildConfigField("String", "DEFAULT_ADMIN_ACCOUNT", "\"\"")
+            buildConfigField("String", "DEFAULT_ADMIN_PASSWORD", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -40,7 +63,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     // Keep TensorFlow Lite assets uncompressed so AssetManager can memory-map them.
     androidResources { noCompress += "tflite" }
