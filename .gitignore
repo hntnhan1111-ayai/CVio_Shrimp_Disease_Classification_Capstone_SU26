@@ -4,6 +4,10 @@
 *.log
 *.pyc
 *.swp
+*.zip
+*.apk
+.venv/
+**/.venv/
 .buildlog/
 .history
 
