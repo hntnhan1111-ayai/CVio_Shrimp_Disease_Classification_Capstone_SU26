@@ -1,3 +1,44 @@
+# Project-local generated files
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.claude/
+.agents/
+
+# Local Python environments
+.v/
+.venv/
+.venv*/
+venv/
+env/
+
+# ML / YOLO / model-export artifacts
+Ultralytics/
+.tmp/
+.tmp/kaggle_standalone/
+tflite_work_simam_ca/
+**/runs/
+**/weights/
+**/tflite_export*/
+**/_preflight_generated/
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.pb
+*.zip
+
+# Node / Android generated files
+**/node_modules/
+**/.gradle/
+**/build/
+**/local.properties
+
 # Miscellaneous
 *.class
 *.lock
