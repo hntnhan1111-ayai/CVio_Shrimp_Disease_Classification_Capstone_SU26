@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# Tests/runtime
+.pytest_cache/
+
+# Datasets / prepared / caches
+datasets/
+prepared/
+*.zip
+results.zip
+RESULTS.zip
+
+# Model checkpoints / runs
+*.pt
+runs/
+weights/
+
+# Notebooks
+*.ipynb_checkpoints/
+
+# Logs (kept mirrored under artifacts/logs only)
+*.log
+artifacts/logs/**
+!artifacts/logs/*.log
+
+# OS / IDE
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
