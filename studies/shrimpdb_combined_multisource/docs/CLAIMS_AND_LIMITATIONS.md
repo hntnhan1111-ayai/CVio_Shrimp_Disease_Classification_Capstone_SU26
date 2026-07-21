@@ -51,10 +51,21 @@ in the ShrimpDB test set.
 
 ### 2.5 Training Duration Difference
 
-ShrimpDB-3 training stopped early under patience 15, while Combined-4 completed the full
-30-epoch budget. The two experiments therefore operated under different training durations.
-This is not a methodological flaw but is relevant when comparing learning dynamics between
-experiments.
+The two experiments operated under different training durations.
+
+- ShrimpDB-3 executed through epoch 21 (one-based indexing; epoch 1 is the first pass
+  through the dataset). The validation-selected `best.pt` corresponds to epoch 6, per
+  the Ultralytics EarlyStopping log message: "Best results observed at epoch 6, best
+  model saved as best.pt." With `patience=15`, training stopped after 15 subsequent
+  epochs without an improvement in the tracked validation metric.
+- Combined-4 executed through epoch 30, completing the full 30-epoch budget.
+  `patience=15` was not triggered; the validation-selected `best.pt` corresponds to
+  epoch 26 (minimum `val/loss` across epochs 1-30).
+
+Detailed epoch accounting and log evidence are recorded in
+`artifacts/final_application_model/effective_epochs.json`. This duration difference
+is not a methodological flaw but is relevant when comparing learning dynamics between
+the two experiments.
 
 ### 2.6 Calibration
 

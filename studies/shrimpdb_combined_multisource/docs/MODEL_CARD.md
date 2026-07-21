@@ -98,16 +98,22 @@ conditions:
 ## 6. Distribution Instructions
 
 The checkpoint file `artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt`
-is the designated distribution artifact. To distribute:
+is the designated distribution artifact. The repository `.gitignore` excludes `*.pt`
+files, so the checkpoint is **not tracked in Git**; it is documented only via
+`model_registry/checkpoints.json` and `artifacts/final_application_model/class_mapping.json`.
 
-1. Verify the SHA-256 hash:
+To obtain and distribute the checkpoint:
+
+1. Pull the upstream result archive (or re-run `scripts/03_train_shrimpdb3.py` /
+   `scripts/04_train_combined4.py`) and place the file at
+   `artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt`.
+2. Verify the SHA-256 hash:
    ```bash
    sha256sum artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt
    # Expected: 9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606
    ```
-2. Include the class mapping (`artifacts/final_application_model/class_mapping.json`) with
-   the checkpoint file.
-3. Include this model card and the accompanying `CLAIMS_AND_LIMITATIONS.md` with any
-   distributed checkpoint.
-4. Do not distribute the checkpoint as a standalone file without the accompanying
-   documentation and limitation notices.
+3. Run `uv run python tools/verify_checksums.py --root .` to confirm the
+   documented SHA-256 matches the on-disk file.
+4. Include the class mapping (`artifacts/final_application_model/class_mapping.json`),
+   this model card, and `docs/CLAIMS_AND_LIMITATIONS.md` with any distributed
+   checkpoint.

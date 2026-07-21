@@ -1,5 +1,13 @@
 # Results
 
+
+## Standalone HTML Report
+
+The full standalone HTML report (figures, tables, limitations, provenance) is
+available at `artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html`.
+Its SHA-256, byte size, embedded image count, and section coverage are recorded in
+`artifacts/metadata/report_registry.json`.
+
 This document presents the evaluation results for both experiments in the
 **shrimpdb_combined_multisource** study. All numbers are taken directly from the verified
 artifact files in `artifacts/evaluation/`.
@@ -154,6 +162,7 @@ which reduces the macro-average. This is consistent with the dataset composition
 | last.pt (epoch 30 final) | 88.18% | 88.18% | 87.61% | 38.08% |
 
 The Combined-4 training completed the full 30-epoch budget (patience=15 was not triggered).
+Combined-4 best.pt corresponds to epoch 26 (minimum val/loss across epochs 1-30; see artifacts/final_application_model/effective_epochs.json).
 However, `last.pt` exhibits higher test metrics than `best.pt` under the current evaluation.
 
 ### 5.2 Checkpoint Selection Warning
