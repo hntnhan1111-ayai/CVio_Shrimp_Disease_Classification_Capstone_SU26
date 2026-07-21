@@ -96,9 +96,9 @@
         "--snapshot-root",
         "artifacts/source_snapshot"
       ],
-      "ok": true
+      "ok": false
     }
   ],
-  "failures": 0,
-  "status": "ok"
+  "failures": 1,
+  "status": "failed"
 }

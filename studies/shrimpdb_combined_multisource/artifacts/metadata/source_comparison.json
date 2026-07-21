@@ -82,7 +82,7 @@
   "allowlisted_diffs": {
     "data/__init__.py": "repository adds explicit re-exports of audit_dataset, create_split, materialize_split_tree; no behavior change"
   },
-  "comparison_timestamp_utc": "2026-07-21T12:57:43.674590+00:00",
+  "comparison_timestamp_utc": "2026-07-21T12:59:51.936959+00:00",
   "comparison_tool": "tools/compare_source_snapshot.py",
   "explanation": "File inventory differs: snapshot=29, repo=45; Allowlisted content differences (no behavior impact): data/__init__.py"
 }
