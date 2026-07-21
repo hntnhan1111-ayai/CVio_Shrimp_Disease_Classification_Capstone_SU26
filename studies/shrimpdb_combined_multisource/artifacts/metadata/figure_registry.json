@@ -1,0 +1,156 @@
+[
+  {
+    "figure_id": "Figure 1",
+    "filename": "artifacts/figures/fig01_split_distribution.png",
+    "experiment": "combined4",
+    "checkpoint": "aggregate",
+    "split": "train+val+test",
+    "source_artifact": "artifacts\\academic\\tables\\dataset_source_split_distribution.csv",
+    "sha256": "1fffdb6264619b9e150074a75d80ad2fd7c99e04daafc496a4785d5d30bba26a",
+    "caption": "Combined-4 image counts per class across train, validation, and test partitions (source-aggregated).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 10",
+    "filename": "artifacts/figures/matched_shrimpdb_test_domain_comparison.png",
+    "experiment": "shrimpdb3+combined4",
+    "checkpoint": "best",
+    "split": "test",
+    "source_artifact": "artifacts/academic/figures/matched_shrimpdb_test_domain_comparison.png",
+    "sha256": "6e8db383cb07402a32501f62c9bd3ca74ea30a9c0b5c90014352d8fad235d148",
+    "caption": "Same-domain matched comparison on the 47 ShrimpDB test images.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 13",
+    "filename": "artifacts/figures/fig13_shrimpdb3_val_labels.jpg",
+    "experiment": "shrimpdb3",
+    "checkpoint": "best",
+    "split": "val",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/val_batch0_labels.jpg",
+    "sha256": "df731d935538cb3ad18b86ed5a9757e7b3661e1e2519878721c91e7594c0bbfe",
+    "caption": "ShrimpDB-3 first validation batch ground-truth labels.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 14",
+    "filename": "artifacts/figures/fig14_shrimpdb3_val_predictions.jpg",
+    "experiment": "shrimpdb3",
+    "checkpoint": "best",
+    "split": "val",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/val_batch0_pred.jpg",
+    "sha256": "05d43f0b3e589d2aef91465f8b2b73b4f2a26bea64e195e47c3c02a3fb50ce23",
+    "caption": "ShrimpDB-3 first validation batch model predictions.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 15",
+    "filename": "artifacts/figures/fig15_combined4_val_labels.jpg",
+    "experiment": "combined4",
+    "checkpoint": "best",
+    "split": "val",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/val_batch0_labels.jpg",
+    "sha256": "a2d73d532650aa73daa7ec50bf990b0e3c6f5d549b04bc2902b0df062d2a80eb",
+    "caption": "Combined-4 first validation batch ground-truth labels.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 16",
+    "filename": "artifacts/figures/fig16_combined4_val_predictions.jpg",
+    "experiment": "combined4",
+    "checkpoint": "best",
+    "split": "val",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/val_batch0_pred.jpg",
+    "sha256": "c87de4d11aee44fd416b6196d3e086bd7e0f8caa8b9f3b85acdeb52dd16863dc",
+    "caption": "Combined-4 first validation batch model predictions.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 2",
+    "filename": "artifacts/figures/fig02_shrimpdb3_training_curves.png",
+    "experiment": "shrimpdb3",
+    "checkpoint": "best",
+    "split": "train",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/results.png",
+    "sha256": "bccb5cf12ba2df3cad0d005fbd037b72fa5a15fa40088ced78d79028db4ad1d3",
+    "caption": "ShrimpDB-3 best-checkpoint Ultralytics training curves (train/loss, val/loss, top-1/top-5 accuracy, learning rate).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 3",
+    "filename": "artifacts/figures/fig03_combined4_training_curves.png",
+    "experiment": "combined4",
+    "checkpoint": "best",
+    "split": "train",
+    "source_artifact": "runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/results.png",
+    "sha256": "a596680bd3ad5c0b86979486cea3835e43da31d6e5a4a33d6d4ac784e52f497e",
+    "caption": "Combined-4 best-checkpoint Ultralytics training curves (train/loss, val/loss, top-1/top-5 accuracy, learning rate).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 4",
+    "filename": "artifacts/figures/shrimpdb3_best_pt_confusion_matrix_counts.png",
+    "experiment": "shrimpdb3",
+    "checkpoint": "best",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/shrimpdb3/best_pt/confusion_matrix_counts.png",
+    "sha256": "b31b4c4121fed4b3c6969042c53ba0757c42bbe3e9352accca289ee2e0958ebd",
+    "caption": "ShrimpDB-3 best.pt counts confusion matrix (3 classes, 47 test images).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 5",
+    "filename": "artifacts/figures/shrimpdb3_best_pt_confusion_matrix_normalized.png",
+    "experiment": "shrimpdb3",
+    "checkpoint": "best",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/shrimpdb3/best_pt/confusion_matrix_normalized.png",
+    "sha256": "87ca48e8b6250d286407425d779471000543818e546edcbb9bff8854d4a5df47",
+    "caption": "ShrimpDB-3 best.pt row-normalized confusion matrix.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 6",
+    "filename": "artifacts/figures/combined4_best_pt_confusion_matrix_counts.png",
+    "experiment": "combined4",
+    "checkpoint": "best",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/combined4/best_pt/confusion_matrix_counts.png",
+    "sha256": "9a298c2de08698596f4a8bad139cabe026308c455f0fd92f7da5f2d729cb7570",
+    "caption": "Combined-4 best.pt counts confusion matrix (4 classes, 220 test images).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 7",
+    "filename": "artifacts/figures/combined4_best_pt_confusion_matrix_normalized.png",
+    "experiment": "combined4",
+    "checkpoint": "best",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/combined4/best_pt/confusion_matrix_normalized.png",
+    "sha256": "596e8c07a9d9ab905642a9fd46ae74371de5098df2288ce3f51763506ccd5b80",
+    "caption": "Combined-4 best.pt row-normalized confusion matrix.",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 8",
+    "filename": "artifacts/figures/combined4_last_pt_confusion_matrix_counts.png",
+    "experiment": "combined4",
+    "checkpoint": "last",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/combined4/last_pt/confusion_matrix_counts.png",
+    "sha256": "c5e17ea133df5990aa98041496d664f5d441e0601a60561768acc36de642d050",
+    "caption": "Combined-4 last.pt counts confusion matrix (reference only).",
+    "status": "verified"
+  },
+  {
+    "figure_id": "Figure 9",
+    "filename": "artifacts/figures/combined4_last_pt_confusion_matrix_normalized.png",
+    "experiment": "combined4",
+    "checkpoint": "last",
+    "split": "test",
+    "source_artifact": "artifacts/evaluation/combined4/last_pt/confusion_matrix_normalized.png",
+    "sha256": "fd2f2008b5fa65f54a1f8a9f43f38fa4c1fb1d8c66bbdde9a96cbc71b2ad97ff",
+    "caption": "Combined-4 last.pt row-normalized confusion matrix (reference only).",
+    "status": "verified"
+  }
+]
