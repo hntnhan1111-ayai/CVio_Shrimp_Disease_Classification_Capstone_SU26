@@ -1,0 +1,38 @@
+name: shrimpdb-combined-ci
+on:
+  push:
+    branches: [paper/shrimpdb-combined-asl-ldam-simam-dcfr]
+  pull_request:
+    branches: [paper/shrimpdb-combined-asl-ldam-simam-dcfr]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+      - name: Install Python
+        run: uv python install 3.12
+      - name: Install dependencies
+        working-directory: studies/shrimpdb_combined_multisource
+        run: uv sync --frozen
+      - name: Check environment
+        working-directory: studies/shrimpdb_combined_multisource
+        run: uv run python scripts/00_check_environment.py --config configs/study.yaml
+      - name: Run tests
+        working-directory: studies/shrimpdb_combined_multisource
+        run: uv run pytest -q
+      - name: Validate YAML/JSON
+        working-directory: studies/shrimpdb_combined_multisource
+        run: |
+          uv run python -c "import yaml, json, sys, pathlib; [yaml.safe_load(pathlib.Path(p).read_text()) for p in pathlib.Path('configs').rglob('*.yaml')]; [json.loads(pathlib.Path(p).read_text()) for p in pathlib.Path('artifacts/metadata').rglob('*.json')]"
+      - name: Validate artifact tree
+        working-directory: studies/shrimpdb_combined_multisource
+        run: uv run python tools/validate_artifact_tree.py
+      - name: Verify checksums
+        working-directory: studies/shrimpdb_combined_multisource
+        run: uv run python tools/verify_checksums.py
+      - name: Check git diff
+        run: git diff --check
