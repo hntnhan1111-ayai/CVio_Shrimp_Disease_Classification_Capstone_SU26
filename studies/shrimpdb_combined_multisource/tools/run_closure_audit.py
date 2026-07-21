@@ -32,7 +32,7 @@ def run_all(root: Path) -> int:
         if not ok:
             failures += 1
     summary = {"results": results, "failures": failures, "status": "ok" if failures == 0 else "failed"}
-    out = root / "artifacts/metadata/closure_audit.json"
+    out = root / "artifacts/metadata/run_audit.json"
     import json
     out.write_text(json.dumps(summary, indent=2) + chr(10), encoding="utf-8")
     LOGGER.info("Wrote %s (failures=%d)", out, failures)

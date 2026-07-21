@@ -1,9 +1,9 @@
 {
-  "audit_date_utc": "2026-07-21T12:43:36.589819+00:00",
+  "audit_date_utc": "2026-07-21T12:57:43.707067+00:00",
   "branch": "paper/shrimpdb-combined-asl-ldam-simam-dcfr",
   "starting_commit": "c70eecd5cee8ded9cf76a43a36510bc28c5571eb",
-  "final_local_hash": "9f82add8859b3bfe17143d19eb7c6fa9928f93ae",
-  "final_remote_hash": "9f82add8859b3bfe17143d19eb7c6fa9928f93ae",
+  "final_local_hash": "60bb916a2a365e740b326faad4a65f5249f74581",
+  "final_remote_hash": "60bb916a2a365e740b326faad4a65f5249f74581",
   "remote_branch_url": "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26/tree/paper/shrimpdb-combined-asl-ldam-simam-dcfr",
   "test_command": "uv run pytest -q",
   "test_result": {
@@ -17,30 +17,13 @@
   "source_comparison": {
     "status": "match_with_explicit_diff",
     "snapshot_tree_sha256": "17a9f497afe86c5cc750acd3b2460c86fb710053006f65f2f110e6cec9ba3917",
-    "repository_tree_sha256": "37837e005c95d458dcf211272115fdc19dfa543ab11350ab6431946111a41037",
+    "repository_tree_sha256": "137e33a16f39a6897e50a58486dc963e2004c15f068816dbea6b32bcff199a69",
     "allowlisted_diffs": {
       "data/__init__.py": "repository adds explicit re-exports of audit_dataset, create_split, materialize_split_tree; no behavior change"
     },
     "content_mismatches_count": 1,
     "missing_in_repository": [],
-    "missing_in_package": [
-      "attention/__pycache__/__init__.cpython-312.pyc",
-      "attention/__pycache__/cbam.cpython-312.pyc",
-      "attention/__pycache__/simam_dcfr.cpython-312.pyc",
-      "data/__pycache__/__init__.cpython-312.pyc",
-      "data/__pycache__/audit_dataset.cpython-312.pyc",
-      "data/__pycache__/corruptions.cpython-312.pyc",
-      "data/__pycache__/make_split.cpython-312.pyc",
-      "losses/__pycache__/__init__.cpython-312.pyc",
-      "losses/__pycache__/asl_ldam.cpython-312.pyc",
-      "losses/__pycache__/balanced_softmax.cpython-312.pyc",
-      "losses/__pycache__/focal_variants.cpython-312.pyc",
-      "utils/__pycache__/__init__.cpython-312.pyc",
-      "utils/__pycache__/io.cpython-312.pyc",
-      "utils/__pycache__/paths.cpython-312.pyc",
-      "utils/__pycache__/run_guard.cpython-312.pyc",
-      "utils/__pycache__/seed.cpython-312.pyc"
-    ]
+    "missing_in_package": []
   },
   "figures": {
     "registry_path": "artifacts/metadata/figure_registry.json",
@@ -215,11 +198,22 @@
       ],
       "ok": true,
       "stdout_tail": ""
+    },
+    "run_closure_audit": {
+      "step": "run_closure_audit",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "tools/run_closure_audit.py"
+      ],
+      "ok": true,
+      "stdout_tail": "                                                     [100%]\n.                                                                        [100%]\n.                                                                        [100%]\n.                                                                        [100%]\n"
     }
   },
   "repository_hygiene": {
-    "tracked_file_count": 218,
-    "total_tracked_bytes": 6386672,
+    "tracked_file_count": 219,
+    "total_tracked_bytes": 6383664,
     "forbidden_tracked_files": [],
     "unapproved_pt_files": [],
     "large_files_over_50mb": [],
@@ -249,6 +243,14 @@
     {
       "hash": "9f82add",
       "subject": "docs: fix effective epoch wording, integrate HTML report, expand figures, and harden CI"
+    },
+    {
+      "hash": "5df79f9",
+      "subject": "docs: add final study closure and provenance report"
+    },
+    {
+      "hash": "60bb916",
+      "subject": "chore: refresh repository hygiene snapshot after closure audit"
     }
   ],
   "remaining_limitations": [
@@ -269,6 +271,6 @@
     "Trained .pt checkpoints (excluded by .gitignore; documented in model_registry/checkpoints.json with SHA-256).",
     "Virtual environment (.venv/), __pycache__, .pytest_cache, .ipynb_checkpoints (gitignored)."
   ],
-  "final_git_status_short_branch": "## paper/shrimpdb-combined-asl-ldam-simam-dcfr\n M artifacts/metadata/closure_audit.json\n M artifacts/metadata/repository_hygiene.json\n M artifacts/metadata/source_comparison.json\n?? _b.py\n?? docs/CLOSURE_AUDIT.md\n",
+  "final_git_status_short_branch": "## paper/shrimpdb-combined-asl-ldam-simam-dcfr\n M artifacts/metadata/source_comparison.json\n M tools/run_closure_audit.py\n?? artifacts/metadata/run_audit.json\n",
   "status": "closure_ok"
 }
