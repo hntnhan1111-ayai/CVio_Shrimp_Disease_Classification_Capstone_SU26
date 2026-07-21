@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this artifact package, please cite the accompanying paper."
+title: "ASL-LDAM with SimAM-DCFR Attention for Robust YOLO-Based Shrimp Disease Image Classification Under Noisy Imaging Conditions"
+version: 0.1.0-paper-asl-ldam
+date-released: 2026-06-14
+type: software
+authors:
+  - family-names: Nguyen
+    given-names: Vinh Dinh
+  - family-names: Nguyen
+    given-names: Phong Van
+  - family-names: Tran
+    given-names: Nhan Huu
+  - family-names: Le Thi
+    given-names: Nhu Huynh
+repository-code: "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26"
+license: AGPL-3.0-or-later
