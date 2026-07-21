@@ -1,0 +1,64 @@
+{
+  "application_checkpoint": "artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt",
+  "application_checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606",
+  "source_metrics_file": "artifacts/evaluation/combined4/best_pt/metrics_raw.json",
+  "class_order": [
+    "Healthy",
+    "BG",
+    "WSSV",
+    "WSSV_BG"
+  ],
+  "n_test_images": 220,
+  "accuracy": 0.8318181818181818,
+  "balanced_accuracy": 0.8385461760461761,
+  "macro_precision": 0.818005038009986,
+  "macro_recall": 0.8385461760461761,
+  "macro_f1": 0.8218010087330127,
+  "weighted_f1": 0.8318690217921992,
+  "cohen_kappa": 0.7714510332434861,
+  "matthews_corrcoef": 0.7751475813160646,
+  "top2_accuracy": 0.9545454545454546,
+  "ece_15_bins": 0.33457528420469973,
+  "per_class": {
+    "Healthy": {
+      "precision": 0.88,
+      "recall": 0.9166666666666666,
+      "f1": 0.8979591836734694,
+      "support": 72
+    },
+    "BG": {
+      "precision": 0.8085106382978723,
+      "recall": 0.8444444444444444,
+      "f1": 0.8260869565217391,
+      "support": 45
+    },
+    "WSSV": {
+      "precision": 0.9090909090909091,
+      "recall": 0.7142857142857143,
+      "f1": 0.8,
+      "support": 70
+    },
+    "WSSV_BG": {
+      "precision": 0.6744186046511628,
+      "recall": 0.8787878787878788,
+      "f1": 0.7631578947368421,
+      "support": 33
+    }
+  },
+  "bootstrap_ci95": {
+    "accuracy": [
+      0.7818181818181819,
+      0.8772727272727273
+    ],
+    "balanced_accuracy": [
+      0.7882124819624821,
+      0.8865749007936509
+    ],
+    "macro_f1": [
+      0.7705409191362129,
+      0.8711176440235372
+    ],
+    "samples": 2000
+  },
+  "note": "These values are reproduced directly from artifacts/evaluation/combined4/best_pt/metrics_raw.json. They are the test metrics of the validation-selected best.pt checkpoint."
+}

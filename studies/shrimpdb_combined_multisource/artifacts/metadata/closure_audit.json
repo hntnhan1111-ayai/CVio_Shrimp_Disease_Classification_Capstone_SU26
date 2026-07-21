@@ -1,0 +1,104 @@
+{
+  "results": [
+    {
+      "step": "Configuration validation",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_config_integrity.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Imports",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_imports.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Label mapping",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_label_mapping.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Split protocol",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_split_protocol.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Metric regression",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_metric_regression.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Report links",
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "tests/test_report_links.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Artifact tree",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "tools/validate_artifact_tree.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Checksum verification",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "tools/verify_checksums.py"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Source comparison",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "tools/compare_source_snapshot.py",
+        "--snapshot-root",
+        "artifacts/source_snapshot"
+      ],
+      "ok": true
+    }
+  ],
+  "failures": 0,
+  "status": "ok"
+}

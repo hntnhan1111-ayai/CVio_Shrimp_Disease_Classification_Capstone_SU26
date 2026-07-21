@@ -1,0 +1,26 @@
+{
+  "epoch_indexing": "one-based (epoch 1 = first pass through the dataset)",
+  "patience": 15,
+  "experiments": {
+    "shrimpdb3": {
+      "executed_epoch_count": 21,
+      "budget_epoch_count": 30,
+      "best_validation_checkpoint_epoch": 6,
+      "best_checkpoint_source": "Ultralytics EarlyStopping log: \"Best results observed at epoch 6, best model saved as best.pt.\"",
+      "early_stopped": true,
+      "early_stop_reason": "patience=15 triggered: validation metric did not improve for 15 epochs after the best checkpoint at epoch 6; training stopped at epoch 21.",
+      "secondary_signal_min_val_loss_epoch": 15,
+      "note": "best_validation_checkpoint_epoch is taken from the Ultralytics EarlyStopping log message. The minimum val/loss epoch in results.csv is reported as a secondary signal only."
+    },
+    "combined4": {
+      "executed_epoch_count": 30,
+      "budget_epoch_count": 30,
+      "best_validation_checkpoint_epoch": 26,
+      "best_checkpoint_source": "inferred from minimum val/loss across results.csv (Ultralytics did not emit an EarlyStopping message); the project does not record the exact best.pt epoch explicitly.",
+      "early_stopped": false,
+      "early_stop_reason": "patience=15 was not triggered; training completed the full 30-epoch budget.",
+      "secondary_signal_min_val_loss_epoch": 26
+    }
+  },
+  "note": "best_validation_checkpoint_epoch is determined from authoritative Ultralytics log evidence where available (ShrimpDB-3) and from results.csv minimum val/loss otherwise (Combined-4)."
+}

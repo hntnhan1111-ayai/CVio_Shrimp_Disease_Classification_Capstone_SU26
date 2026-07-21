@@ -1,0 +1,322 @@
+Ultralytics 8.4.75 🚀 Python-3.12.13 torch-2.10.0+cu128 CUDA:0 (Tesla T4, 14912MiB)
+                                                       CUDA:1 (Tesla T4, 14912MiB)
+[34m[1mtrain:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/train... found 221 images in 3 classes ✅ 
+[34m[1mval:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/val... found 47 images in 3 classes ✅ 
+[34m[1mtest:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/test... found 47 images in 3 classes ✅ 
+Overriding model.yaml nc=1000 with nc=3
+
+                   from  n    params  module                                       arguments                     
+  0                  -1  1      1856  ultralytics.nn.modules.conv.Conv             [3, 64, 3, 2]                 
+  1                  -1  1     73984  ultralytics.nn.modules.conv.Conv             [64, 128, 3, 2]               
+  2                  -1  1    111872  ultralytics.nn.modules.block.C3k2            [128, 256, 1, True, 0.25]     
+  3                  -1  1    590336  ultralytics.nn.modules.conv.Conv             [256, 256, 3, 2]              
+  4                  -1  1    444928  ultralytics.nn.modules.block.C3k2            [256, 512, 1, True, 0.25]     
+  5                  -1  1   2360320  ultralytics.nn.modules.conv.Conv             [512, 512, 3, 2]              
+  6                  -1  1   1380352  ultralytics.nn.modules.block.C3k2            [512, 512, 1, True]           
+  7                  -1  1   2360320  ultralytics.nn.modules.conv.Conv             [512, 512, 3, 2]              
+  8                  -1  1   1380352  ultralytics.nn.modules.block.C3k2            [512, 512, 1, True]           
+  9                  -1  1    990976  ultralytics.nn.modules.block.C2PSA           [512, 512, 1]                 
+ 10                  -1  1    661763  ultralytics.nn.modules.head.Classify         [512, 3]                      
+YOLO26m-cls summary: 106 layers, 10,357,059 parameters, 10,357,059 gradients, 39.6 GFLOPs
+Transferred 294/296 items from pretrained weights
+[34m[1mAMP: [0mrunning Automatic Mixed Precision (AMP) checks...
+
+[KDownloading https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt to 'yolo26n.pt': 100% ━━━━━━━━━━━━ 5.3MB 66.6MB/s 0.1s
+[34m[1mAMP: [0mchecks passed ✅
+[34m[1mtrain: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 108.9±70.1 MB/s, size: 59.4 KB)
+
+[K[34m[1mtrain: [0mScanning /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/train... 221 images, 0 corrupt: 100% ━━━━━━━━━━━━ 221/221 2.2Kit/s 0.1s
+[34m[1mtrain: [0mNew cache created: /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/train.cache
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 164.7±98.3 MB/s, size: 127.5 KB)
+
+[K[34m[1mval: [0mScanning /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/val... 47 images, 0 corrupt: 100% ━━━━━━━━━━━━ 47/47 999.3it/s 0.0s
+[34m[1mval: [0mNew cache created: /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/val.cache
+[34m[1moptimizer:[0m AdamW(lr=0.00125, momentum=0.937) with parameter groups 49 weight(decay=0.0), 53 weight(decay=0.0005), 51 bias(decay=0.0)
+Image sizes 224 train, 224 val
+Using 4 dataloader workers
+Logging results to [1m/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42[0m
+Starting training for 30 epochs...
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       1/30     0.904G       15.2         16        224: 0% ──────────── 0/7  5.1s
+[K       1/30     0.906G      15.98         16        224: 14% ━╸────────── 1/7 1.6it/s 5.3s<3.7s
+[K       1/30     0.906G      16.14         16        224: 28% ━━━───────── 2/7 2.5it/s 5.5s<2.0s
+[K       1/30     0.906G      17.16         16        224: 42% ━━━━━─────── 3/7 3.1it/s 5.7s<1.3s
+[KDownloading https://ultralytics.com/assets/Arial.ttf to '/root/.config/Ultralytics/Arial.ttf': 100% ━━━━━━━━━━━━ 755.1KB 15.1MB/s 0.0s
+
+[K       1/30     0.906G      17.49         16        224: 57% ━━━━━━╸───── 4/7 3.5it/s 5.9s<0.8s
+[K       1/30     0.914G      17.48         16        224: 71% ━━━━━━━━╸─── 5/7 3.3it/s 6.3s<0.6s
+[K       1/30     0.932G      17.98         15        224: 85% ━━━━━━━━━━── 6/7 2.5it/s 8.8s<0.4s
+[K       1/30     0.932G      17.98         15        224: 100% ━━━━━━━━━━━━ 7/7 1.3s/it 8.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 1.1it/s 0.9s
+                   all      0.479          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       2/30      0.99G      13.14         16        224: 0% ──────────── 0/7  0.1s
+[K       2/30      0.99G       15.9         16        224: 14% ━╸────────── 1/7 2.2it/s 0.2s<2.7s
+[K       2/30      0.99G      15.25         16        224: 28% ━━━───────── 2/7 3.4it/s 0.4s<1.5s
+[K       2/30      0.99G      15.11         16        224: 42% ━━━━━─────── 3/7 4.1it/s 0.6s<1.0s
+[K       2/30      0.99G      15.12         16        224: 57% ━━━━━━╸───── 4/7 4.8it/s 0.7s<0.6s
+[K       2/30      0.99G      13.92         16        224: 71% ━━━━━━━━╸─── 5/7 5.3it/s 0.9s<0.4s
+[K       2/30      0.99G       13.6         15        224: 85% ━━━━━━━━━━── 6/7 6.7it/s 1.0s<0.2s
+[K       2/30      0.99G       13.6         15        224: 100% ━━━━━━━━━━━━ 7/7 7.0it/s 1.0s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 13.0it/s 0.1s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       3/30      0.99G      6.656         16        224: 0% ──────────── 0/7  0.1s
+[K       3/30      0.99G       4.65         16        224: 14% ━╸────────── 1/7 2.0it/s 0.3s<3.0s
+[K       3/30      0.99G       4.87         16        224: 28% ━━━───────── 2/7 3.3it/s 0.4s<1.5s
+[K       3/30      0.99G      4.731         16        224: 42% ━━━━━─────── 3/7 4.4it/s 0.6s<0.9s
+[K       3/30      0.99G      5.023         16        224: 57% ━━━━━━╸───── 4/7 5.1it/s 0.7s<0.6s
+[K       3/30      0.99G      4.871         16        224: 71% ━━━━━━━━╸─── 5/7 5.6it/s 0.9s<0.4s
+[K       3/30      0.99G      5.285         15        224: 85% ━━━━━━━━━━── 6/7 6.1it/s 1.0s<0.2s
+[K       3/30      0.99G      5.285         15        224: 100% ━━━━━━━━━━━━ 7/7 7.0it/s 1.0s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 44.6it/s 0.0s
+                   all      0.812          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       4/30      0.99G      10.75         16        224: 0% ──────────── 0/7  0.1s
+[K       4/30      0.99G      7.209         16        224: 14% ━╸────────── 1/7 2.0it/s 0.3s<3.0s
+[K       4/30      0.99G      6.193         16        224: 28% ━━━───────── 2/7 3.1it/s 0.4s<1.6s
+[K       4/30      0.99G      4.657         16        224: 42% ━━━━━─────── 3/7 4.0it/s 0.6s<1.0s
+[K       4/30      0.99G       4.53         16        224: 57% ━━━━━━╸───── 4/7 4.9it/s 0.7s<0.6s
+[K       4/30      0.99G      4.302         16        224: 71% ━━━━━━━━╸─── 5/7 6.1it/s 0.8s<0.3s
+[K       4/30      0.99G      5.162         15        224: 85% ━━━━━━━━━━── 6/7 6.9it/s 1.0s<0.1s
+[K       4/30      0.99G      5.162         15        224: 100% ━━━━━━━━━━━━ 7/7 7.3it/s 1.0s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 13.7it/s 0.1s
+                   all      0.771          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       5/30      0.99G     0.4636         16        224: 0% ──────────── 0/7  0.1s
+[K       5/30      0.99G      1.828         16        224: 14% ━╸────────── 1/7 1.7it/s 0.3s<3.5s
+[K       5/30      0.99G      1.969         16        224: 28% ━━━───────── 2/7 2.9it/s 0.5s<1.7s
+[K       5/30      0.99G      1.684         16        224: 42% ━━━━━─────── 3/7 3.9it/s 0.6s<1.0s
+[K       5/30      0.99G      2.702         16        224: 57% ━━━━━━╸───── 4/7 4.5it/s 0.8s<0.7s
+[K       5/30      0.99G      3.506         16        224: 71% ━━━━━━━━╸─── 5/7 5.1it/s 1.0s<0.4s
+[K       5/30      0.99G      3.075         15        224: 85% ━━━━━━━━━━── 6/7 5.7it/s 1.1s<0.2s
+[K       5/30      0.99G      3.075         15        224: 100% ━━━━━━━━━━━━ 7/7 6.4it/s 1.1s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 14.4it/s 0.1s
+                   all      0.812          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       6/30      0.99G      2.088         16        224: 0% ──────────── 0/7  0.1s
+[K       6/30      0.99G      2.148         16        224: 14% ━╸────────── 1/7 2.3it/s 0.2s<2.6s
+[K       6/30      0.99G      1.959         16        224: 28% ━━━───────── 2/7 3.7it/s 0.4s<1.4s
+[K       6/30      0.99G      1.719         16        224: 42% ━━━━━─────── 3/7 4.3it/s 0.6s<0.9s
+[K       6/30      0.99G      2.341         16        224: 57% ━━━━━━╸───── 4/7 5.2it/s 0.7s<0.6s
+[K       6/30      0.99G      2.514         16        224: 71% ━━━━━━━━╸─── 5/7 5.5it/s 0.9s<0.4s
+[K       6/30      0.99G      2.451         15        224: 85% ━━━━━━━━━━── 6/7 5.5it/s 1.0s<0.2s
+[K       6/30      0.99G      2.451         15        224: 100% ━━━━━━━━━━━━ 7/7 6.8it/s 1.0s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 20.8it/s 0.0s
+                   all      0.875          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       7/30      0.99G      3.651         16        224: 0% ──────────── 0/7  0.1s
+[K       7/30      0.99G      5.274         16        224: 14% ━╸────────── 1/7 2.3it/s 0.2s<2.6s
+[K       7/30      0.99G      3.866         16        224: 28% ━━━───────── 2/7 4.3it/s 0.3s<1.2s
+[K       7/30      0.99G      3.816         16        224: 42% ━━━━━─────── 3/7 4.9it/s 0.5s<0.8s
+[K       7/30      0.99G      4.198         16        224: 57% ━━━━━━╸───── 4/7 5.6it/s 0.6s<0.5s
+[K       7/30      0.99G      4.437         16        224: 71% ━━━━━━━━╸─── 5/7 5.7it/s 0.8s<0.3s
+[K       7/30      0.99G      4.292         15        224: 85% ━━━━━━━━━━── 6/7 5.7it/s 1.0s<0.2s
+[K       7/30      0.99G      4.292         15        224: 100% ━━━━━━━━━━━━ 7/7 7.1it/s 1.0s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 38.7it/s 0.0s
+                   all      0.729          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       8/30      0.99G      2.515         16        224: 0% ──────────── 0/7  0.1s
+[K       8/30      1.01G      2.388         16        224: 28% ━━━───────── 2/7 2.7it/s 0.3s<1.8s
+[K       8/30      1.01G      2.198         16        224: 42% ━━━━━─────── 3/7 4.2it/s 0.5s<0.9s
+[K       8/30      1.01G      2.218         16        224: 57% ━━━━━━╸───── 4/7 4.9it/s 0.6s<0.6s
+[K       8/30      1.01G      1.942         16        224: 71% ━━━━━━━━╸─── 5/7 6.2it/s 0.7s<0.3s
+[K       8/30      1.01G      2.504         15        224: 85% ━━━━━━━━━━── 6/7 6.7it/s 0.9s<0.1s
+[K       8/30      1.01G      2.504         15        224: 100% ━━━━━━━━━━━━ 7/7 8.2it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 19.1it/s 0.1s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K       9/30      1.01G      4.649         16        224: 14% ━╸────────── 1/7 1.4it/s 0.2s<4.2s
+[K       9/30      1.01G      3.027         16        224: 42% ━━━━━─────── 3/7 3.9it/s 0.4s<1.0s
+[K       9/30      1.01G      2.324         16        224: 71% ━━━━━━━━╸─── 5/7 5.4it/s 0.6s<0.4s
+[K       9/30      1.01G      3.143         15        224: 85% ━━━━━━━━━━── 6/7 6.4it/s 0.8s<0.2s
+[K       9/30      1.01G      3.143         15        224: 100% ━━━━━━━━━━━━ 7/7 9.2it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 26.7it/s 0.0s
+                   all      0.854          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      10/30      1.01G      2.483         16        224: 0% ──────────── 0/7  0.1s
+[K      10/30      1.01G      1.878         16        224: 14% ━╸────────── 1/7 2.2it/s 0.3s<2.8s
+[K      10/30      1.01G      2.302         16        224: 28% ━━━───────── 2/7 3.3it/s 0.4s<1.5s
+[K      10/30      1.01G      2.731         16        224: 42% ━━━━━─────── 3/7 4.4it/s 0.6s<0.9s
+[K      10/30      1.01G      3.393         16        224: 57% ━━━━━━╸───── 4/7 5.4it/s 0.7s<0.6s
+[K      10/30      1.01G       3.82         15        224: 85% ━━━━━━━━━━── 6/7 6.9it/s 0.9s<0.1s
+[K      10/30      1.01G       3.82         15        224: 100% ━━━━━━━━━━━━ 7/7 7.8it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 27.1it/s 0.0s
+                   all      0.792          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      11/30      1.01G      2.072         16        224: 14% ━╸────────── 1/7 1.5it/s 0.2s<4.0s
+[K      11/30      1.01G      2.381         16        224: 42% ━━━━━─────── 3/7 3.7it/s 0.4s<1.1s
+[K      11/30      1.01G      2.426         16        224: 57% ━━━━━━╸───── 4/7 5.4it/s 0.5s<0.6s
+[K      11/30      1.01G      2.184         16        224: 71% ━━━━━━━━╸─── 5/7 5.4it/s 0.7s<0.4s
+[K      11/30      1.01G      2.829         15        224: 100% ━━━━━━━━━━━━ 7/7 8.8it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 20.7it/s 0.0s
+                   all      0.812          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      12/30      1.01G      2.659         16        224: 0% ──────────── 0/7  0.1s
+[K      12/30      1.01G      1.647         16        224: 28% ━━━───────── 2/7 2.4it/s 0.4s<2.1s
+[K      12/30      1.01G      2.171         16        224: 57% ━━━━━━╸───── 4/7 4.6it/s 0.6s<0.6s
+[K      12/30      1.01G      1.934         16        224: 71% ━━━━━━━━╸─── 5/7 6.2it/s 0.7s<0.3s
+[K      12/30      1.01G      3.089         15        224: 85% ━━━━━━━━━━── 6/7 6.4it/s 0.8s<0.2s
+[K      12/30      1.01G      3.089         15        224: 100% ━━━━━━━━━━━━ 7/7 8.7it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 25.7it/s 0.0s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      13/30      1.01G      1.545         16        224: 14% ━╸────────── 1/7 1.3it/s 0.2s<4.5s
+[K      13/30      1.01G      3.472         16        224: 42% ━━━━━─────── 3/7 3.8it/s 0.4s<1.1s
+[K      13/30      1.01G      3.008         16        224: 57% ━━━━━━╸───── 4/7 5.0it/s 0.6s<0.6s
+[K      13/30      1.01G      3.614         16        224: 71% ━━━━━━━━╸─── 5/7 5.1it/s 0.7s<0.4s
+[K      13/30      1.01G      3.097         15        224: 100% ━━━━━━━━━━━━ 7/7 8.3it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 16.2it/s 0.1s
+                   all      0.771          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      14/30      1.01G      2.603         16        224: 14% ━╸────────── 1/7 1.6it/s 0.2s<3.7s
+[K      14/30      1.01G      2.118         16        224: 28% ━━━───────── 2/7 3.8it/s 0.3s<1.3s
+[K      14/30      1.01G      1.528         16        224: 57% ━━━━━━╸───── 4/7 5.1it/s 0.5s<0.6s
+[K      14/30      1.01G      2.655         16        224: 71% ━━━━━━━━╸─── 5/7 6.5it/s 0.6s<0.3s
+[K      14/30      1.01G      2.858         15        224: 85% ━━━━━━━━━━── 6/7 6.7it/s 0.8s<0.1s
+[K      14/30      1.01G      2.858         15        224: 100% ━━━━━━━━━━━━ 7/7 8.9it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 18.8it/s 0.1s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      15/30      1.01G      4.101         16        224: 14% ━╸────────── 1/7 1.5it/s 0.2s<4.0s
+[K      15/30      1.01G      2.174         16        224: 42% ━━━━━─────── 3/7 3.4it/s 0.5s<1.2s
+[K      15/30      1.01G      1.841         16        224: 71% ━━━━━━━━╸─── 5/7 5.0it/s 0.7s<0.4s
+[K      15/30      1.01G      1.752         15        224: 85% ━━━━━━━━━━── 6/7 6.0it/s 0.8s<0.2s
+[K      15/30      1.01G      1.752         15        224: 100% ━━━━━━━━━━━━ 7/7 8.8it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 17.2it/s 0.1s
+                   all      0.854          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      16/30      1.01G      1.144         16        224: 0% ──────────── 0/7  0.1s
+[K      16/30      1.01G      2.511         16        224: 28% ━━━───────── 2/7 2.6it/s 0.3s<1.9s
+[K      16/30      1.01G      2.455         16        224: 42% ━━━━━─────── 3/7 4.2it/s 0.5s<0.9s
+[K      16/30      1.01G      2.072         16        224: 57% ━━━━━━╸───── 4/7 4.7it/s 0.6s<0.6s
+[K      16/30      1.01G      2.443         15        224: 85% ━━━━━━━━━━── 6/7 5.5it/s 0.9s<0.2s
+[K      16/30      1.01G      2.443         15        224: 100% ━━━━━━━━━━━━ 7/7 7.8it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 41.2it/s 0.0s
+                   all      0.875          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      17/30      1.01G      2.905         16        224: 14% ━╸────────── 1/7 1.7it/s 0.2s<3.6s
+[K      17/30      1.01G      2.063         16        224: 42% ━━━━━─────── 3/7 3.5it/s 0.4s<1.1s
+[K      17/30      1.01G      1.789         16        224: 57% ━━━━━━╸───── 4/7 4.9it/s 0.6s<0.6s
+[K      17/30      1.01G      1.852         16        224: 71% ━━━━━━━━╸─── 5/7 5.2it/s 0.7s<0.4s
+[K      17/30      1.01G      1.587         15        224: 100% ━━━━━━━━━━━━ 7/7 8.5it/s 0.8s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 19.9it/s 0.1s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      18/30      1.01G     0.5372         16        224: 0% ──────────── 0/7  0.1s
+[K      18/30      1.01G       2.55         16        224: 14% ━╸────────── 1/7 2.9it/s 0.2s<2.1s
+[K      18/30      1.01G      1.746         16        224: 28% ━━━───────── 2/7 3.9it/s 0.4s<1.3s
+[K      18/30      1.01G      1.714         16        224: 57% ━━━━━━╸───── 4/7 5.2it/s 0.6s<0.6s
+[K      18/30      1.01G      1.311         15        224: 85% ━━━━━━━━━━── 6/7 5.9it/s 0.9s<0.2s
+[K      18/30      1.01G      1.311         15        224: 100% ━━━━━━━━━━━━ 7/7 8.0it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 24.7it/s 0.0s
+                   all      0.708          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      19/30      1.01G      2.475         16        224: 14% ━╸────────── 1/7 1.4it/s 0.2s<4.3s
+[K      19/30      1.01G       1.65         16        224: 28% ━━━───────── 2/7 3.3it/s 0.3s<1.5s
+[K      19/30      1.01G      1.558         16        224: 42% ━━━━━─────── 3/7 4.2it/s 0.5s<0.9s
+[K      19/30      1.01G      1.255         16        224: 57% ━━━━━━╸───── 4/7 5.5it/s 0.6s<0.5s
+[K      19/30      1.01G      1.317         16        224: 71% ━━━━━━━━╸─── 5/7 5.7it/s 0.8s<0.4s
+[K      19/30      1.01G      1.466         15        224: 85% ━━━━━━━━━━── 6/7 6.3it/s 0.9s<0.2s
+[K      19/30      1.01G      1.466         15        224: 100% ━━━━━━━━━━━━ 7/7 7.7it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 45.1it/s 0.0s
+                   all      0.812          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      20/30      1.01G     0.9561         16        224: 0% ──────────── 0/7  0.1s
+[K      20/30      1.01G     0.6659         16        224: 28% ━━━───────── 2/7 2.3it/s 0.4s<2.1s
+[K      20/30      1.01G      0.552         16        224: 57% ━━━━━━╸───── 4/7 4.0it/s 0.6s<0.7s
+[K      20/30      1.01G     0.6193         15        224: 85% ━━━━━━━━━━── 6/7 5.1it/s 0.9s<0.2s
+[K      20/30      1.01G     0.6193         15        224: 100% ━━━━━━━━━━━━ 7/7 7.9it/s 0.9s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 18.0it/s 0.1s
+                   all      0.833          1
+
+      Epoch    GPU_mem       loss  Instances       Size
+
+[K      21/30      1.01G      2.628         16        224: 0% ──────────── 0/7  0.4s
+[K      21/30      1.01G      1.957         16        224: 14% ━╸────────── 1/7 1.4it/s 0.6s<4.3s
+[K      21/30      1.01G      1.549         16        224: 28% ━━━───────── 2/7 2.0it/s 0.9s<2.5s
+[K      21/30      1.01G      1.162         16        224: 42% ━━━━━─────── 3/7 2.9it/s 1.1s<1.4s
+[K      21/30      1.01G     0.9295         16        224: 57% ━━━━━━╸───── 4/7 4.1it/s 1.2s<0.7s
+[K      21/30      1.01G     0.8485         16        224: 71% ━━━━━━━━╸─── 5/7 5.3it/s 1.3s<0.4s
+[K      21/30      1.01G     0.8846         15        224: 85% ━━━━━━━━━━── 6/7 5.2it/s 1.5s<0.2s
+[K      21/30      1.01G     0.8846         15        224: 100% ━━━━━━━━━━━━ 7/7 4.6it/s 1.5s
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 46.3it/s 0.0s
+                   all      0.875          1
+[34m[1mEarlyStopping: [0mTraining stopped early as no improvement observed in last 15 epochs. Best results observed at epoch 6, best model saved as best.pt.
+To update EarlyStopping(patience=15) pass a new patience value, i.e. `patience=300` or use `patience=0` to disable EarlyStopping.
+
+21 epochs completed in 0.013 hours.
+Optimizer stripped from /kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/last.pt, 21.9MB
+Optimizer stripped from /kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt, 21.9MB
+
+Validating /kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt...
+YOLO26m-cls summary (fused): 63 layers, 10,874,883 parameters, 0 gradients, 39.7 GFLOPs
+[34m[1mtrain:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/train... found 221 images in 3 classes ✅ 
+[34m[1mval:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/val... found 47 images in 3 classes ✅ 
+[34m[1mtest:[0m /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared/test... found 47 images in 3 classes ✅ 
+
+[K               classes   top1_acc   top5_acc: 100% ━━━━━━━━━━━━ 1/1 20.0it/s 0.0s
+                   all      0.875          1
+Speed: 0.0ms preprocess, 0.5ms inference, 0.0ms loss, 0.0ms postprocess per image
+Results saved to [1m/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42[0m
