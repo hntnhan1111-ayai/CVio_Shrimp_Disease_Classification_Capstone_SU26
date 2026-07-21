@@ -1,93 +1,210 @@
 {
-  "results": [
-    {
-      "step": "Configuration validation",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_config_integrity.py"
-      ],
-      "ok": true
+  "audit_date_utc": "2026-07-21T12:43:36.589819+00:00",
+  "branch": "paper/shrimpdb-combined-asl-ldam-simam-dcfr",
+  "starting_commit": "c70eecd5cee8ded9cf76a43a36510bc28c5571eb",
+  "final_local_hash": "9f82add8859b3bfe17143d19eb7c6fa9928f93ae",
+  "final_remote_hash": "9f82add8859b3bfe17143d19eb7c6fa9928f93ae",
+  "remote_branch_url": "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26/tree/paper/shrimpdb-combined-asl-ldam-simam-dcfr",
+  "test_command": "uv run pytest -q",
+  "test_result": {
+    "ok": true,
+    "exit_code": 0,
+    "summary_line": "13 passed",
+    "stdout_tail": "............. [100%]\n13 passed in ..."
+  },
+  "git_actions_workflow": ".github/workflows/shrimpdb-combined-ci.yml",
+  "uv_lock_status": "committed (studies/shrimpdb_combined_multisource/uv.lock)",
+  "source_comparison": {
+    "status": "match_with_explicit_diff",
+    "snapshot_tree_sha256": "17a9f497afe86c5cc750acd3b2460c86fb710053006f65f2f110e6cec9ba3917",
+    "repository_tree_sha256": "37837e005c95d458dcf211272115fdc19dfa543ab11350ab6431946111a41037",
+    "allowlisted_diffs": {
+      "data/__init__.py": "repository adds explicit re-exports of audit_dataset, create_split, materialize_split_tree; no behavior change"
     },
-    {
-      "step": "Imports",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_imports.py"
-      ],
-      "ok": true
+    "content_mismatches_count": 1,
+    "missing_in_repository": [],
+    "missing_in_package": [
+      "attention/__pycache__/__init__.cpython-312.pyc",
+      "attention/__pycache__/cbam.cpython-312.pyc",
+      "attention/__pycache__/simam_dcfr.cpython-312.pyc",
+      "data/__pycache__/__init__.cpython-312.pyc",
+      "data/__pycache__/audit_dataset.cpython-312.pyc",
+      "data/__pycache__/corruptions.cpython-312.pyc",
+      "data/__pycache__/make_split.cpython-312.pyc",
+      "losses/__pycache__/__init__.cpython-312.pyc",
+      "losses/__pycache__/asl_ldam.cpython-312.pyc",
+      "losses/__pycache__/balanced_softmax.cpython-312.pyc",
+      "losses/__pycache__/focal_variants.cpython-312.pyc",
+      "utils/__pycache__/__init__.cpython-312.pyc",
+      "utils/__pycache__/io.cpython-312.pyc",
+      "utils/__pycache__/paths.cpython-312.pyc",
+      "utils/__pycache__/run_guard.cpython-312.pyc",
+      "utils/__pycache__/seed.cpython-312.pyc"
+    ]
+  },
+  "figures": {
+    "registry_path": "artifacts/metadata/figure_registry.json",
+    "count": 14,
+    "ids": [
+      "Figure 1",
+      "Figure 10",
+      "Figure 13",
+      "Figure 14",
+      "Figure 15",
+      "Figure 16",
+      "Figure 2",
+      "Figure 3",
+      "Figure 4",
+      "Figure 5",
+      "Figure 6",
+      "Figure 7",
+      "Figure 8",
+      "Figure 9"
+    ]
+  },
+  "report": {
+    "path": "artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html",
+    "sha256": "8d13f1ff3d774d48473807210801108b9635b5eb00b3745bae559bd2fc7e275f",
+    "size_bytes": 2009106,
+    "embedded_image_count": 17,
+    "required_section_check": {
+      "Executive conclusion": true,
+      "Experiment design": true,
+      "Dataset audit": true,
+      "Training configuration": true,
+      "Training trajectory": true,
+      "Test results best.pt": true,
+      "Per-class analysis": true,
+      "Bootstrap stability and calibration": true,
+      "Same-domain matched comparison": true,
+      "Source-domain analysis": true,
+      "Checkpoint audit best vs last": true,
+      "Final application checkpoint": true,
+      "Limitations": true,
+      "Provenance and reproducibility": true
     },
-    {
-      "step": "Label mapping",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_label_mapping.py"
-      ],
-      "ok": true
+    "status": "verified"
+  },
+  "checkpoints": {
+    "registry_path": "model_registry/checkpoints.json",
+    "final_application_checkpoint": "final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt",
+    "final_application_checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606"
+  },
+  "effective_epochs": {
+    "epoch_indexing": "one-based (epoch 1 = first pass through the dataset)",
+    "patience": 15,
+    "experiments": {
+      "shrimpdb3": {
+        "executed_epoch_count": 21,
+        "budget_epoch_count": 30,
+        "best_validation_checkpoint_epoch": 6,
+        "best_checkpoint_source": "Ultralytics EarlyStopping log: \"Best results observed at epoch 6, best model saved as best.pt.\"",
+        "early_stopped": true,
+        "early_stop_reason": "patience=15 triggered: validation metric did not improve for 15 epochs after the best checkpoint at epoch 6; training stopped at epoch 21.",
+        "secondary_signal_min_val_loss_epoch": 15,
+        "note": "best_validation_checkpoint_epoch is taken from the Ultralytics EarlyStopping log message. The minimum val/loss epoch in results.csv is reported as a secondary signal only."
+      },
+      "combined4": {
+        "executed_epoch_count": 30,
+        "budget_epoch_count": 30,
+        "best_validation_checkpoint_epoch": 26,
+        "best_checkpoint_source": "inferred from minimum val/loss across results.csv (Ultralytics did not emit an EarlyStopping message); the project does not record the exact best.pt epoch explicitly.",
+        "early_stopped": false,
+        "early_stop_reason": "patience=15 was not triggered; training completed the full 30-epoch budget.",
+        "secondary_signal_min_val_loss_epoch": 26
+      }
     },
-    {
-      "step": "Split protocol",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_split_protocol.py"
-      ],
-      "ok": true
+    "note": "best_validation_checkpoint_epoch is determined from authoritative Ultralytics log evidence where available (ShrimpDB-3) and from results.csv minimum val/loss otherwise (Combined-4)."
+  },
+  "application_test_metrics": {
+    "application_checkpoint": "artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt",
+    "application_checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606",
+    "source_metrics_file": "artifacts/evaluation/combined4/best_pt/metrics_raw.json",
+    "class_order": [
+      "Healthy",
+      "BG",
+      "WSSV",
+      "WSSV_BG"
+    ],
+    "n_test_images": 220,
+    "accuracy": 0.8318181818181818,
+    "balanced_accuracy": 0.8385461760461761,
+    "macro_precision": 0.818005038009986,
+    "macro_recall": 0.8385461760461761,
+    "macro_f1": 0.8218010087330127,
+    "weighted_f1": 0.8318690217921992,
+    "cohen_kappa": 0.7714510332434861,
+    "matthews_corrcoef": 0.7751475813160646,
+    "top2_accuracy": 0.9545454545454546,
+    "ece_15_bins": 0.33457528420469973,
+    "per_class": {
+      "Healthy": {
+        "precision": 0.88,
+        "recall": 0.9166666666666666,
+        "f1": 0.8979591836734694,
+        "support": 72
+      },
+      "BG": {
+        "precision": 0.8085106382978723,
+        "recall": 0.8444444444444444,
+        "f1": 0.8260869565217391,
+        "support": 45
+      },
+      "WSSV": {
+        "precision": 0.9090909090909091,
+        "recall": 0.7142857142857143,
+        "f1": 0.8,
+        "support": 70
+      },
+      "WSSV_BG": {
+        "precision": 0.6744186046511628,
+        "recall": 0.8787878787878788,
+        "f1": 0.7631578947368421,
+        "support": 33
+      }
     },
-    {
-      "step": "Metric regression",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_metric_regression.py"
+    "bootstrap_ci95": {
+      "accuracy": [
+        0.7818181818181819,
+        0.8772727272727273
       ],
-      "ok": true
-    },
-    {
-      "step": "Report links",
-      "command": [
-        "uv",
-        "run",
-        "pytest",
-        "-q",
-        "tests/test_report_links.py"
+      "balanced_accuracy": [
+        0.7882124819624821,
+        0.8865749007936509
       ],
-      "ok": true
+      "macro_f1": [
+        0.7705409191362129,
+        0.8711176440235372
+      ],
+      "samples": 2000
     },
-    {
-      "step": "Artifact tree",
+    "note": "These values are reproduced directly from artifacts/evaluation/combined4/best_pt/metrics_raw.json. They are the test metrics of the validation-selected best.pt checkpoint."
+  },
+  "tools": {
+    "validate_artifact_tree": {
+      "step": "validate_artifact_tree",
       "command": [
         "uv",
         "run",
         "python",
         "tools/validate_artifact_tree.py"
       ],
-      "ok": true
+      "ok": true,
+      "stdout_tail": ""
     },
-    {
-      "step": "Checksum verification",
+    "verify_checksums": {
+      "step": "verify_checksums",
       "command": [
         "uv",
         "run",
         "python",
         "tools/verify_checksums.py"
       ],
-      "ok": true
+      "ok": true,
+      "stdout_tail": ""
     },
-    {
-      "step": "Source comparison",
+    "compare_source_snapshot": {
+      "step": "compare_source_snapshot",
       "command": [
         "uv",
         "run",
@@ -96,9 +213,62 @@
         "--snapshot-root",
         "artifacts/source_snapshot"
       ],
-      "ok": true
+      "ok": true,
+      "stdout_tail": ""
+    }
+  },
+  "repository_hygiene": {
+    "tracked_file_count": 218,
+    "total_tracked_bytes": 6386672,
+    "forbidden_tracked_files": [],
+    "unapproved_pt_files": [],
+    "large_files_over_50mb": [],
+    "status": "clean"
+  },
+  "continuation_commits": [
+    {
+      "hash": "ef370e8",
+      "subject": "chore: harden study validators and add source snapshot comparator"
+    },
+    {
+      "hash": "d436602",
+      "subject": "feat: add source snapshot provenance and comparison artifact"
+    },
+    {
+      "hash": "4d2b245",
+      "subject": "feat: add paper figures, figure registry, and split-distribution chart"
+    },
+    {
+      "hash": "a1cd4c6",
+      "subject": "feat: add report registry, effective epochs, hygiene, and closure audit artifacts"
+    },
+    {
+      "hash": "6d1d7c4",
+      "subject": "test: expand scientific protocol and metric regression coverage"
+    },
+    {
+      "hash": "9f82add",
+      "subject": "docs: fix effective epoch wording, integrate HTML report, expand figures, and harden CI"
     }
   ],
-  "failures": 0,
-  "status": "ok"
+  "remaining_limitations": [
+    "Single seed (42) only; no mean ± standard deviation across seeds.",
+    "No statistical significance claim; bootstrap CI provided for test metrics.",
+    "Image-level split; specimen or animal identity not established.",
+    "Exact-duplicate detection does not prove removal of all near duplicates.",
+    "ShrimpDB-3 and Combined-4 use different class spaces (3 vs 4); direct overall comparison is not controlled.",
+    "ShrimpDB-3 executed through epoch 21 (best at epoch 6, patience=15 triggered). Combined-4 completed full 30 epochs.",
+    "Calibration remains weak (ECE 19.30% ShrimpDB-3 best.pt, 33.46% Combined-4 best.pt).",
+    "Validation-selected Combined-4 best.pt is the designated application candidate; last.pt exhibits higher test metrics but is post-hoc.",
+    "No raw dataset, virtual environment, prepared image tree, result ZIP, or unapproved checkpoint is tracked.",
+    "Research code only; not a veterinary diagnostic system."
+  ],
+  "non_tracked_artifacts": [
+    "Raw ShrimpDB and ShrimpDiseaseDB images (download from Kaggle; not tracked).",
+    "The 110.4 MB CVio_ShrimpDB_Combined_ASL_LDAM_SimAM_DCFR_seed42_RESULTS.zip (not tracked; contents reproduced under artifacts/).",
+    "Trained .pt checkpoints (excluded by .gitignore; documented in model_registry/checkpoints.json with SHA-256).",
+    "Virtual environment (.venv/), __pycache__, .pytest_cache, .ipynb_checkpoints (gitignored)."
+  ],
+  "final_git_status_short_branch": "## paper/shrimpdb-combined-asl-ldam-simam-dcfr\n M artifacts/metadata/closure_audit.json\n M artifacts/metadata/repository_hygiene.json\n M artifacts/metadata/source_comparison.json\n?? _b.py\n?? docs/CLOSURE_AUDIT.md\n",
+  "status": "closure_ok"
 }
