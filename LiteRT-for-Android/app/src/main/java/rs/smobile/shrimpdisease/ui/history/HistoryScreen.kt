@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import rs.smobile.shrimpdisease.data.HistoryFilter
 import rs.smobile.shrimpdisease.data.HistoryUiState
 import rs.smobile.shrimpdisease.ui.components.AppBrandLogo
-import rs.smobile.shrimpdisease.ui.components.BenchmarkSummaryCard
 import rs.smobile.shrimpdisease.ui.components.CVioCard
 import rs.smobile.shrimpdisease.ui.components.EmptyState
 import rs.smobile.shrimpdisease.ui.components.PredictionLogItemCard
@@ -146,14 +145,6 @@ fun HistoryScreen(
             }
         }
 
-        if (logs.isNotEmpty()) {
-            item {
-                BenchmarkSummaryCard(
-                    metrics = historyUiState.benchmarkMetrics,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
-            }
-        }
     }
 }
 
