@@ -284,7 +284,7 @@ class AdminDashboardRepository @Inject constructor(
     }
 
     fun loadInferenceLogs(activeModelFilter: String? = null): AdminInferenceLogsUiState {
-        val contexts = diagnosisContexts()
+        val contexts = diagnosisContexts(includeAdmin = true)
         val filteredContexts = if (activeModelFilter.isNullOrBlank() || activeModelFilter == ALL_MODELS_FILTER) {
             contexts
         } else {
@@ -456,10 +456,13 @@ class AdminDashboardRepository @Inject constructor(
         }
     }
 
-    private fun diagnosisContexts(): List<AdminDiagnosisContext> {
-        val farmers = authRepository.getUsers()
-            .filter { user -> user.role == AuthRole.Farmer }
-        return farmers.flatMap { user ->
+    private fun diagnosisContexts(includeAdmin: Boolean = false): List<AdminDiagnosisContext> {
+        val users = authRepository.getUsers()
+            .filter { user ->
+                user.role == AuthRole.Farmer ||
+                    (includeAdmin && user.role == AuthRole.Admin)
+            }
+        return users.flatMap { user ->
             val profile = farmerProfileRepository.getProfileForUser(user)
             predictionLogRepository.getLogsForOwner(user.id).map { log ->
                 AdminDiagnosisContext(
@@ -475,7 +478,11 @@ class AdminDashboardRepository @Inject constructor(
         val status = DiagnosisHistoryStatus.from(log)
         return AdminInferenceLogItem(
             id = dataItemId(user.id, log.id),
-            farmerId = "FRM-${user.id.takeLast(4).uppercase()}",
+            farmerId = if (user.role == AuthRole.Admin) {
+                "ADM-${user.id.takeLast(4).uppercase()}"
+            } else {
+                "FRM-${user.id.takeLast(4).uppercase()}"
+            },
             farmerName = profile.displayName,
             timestampText = DateTimeUtils.formatTimestamp(log.timestamp),
             resultLabel = when (status) {
