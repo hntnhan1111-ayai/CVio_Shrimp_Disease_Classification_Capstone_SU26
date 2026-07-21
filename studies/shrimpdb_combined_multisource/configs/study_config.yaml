@@ -1,0 +1,117 @@
+work_root: /kaggle/working/cvio_shrimp_academic_study_seed42
+zip_path: /kaggle/working/CVio_ShrimpDB_Combined_ASL_LDAM_SimAM_DCFR_seed42_RESULTS.zip
+base_model_dir: /kaggle/working/cvio_base_model
+seed: 42
+split_ratios:
+  train: 0.7
+  val: 0.15
+  test: 0.15
+strict_expected_counts: true
+bootstrap_samples: 2000
+evaluation_batch: 64
+runtime:
+  cuda_available: true
+  gpu_count: 2
+  world_size: 2
+  distributed: true
+  gpu_names:
+  - Tesla T4
+  - Tesla T4
+  gpu_memory_gib:
+  - 14.56219482421875
+  - 14.56219482421875
+  device: 0,1
+  evaluation_device: 0
+  requested_global_batch: 32
+  effective_global_batch: 32
+  peer_access: true
+  disable_nccl_p2p: false
+  launcher: torchrun
+attached_input_roots:
+  shrimpdb: /kaggle/input/datasets/vohoangtu/shrimpdb
+  shrimpdiseasedb: /kaggle/working/downloaded_datasets/processed_images/processed_images
+training:
+  model: yolo26m-cls
+  method: asl_ldam_simam_dcfr
+  task: classify
+  imgsz: 224
+  epochs: 30
+  seed: 42
+  deterministic: true
+  patience: 15
+  batch: 32
+  workers: 4
+  amp: true
+  device: 0,1
+  optimizer: AdamW
+  lr0: 0.00125
+  lrf: 0.01
+  cos_lr: true
+  cache: false
+  auto_augment: randaugment
+  erasing: 0.4
+  plots: true
+  save_period: -1
+loss:
+  name: ASL_LDAM
+  gamma_pos: 0.0
+  gamma_neg: 4.0
+  label_smoothing: 0.1
+  ldam_max_m: 0.5
+  ldam_scale: 30.0
+attention:
+  name: SimAM_DCFR
+  key: simam_gated_residual__dcfr_texture
+  enabled: true
+  e_lambda: 0.0001
+datasets:
+  shrimpdb:
+    kaggle_slug: vohoangtu/shrimpdb
+    all_classes:
+    - Den_Mang
+    - Dom_Den
+    - Dom_Trang
+    - Hoai_Tu_Co
+    - Hoai_tu_gan
+    - Tom_BT
+    expected_counts:
+      Den_Mang: 125
+      Dom_Den: 103
+      Dom_Trang: 173
+      Hoai_Tu_Co: 115
+      Hoai_tu_gan: 61
+      Tom_BT: 74
+  shrimpdiseasedb:
+    kaggle_slug: uynnhy/processed-images
+    expected_counts:
+      Healthy: 403
+      BG: 198
+      WSSV: 328
+      WSSV_BG: 220
+experiments:
+  shrimpdb3:
+    scientific_role: Independent external-dataset training on three clinically aligned
+      classes.
+    class_names:
+    - Healthy
+    - BG
+    - WSSV
+    source_mapping:
+      Tom_BT: Healthy
+      Den_Mang: BG
+      Dom_Trang: WSSV
+    run_name: yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42
+  combined4:
+    scientific_role: Final multi-source four-class training for application deployment.
+    class_names:
+    - Healthy
+    - BG
+    - WSSV
+    - WSSV_BG
+    run_name: yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42
+reported_processed_only_reference:
+  accuracy: 0.913295
+  macro_f1: 0.910137
+  cohen_kappa: 0.881593
+  status: Historical fixed-seed result supplied by the reviewed repository; not rerun
+    in this notebook.

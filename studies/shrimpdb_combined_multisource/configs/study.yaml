@@ -1,0 +1,132 @@
+study:
+  name: shrimpdb_combined_multisource
+  description: Seed-42 ASL-LDAM + SimAM-DCFR shrimp disease classification on ShrimpDB-3 and Combined-4.
+  seed: 42
+  deterministic: true
+  split:
+    train: 0.70
+    val: 0.15
+    test: 0.15
+  bootstrap_samples: 2000
+  evaluation_batch: 64
+  base_model_dir: ${ARTIFACTS_ROOT:-.}/base_model
+  runs_dir: ${ARTIFACTS_ROOT:-.}/runs
+
+training:
+  model: yolo26m-cls
+  method: asl_ldam_simam_dcfr
+  task: classify
+  imgsz: 224
+  epochs: 30
+  patience: 15
+  batch: 32
+  workers: 4
+  amp: true
+  device: auto
+  optimizer: AdamW
+  lr0: 0.00125
+  lrf: 0.01
+  cos_lr: true
+  cache: false
+  auto_augment: randaugment
+  erasing: 0.4
+  plots: true
+  save_period: -1
+
+loss:
+  name: ASL_LDAM
+  gamma_pos: 0.0
+  gamma_neg: 4.0
+  label_smoothing: 0.1
+  ldam_max_m: 0.5
+  ldam_scale: 30.0
+
+attention:
+  name: SimAM_DCFR
+  key: simam_gated_residual__dcfr_texture
+  enabled: true
+  e_lambda: 0.0001
+
+runtime:
+  cuda_available: true
+  gpu_count: 2
+  world_size: 2
+  distributed: true
+  gpu_names:
+    - Tesla T4
+    - Tesla T4
+  gpu_memory_gib:
+    - 14.56219482421875
+    - 14.56219482421875
+  device: 0,1
+  evaluation_device: 0
+  requested_global_batch: 32
+  effective_global_batch: 32
+  peer_access: true
+  disable_nccl_p2p: false
+  launcher: torchrun
+
+datasets:
+  shrimpdb:
+    kaggle_slug: vohoangtu/shrimpdb
+    url: https://www.kaggle.com/datasets/vohoangtu/shrimpdb
+    all_classes:
+      - Den_Mang
+      - Dom_Den
+      - Dom_Trang
+      - Hoai_Tu_Co
+      - Hoai_tu_gan
+      - Tom_BT
+    expected_counts:
+      Den_Mang: 125
+      Dom_Den: 103
+      Dom_Trang: 173
+      Hoai_Tu_Co: 115
+      Hoai_tu_gan: 61
+      Tom_BT: 74
+    root: ${SHrimpDB_ROOT:-datasets/shrimpdb}
+  shrimpdiseasedb:
+    kaggle_slug: uynnhy/processed-images
+    url: https://www.kaggle.com/datasets/uynnhy/processed-images
+    expected_counts:
+      Healthy: 403
+      BG: 198
+      WSSV: 328
+      WSSV_BG: 220
+    root: ${SHRIMPDISEASEDB_ROOT:-datasets/shrimpdiseasedb}
+
+experiments:
+  shrimpdb3:
+    scientific_role: Independent external-dataset training on three clinically aligned classes.
+    dataset: shrimpdb
+    class_names:
+      - Healthy
+      - BG
+      - WSSV
+    source_mapping:
+      Tom_BT: Healthy
+      Den_Mang: BG
+      Dom_Trang: WSSV
+    run_name: yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42
+    independent_initialization: true
+    initialization_note: >-
+      Both experiments initialize independently from the same ImageNet-pretrained
+      YOLO26m-cls asset. The combined run does not initialize from the ShrimpDB-only
+      checkpoint, avoiding curriculum-learning confounding.
+  combined4:
+    scientific_role: Final multi-source four-class training for application deployment.
+    dataset: combined4
+    class_names:
+      - Healthy
+      - BG
+      - WSSV
+      - WSSV_BG
+    run_name: yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42
+    independent_initialization: true
+
+reported_processed_only_reference:
+  accuracy: 0.913295
+  macro_f1: 0.910137
+  cohen_kappa: 0.881593
+  status: >-
+    Historical fixed-seed result supplied by the reviewed repository; not rerun in this notebook.

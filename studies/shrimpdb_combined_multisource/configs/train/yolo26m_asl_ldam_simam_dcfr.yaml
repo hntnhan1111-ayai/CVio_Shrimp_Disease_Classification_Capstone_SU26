@@ -1,0 +1,35 @@
+extends: ../study.yaml
+training:
+  model: yolo26m-cls
+  method: asl_ldam_simam_dcfr
+  task: classify
+  imgsz: 224
+  epochs: 30
+  seed: 42
+  deterministic: true
+  patience: 15
+  batch: 32
+  workers: 4
+  amp: true
+  device: auto
+  optimizer: AdamW
+  lr0: 0.00125
+  lrf: 0.01
+  cos_lr: true
+  cache: false
+  auto_augment: randaugment
+  erasing: 0.4
+  plots: true
+  save_period: -1
+loss:
+  name: ASL_LDAM
+  gamma_pos: 0.0
+  gamma_neg: 4.0
+  label_smoothing: 0.1
+  ldam_max_m: 0.5
+  ldam_scale: 30.0
+attention:
+  name: SimAM_DCFR
+  key: simam_gated_residual__dcfr_texture
+  enabled: true
+  e_lambda: 0.0001
