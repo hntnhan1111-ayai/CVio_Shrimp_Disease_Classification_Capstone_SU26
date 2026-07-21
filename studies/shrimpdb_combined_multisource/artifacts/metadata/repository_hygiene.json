@@ -1,6 +1,6 @@
 {
- "tracked_file_count": 218,
- "total_tracked_bytes": 6386672,
+ "tracked_file_count": 219,
+ "total_tracked_bytes": 6383664,
  "forbidden_tracked_files": [],
  "unapproved_pt_files": [],
  "large_files_over_50mb": [],
@@ -517,8 +517,8 @@
   },
   {
    "path": "artifacts/metadata/closure_audit.json",
-   "size_bytes": 11769,
-   "sha256": "23a40793920254e168b6c53542578025c4c03c9d09677e925691377df5fe975d"
+   "size_bytes": 1904,
+   "sha256": "ccca8085f68361a26ebb85b15bf47ec8d8caf69d8306d29dc4dfbe9297c418dd"
   },
   {
    "path": "artifacts/metadata/dataset_experiments.json",
@@ -542,13 +542,13 @@
   },
   {
    "path": "artifacts/metadata/repository_hygiene.json",
-   "size_bytes": 39497,
-   "sha256": "4abaccc4f6f9273cbb4178f3236c024bb2edd8c1191082fe08e23aaddfd3d511"
+   "size_bytes": 39498,
+   "sha256": "85ee76ca065d1fea95440f113be4561435660da3e0bc85a6707fde807a74f35a"
   },
   {
    "path": "artifacts/metadata/source_comparison.json",
-   "size_bytes": 2227,
-   "sha256": "99cfa70a961ec3eb2cfe7594390bd9e01cd9db65506e765f4d0ce3ab5f6dade0"
+   "size_bytes": 3952,
+   "sha256": "e4c33c885450c5bb0b99763fc5902b68fde5ef37345acb1644c45fcdf8f9b111"
   },
   {
    "path": "artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html",
@@ -754,6 +754,11 @@
    "path": "docs/CLAIMS_AND_LIMITATIONS.md",
    "size_bytes": 6523,
    "sha256": "424e49c452c53d7100acdf3b7c57c0f7ba5b471d15dd07b17eefd7dc708e761f"
+  },
+  {
+   "path": "docs/CLOSURE_AUDIT.md",
+   "size_bytes": 5131,
+   "sha256": "fccc98ec9428dcb1595695c70dc78ae67c689834a3f0759225d1be31397bc0a8"
   },
   {
    "path": "docs/DATASETS.md",
