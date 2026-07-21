@@ -1,0 +1,5 @@
+{
+  "conflicting_hash_groups": 0,
+  "quarantined_images": 0,
+  "policy": "All members of exact-byte duplicate groups carrying different labels are excluded."
+}

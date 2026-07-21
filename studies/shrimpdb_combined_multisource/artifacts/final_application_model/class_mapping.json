@@ -1,0 +1,17 @@
+{
+  "class_order": {
+    "0": "Healthy",
+    "1": "BG",
+    "2": "WSSV",
+    "3": "WSSV_BG"
+  },
+  "input": {
+    "color": "RGB",
+    "size": [
+      224,
+      224
+    ]
+  },
+  "output": "Four-class logits/probabilities: Healthy, BG, WSSV, WSSV_BG",
+  "checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606"
+}

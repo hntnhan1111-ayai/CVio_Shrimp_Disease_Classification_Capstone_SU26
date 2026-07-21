@@ -1,0 +1,21 @@
+{
+  "final_application_checkpoint": "final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt",
+  "final_application_checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606",
+  "experiments": {
+    "shrimpdb3": {
+      "best_checkpoint": "experiments/shrimpdb3/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt",
+      "best_checkpoint_sha256": "ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36",
+      "last_checkpoint": "experiments/shrimpdb3/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/last.pt",
+      "last_checkpoint_sha256": "Not recorded in the packaged artifacts",
+      "class_order": ["Healthy", "BG", "WSSV"]
+    },
+    "combined4": {
+      "best_checkpoint": "experiments/combined4/runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/weights/best.pt",
+      "best_checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606",
+      "last_checkpoint": "experiments/combined4/runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/weights/last.pt",
+      "last_checkpoint_sha256": "Not recorded in the packaged artifacts",
+      "class_order": ["Healthy", "BG", "WSSV", "WSSV_BG"]
+    }
+  },
+  "distribution_note": "Checkpoint selection should use validation Macro-F1 or balanced accuracy before test evaluation. The current selection is validation-selected best.pt."
+}

@@ -1,0 +1,14 @@
+{
+  "ShrimpDB-only model": {
+    "n": 47,
+    "accuracy": 0.9148936170212766,
+    "balanced_accuracy": 0.915530303030303,
+    "macro_f1_common3": 0.9129374237733371
+  },
+  "Combined model": {
+    "n": 47,
+    "accuracy": 0.851063829787234,
+    "balanced_accuracy": 0.8791666666666668,
+    "macro_f1_common3": 0.8636206539019838
+  }
+}

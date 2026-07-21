@@ -1,0 +1,4 @@
+split,Healthy,BG,WSSV
+train,49,78,94
+val,10,17,20
+test,11,16,20

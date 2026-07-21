@@ -1,0 +1,9 @@
+[
+  {
+    "attempt": 1,
+    "global_batch": 32,
+    "return_code": 0,
+    "oom_detected": false,
+    "log": "/kaggle/working/cvio_shrimp_academic_study_seed42/logs/combined4_training_attempt1_batch32.log"
+  }
+]

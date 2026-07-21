@@ -1,0 +1,4 @@
+metric,reported_processed_only_percent,combined_model_on_processed_test_percent,delta_percentage_points,relative_delta_percent,comparison_status
+accuracy,91.3295,82.65895953757226,-8.670540462427745,-9.493690934941881,historical fixed-seed reference; not a same-runtime rerun
+macro_f1,91.0137,81.94567741257045,-9.068022587429548,-9.963360007811515,historical fixed-seed reference; not a same-runtime rerun
+cohen_kappa,88.1593,76.26126332159356,-11.89803667840643,-13.496065280017461,historical fixed-seed reference; not a same-runtime rerun

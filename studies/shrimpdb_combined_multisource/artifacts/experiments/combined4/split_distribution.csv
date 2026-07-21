@@ -1,0 +1,4 @@
+split,Healthy,BG,WSSV,WSSV_BG
+train,331,217,323,154
+val,70,47,69,33
+test,72,45,70,33

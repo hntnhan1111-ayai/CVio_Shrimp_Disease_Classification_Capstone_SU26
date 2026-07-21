@@ -1,0 +1,72 @@
+experiment_name: shrimpdb3
+scientific_role: Independent external-dataset training on three clinically aligned
+  classes.
+class_names:
+- Healthy
+- BG
+- WSSV
+class_counts:
+- 49
+- 78
+- 94
+prepared_root: /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared
+manifest: /kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/manifest.csv
+base_model: /kaggle/working/cvio_base_model/yolo26m-cls.pt
+run_project: /kaggle/working/cvio_shrimp_academic_study_seed42/runs
+run_name: yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42
+runtime:
+  cuda_available: true
+  gpu_count: 2
+  world_size: 2
+  distributed: true
+  gpu_names:
+  - Tesla T4
+  - Tesla T4
+  gpu_memory_gib:
+  - 14.56219482421875
+  - 14.56219482421875
+  device: 0,1
+  evaluation_device: 0
+  requested_global_batch: 32
+  effective_global_batch: 32
+  peer_access: true
+  disable_nccl_p2p: false
+  launcher: torchrun
+training:
+  model: yolo26m-cls
+  method: asl_ldam_simam_dcfr
+  task: classify
+  imgsz: 224
+  epochs: 30
+  seed: 42
+  deterministic: true
+  patience: 15
+  batch: 32
+  workers: 4
+  amp: true
+  device: 0,1
+  optimizer: AdamW
+  lr0: 0.00125
+  lrf: 0.01
+  cos_lr: true
+  cache: false
+  auto_augment: randaugment
+  erasing: 0.4
+  plots: true
+  save_period: -1
+loss:
+  name: ASL_LDAM
+  gamma_pos: 0.0
+  gamma_neg: 4.0
+  label_smoothing: 0.1
+  ldam_max_m: 0.5
+  ldam_scale: 30.0
+attention:
+  name: SimAM_DCFR
+  key: simam_gated_residual__dcfr_texture
+  enabled: true
+  e_lambda: 0.0001
+independent_initialization: true
+initialization_note: Both experiments initialize independently from the same ImageNet-pretrained
+  YOLO26m-cls asset. The combined run does not initialize from the ShrimpDB-only checkpoint,
+  avoiding curriculum-learning confounding.

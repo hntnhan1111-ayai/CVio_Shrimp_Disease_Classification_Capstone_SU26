@@ -1,0 +1,86 @@
+{
+  "n": 47,
+  "accuracy": 0.9148936170212766,
+  "balanced_accuracy": 0.915530303030303,
+  "macro_precision": 0.914141414141414,
+  "macro_recall": 0.915530303030303,
+  "macro_f1": 0.9129374237733371,
+  "weighted_f1": 0.916276925103748,
+  "cohen_kappa": 0.8694444444444445,
+  "matthews_corrcoef": 0.8718696777312752,
+  "top1_accuracy": 0.9148936170212766,
+  "ece_15_bins": 0.19298748513485522,
+  "classification_report": {
+    "Healthy": {
+      "precision": 0.9090909090909091,
+      "recall": 0.9090909090909091,
+      "f1-score": 0.9090909090909091,
+      "support": 11.0
+    },
+    "BG": {
+      "precision": 0.8333333333333334,
+      "recall": 0.9375,
+      "f1-score": 0.8823529411764706,
+      "support": 16.0
+    },
+    "WSSV": {
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1-score": 0.9473684210526315,
+      "support": 20.0
+    },
+    "accuracy": 0.9148936170212766,
+    "macro avg": {
+      "precision": 0.914141414141414,
+      "recall": 0.915530303030303,
+      "f1-score": 0.9129374237733371,
+      "support": 47.0
+    },
+    "weighted avg": {
+      "precision": 0.9219858156028369,
+      "recall": 0.9148936170212766,
+      "f1-score": 0.916276925103748,
+      "support": 47.0
+    }
+  },
+  "top2_accuracy": 1.0,
+  "bootstrap_ci95": {
+    "accuracy": {
+      "estimate": 0.9142659574468085,
+      "ci95_low": 0.8297872340425532,
+      "ci95_high": 0.9787234042553191,
+      "bootstrap_samples": 2000
+    },
+    "balanced_accuracy": {
+      "estimate": 0.9145653409090909,
+      "ci95_low": 0.8174242424242424,
+      "ci95_high": 0.9833333333333334,
+      "bootstrap_samples": 2000
+    },
+    "macro_f1": {
+      "estimate": 0.9117923750220293,
+      "ci95_low": 0.8195338195338194,
+      "ci95_high": 0.9813519813519814,
+      "bootstrap_samples": 2000
+    }
+  },
+  "confusion_matrix": [
+    [
+      10,
+      1,
+      0
+    ],
+    [
+      1,
+      15,
+      0
+    ],
+    [
+      0,
+      2,
+      18
+    ]
+  ],
+  "checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt",
+  "checkpoint_sha256": "ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36"
+}

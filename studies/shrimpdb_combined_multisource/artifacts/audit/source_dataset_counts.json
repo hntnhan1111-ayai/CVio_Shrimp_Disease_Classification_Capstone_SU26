@@ -1,0 +1,38 @@
+{
+  "ShrimpDB": {
+    "expected": {
+      "Den_Mang": 125,
+      "Dom_Den": 103,
+      "Dom_Trang": 173,
+      "Hoai_Tu_Co": 115,
+      "Hoai_tu_gan": 61,
+      "Tom_BT": 74
+    },
+    "actual": {
+      "Den_Mang": 125,
+      "Dom_Den": 103,
+      "Dom_Trang": 173,
+      "Hoai_Tu_Co": 115,
+      "Hoai_tu_gan": 61,
+      "Tom_BT": 74
+    },
+    "drift": {},
+    "strict": true
+  },
+  "ShrimpDiseaseDB": {
+    "expected": {
+      "Healthy": 403,
+      "BG": 198,
+      "WSSV": 328,
+      "WSSV_BG": 220
+    },
+    "actual": {
+      "BG": 198,
+      "Healthy": 403,
+      "WSSV": 328,
+      "WSSV_BG": 220
+    },
+    "drift": {},
+    "strict": true
+  }
+}

@@ -1,0 +1,10 @@
+split,source_dataset,class_name,images
+test,ShrimpDB,BG,16
+test,ShrimpDB,Healthy,11
+test,ShrimpDB,WSSV,20
+train,ShrimpDB,BG,78
+train,ShrimpDB,Healthy,49
+train,ShrimpDB,WSSV,94
+val,ShrimpDB,BG,17
+val,ShrimpDB,Healthy,10
+val,ShrimpDB,WSSV,20

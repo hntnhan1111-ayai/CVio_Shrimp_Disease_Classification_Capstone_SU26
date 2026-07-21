@@ -1,0 +1,32 @@
+{
+  "prepared_root": "/kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/prepared",
+  "manifest": "/kaggle/working/cvio_shrimp_academic_study_seed42/experiments/shrimpdb3/manifest.csv",
+  "class_names": [
+    "Healthy",
+    "BG",
+    "WSSV"
+  ],
+  "train_class_counts": [
+    49,
+    78,
+    94
+  ],
+  "distribution": {
+    "train": {
+      "Healthy": 49,
+      "BG": 78,
+      "WSSV": 94
+    },
+    "val": {
+      "Healthy": 10,
+      "BG": 17,
+      "WSSV": 20
+    },
+    "test": {
+      "Healthy": 11,
+      "BG": 16,
+      "WSSV": 20
+    }
+  },
+  "total": 315
+}

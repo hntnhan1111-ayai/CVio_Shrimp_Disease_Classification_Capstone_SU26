@@ -1,0 +1,101 @@
+{
+  "n": 220,
+  "accuracy": 0.8318181818181818,
+  "balanced_accuracy": 0.8385461760461761,
+  "macro_precision": 0.818005038009986,
+  "macro_recall": 0.8385461760461761,
+  "macro_f1": 0.8218010087330127,
+  "weighted_f1": 0.8318690217921992,
+  "cohen_kappa": 0.7714510332434861,
+  "matthews_corrcoef": 0.7751475813160646,
+  "top1_accuracy": 0.8318181818181818,
+  "ece_15_bins": 0.33457528420469973,
+  "classification_report": {
+    "Healthy": {
+      "precision": 0.88,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.8979591836734694,
+      "support": 72.0
+    },
+    "BG": {
+      "precision": 0.8085106382978723,
+      "recall": 0.8444444444444444,
+      "f1-score": 0.8260869565217391,
+      "support": 45.0
+    },
+    "WSSV": {
+      "precision": 0.9090909090909091,
+      "recall": 0.7142857142857143,
+      "f1-score": 0.8,
+      "support": 70.0
+    },
+    "WSSV_BG": {
+      "precision": 0.6744186046511628,
+      "recall": 0.8787878787878788,
+      "f1-score": 0.7631578947368421,
+      "support": 33.0
+    },
+    "accuracy": 0.8318181818181818,
+    "macro avg": {
+      "precision": 0.818005038009986,
+      "recall": 0.8385461760461761,
+      "f1-score": 0.8218010087330127,
+      "support": 220.0
+    },
+    "weighted avg": {
+      "precision": 0.8437961650602557,
+      "recall": 0.8318181818181818,
+      "f1-score": 0.8318690217921992,
+      "support": 220.0
+    }
+  },
+  "top2_accuracy": 0.9545454545454546,
+  "bootstrap_ci95": {
+    "accuracy": {
+      "estimate": 0.8321136363636363,
+      "ci95_low": 0.7818181818181819,
+      "ci95_high": 0.8772727272727273,
+      "bootstrap_samples": 2000
+    },
+    "balanced_accuracy": {
+      "estimate": 0.8390116296897547,
+      "ci95_low": 0.7882124819624821,
+      "ci95_high": 0.8865749007936509,
+      "bootstrap_samples": 2000
+    },
+    "macro_f1": {
+      "estimate": 0.8221657781174999,
+      "ci95_low": 0.7705409191362129,
+      "ci95_high": 0.8711176440235372,
+      "bootstrap_samples": 2000
+    }
+  },
+  "confusion_matrix": [
+    [
+      66,
+      0,
+      3,
+      3
+    ],
+    [
+      5,
+      38,
+      0,
+      2
+    ],
+    [
+      3,
+      8,
+      50,
+      9
+    ],
+    [
+      1,
+      1,
+      2,
+      29
+    ]
+  ],
+  "checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/weights/best.pt",
+  "checkpoint_sha256": "9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606"
+}

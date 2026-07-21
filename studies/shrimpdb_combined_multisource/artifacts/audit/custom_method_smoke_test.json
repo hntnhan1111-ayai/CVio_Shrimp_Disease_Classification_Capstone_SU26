@@ -1,0 +1,84 @@
+{
+  "shrimpdb3": {
+    "class_names": [
+      "Healthy",
+      "BG",
+      "WSSV"
+    ],
+    "class_counts": [
+      49,
+      78,
+      94
+    ],
+    "loss": 27.413162231445312,
+    "loss_items": 27.413162231445312,
+    "trainable_parameters_with_gradients": 153,
+    "output_shape": [
+      1,
+      3
+    ],
+    "attention_audit": {
+      "attention_key": "simam_gated_residual__dcfr_texture",
+      "inserted": true,
+      "target_index": 10,
+      "inferred_channels": 512,
+      "head_input_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "original_output_shape": [
+        1,
+        3
+      ],
+      "verified_output_shape": [
+        1,
+        3
+      ],
+      "params_added": 529408
+    }
+  },
+  "combined4": {
+    "class_names": [
+      "Healthy",
+      "BG",
+      "WSSV",
+      "WSSV_BG"
+    ],
+    "class_counts": [
+      331,
+      217,
+      323,
+      154
+    ],
+    "loss": 20.996074676513672,
+    "loss_items": 20.996074676513672,
+    "trainable_parameters_with_gradients": 153,
+    "output_shape": [
+      1,
+      4
+    ],
+    "attention_audit": {
+      "attention_key": "simam_gated_residual__dcfr_texture",
+      "inserted": true,
+      "target_index": 10,
+      "inferred_channels": 512,
+      "head_input_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "original_output_shape": [
+        1,
+        4
+      ],
+      "verified_output_shape": [
+        1,
+        4
+      ],
+      "params_added": 529408
+    }
+  }
+}

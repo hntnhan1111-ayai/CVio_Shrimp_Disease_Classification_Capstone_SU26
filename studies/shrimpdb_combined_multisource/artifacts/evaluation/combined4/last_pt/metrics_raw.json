@@ -1,0 +1,101 @@
+{
+  "n": 220,
+  "accuracy": 0.8818181818181818,
+  "balanced_accuracy": 0.8817730880230881,
+  "macro_precision": 0.8740656241490645,
+  "macro_recall": 0.8817730880230881,
+  "macro_f1": 0.8760915764930275,
+  "weighted_f1": 0.8813121770758151,
+  "cohen_kappa": 0.8378730761599729,
+  "matthews_corrcoef": 0.8386582266534737,
+  "top1_accuracy": 0.8818181818181818,
+  "ece_15_bins": 0.3807727965441617,
+  "classification_report": {
+    "Healthy": {
+      "precision": 0.8933333333333333,
+      "recall": 0.9305555555555556,
+      "f1-score": 0.9115646258503401,
+      "support": 72.0
+    },
+    "BG": {
+      "precision": 0.8780487804878049,
+      "recall": 0.8,
+      "f1-score": 0.8372093023255814,
+      "support": 45.0
+    },
+    "WSSV": {
+      "precision": 0.9090909090909091,
+      "recall": 0.8571428571428571,
+      "f1-score": 0.8823529411764706,
+      "support": 70.0
+    },
+    "WSSV_BG": {
+      "precision": 0.8157894736842105,
+      "recall": 0.9393939393939394,
+      "f1-score": 0.8732394366197183,
+      "support": 33.0
+    },
+    "accuracy": 0.8818181818181818,
+    "macro avg": {
+      "precision": 0.8740656241490645,
+      "recall": 0.8817730880230881,
+      "f1-score": 0.8760915764930275,
+      "support": 220.0
+    },
+    "weighted avg": {
+      "precision": 0.8835891426813354,
+      "recall": 0.8818181818181818,
+      "f1-score": 0.8813121770758151,
+      "support": 220.0
+    }
+  },
+  "top2_accuracy": 0.9636363636363636,
+  "bootstrap_ci95": {
+    "accuracy": {
+      "estimate": 0.8824249999999999,
+      "ci95_low": 0.8409090909090909,
+      "ci95_high": 0.9227272727272727,
+      "bootstrap_samples": 2000
+    },
+    "balanced_accuracy": {
+      "estimate": 0.8825355474386725,
+      "ci95_low": 0.8365496482683982,
+      "ci95_high": 0.9236390692640692,
+      "bootstrap_samples": 2000
+    },
+    "macro_f1": {
+      "estimate": 0.8767296791680972,
+      "ci95_low": 0.8308672781076637,
+      "ci95_high": 0.9186105387856082,
+      "bootstrap_samples": 2000
+    }
+  },
+  "confusion_matrix": [
+    [
+      67,
+      0,
+      3,
+      2
+    ],
+    [
+      6,
+      36,
+      1,
+      2
+    ],
+    [
+      2,
+      5,
+      60,
+      3
+    ],
+    [
+      0,
+      0,
+      2,
+      31
+    ]
+  ],
+  "checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__combined4__seed42/weights/last.pt",
+  "checkpoint_sha256": "34d336706f08de3dbf11950aa5e9bb2d8c8615da27a47427abd2cd4bc599414d"
+}
