@@ -4,14 +4,14 @@
 
 This publication-oriented repository detects **BG** and **WSSV** manifestations from images of individual shrimp photographed onshore with consumer mobile phones. It contains the frozen method, exact checkpoints, clean-test evidence, a ten-family mobile-camera corruption benchmark, raw metrics, percentage-formatted tables, paper figures, and reproducibility scripts.
 
-![Clean comparison](results/figures/paper/fig01_clean_test_comparison.png)
+![Clean comparison](results/figures/clean/fig_clean_original_yolo11s_vs_recsra.png)
 
 ## Clean test results
 
 The matched checkpoint pair uses the same test protocol: `imgsz=1536`, `IoU=0.55`, `conf=0.0005`, `max_det=600`, batch size `1`, and FP32.
 
 | Metric | YOLO11s baseline | YOLO11s-RECSRA | Absolute change | Relative change |
-|---|---:|---:|---:|---:|
+|---|---|---:|---:|---:|
 | mAP50 | 12.900% | **16.036%** | **+3.136 pp** | **+24.31%** |
 | mAP50-95 | 3.800% | **4.657%** | **+0.857 pp** | **+22.54%** |
 | Precision | 22.400% | **24.342%** | +1.942 pp | +8.67% |
@@ -23,7 +23,7 @@ Raw files retain decimal metrics for numerical processing. Public tables use per
 
 ## Top-five mobile corruption results
 
-![Top-five severity consistency](results/figures/paper/fig05_top5_gain_by_severity.png)
+![Top-five severity consistency](results/figures/robustness/fig_top5_gain_by_severity.png)
 
 | Rank | Corruption | Baseline mean mAP50-95 | RECSRA mean mAP50-95 | Gain | Relative gain | Wins |
 |---|---|---|---|---|---|---|
@@ -34,6 +34,29 @@ Raw files retain decimal metrics for numerical processing. Public tables use per
 | 5 | N10 — lens smudge fingerprint | 3.385% | 3.786% | +0.401 pp | +11.86% | 5/5 |
 
 Each selected family has positive RECSRA mAP50 and mAP50-95 differences at all five severity levels. Ranking uses mean mAP50-95 gain across severities 1–5.
+
+## Dataset overview
+
+The canonical dataset contains **746 images** of shrimp photographed onshore with consumer mobile phones. All source images are **2048 × 2048** pixels.
+
+| Statistic | Value |
+|---|---|
+| Images | 746 |
+| Boxes | 5,569 |
+| Train / val / test | 523 / 112 / 111 |
+| BG / WSSV boxes | 2,121 / 3,448 |
+| Mean boxes per image | 7.465 |
+
+![Split image count](dataset_eda/figures/fig_split_image_count.png)
+![Class percent total](dataset_eda/figures/fig_class_percent_total.png)
+![Box size bucket](dataset_eda/figures/fig_box_size_bucket.png)
+![Box center heatmap](dataset_eda/figures/fig_box_center_heatmap.png)
+
+- **Tiny boxes** (< 0.1% area): 70.62% — small-object challenge
+- **Small boxes** (0.1–1% area): 28.69%
+- **Medium boxes** (1–5% area): 0.68%
+
+Full EDA: `docs/DATASET_EDA.md` | Interactive report: `dataset_eda/eda_report.html`
 
 ## RECSRA design
 
