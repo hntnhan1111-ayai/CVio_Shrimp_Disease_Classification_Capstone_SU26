@@ -1,0 +1,17 @@
+split,class_name,size_bucket,box_count
+test,BG,medium_1-5%,7
+test,BG,small_0.1-1%,130
+test,BG,tiny_<0.1%,242
+test,WSSV,small_0.1-1%,105
+test,WSSV,tiny_<0.1%,434
+train,BG,medium_1-5%,23
+train,BG,small_0.1-1%,595
+train,BG,tiny_<0.1%,825
+train,WSSV,medium_1-5%,3
+train,WSSV,small_0.1-1%,524
+train,WSSV,tiny_<0.1%,1845
+val,BG,medium_1-5%,5
+val,BG,small_0.1-1%,111
+val,BG,tiny_<0.1%,183
+val,WSSV,small_0.1-1%,133
+val,WSSV,tiny_<0.1%,404

@@ -1,0 +1,4 @@
+split,images,readable_images,images_with_objects,empty_or_missing_label_images,boxes,boxes_per_image_mean,boxes_per_image_median,mean_width_px,mean_height_px
+train,523,523,523,0,3815,7.294455066921606,6.0,2048.0,2048.0
+val,112,112,112,0,836,7.464285714285714,7.0,2048.0,2048.0
+test,111,111,111,0,918,8.27027027027027,7.0,2048.0,2048.0

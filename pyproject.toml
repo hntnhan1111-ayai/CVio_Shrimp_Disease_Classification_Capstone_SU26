@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cvio-recsra"
+version = "0.1.0"
+description = "RECSRA attention and reproducibility tools for shrimp disease object detection"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "ultralytics==8.4.75",
+  "numpy==2.5.0",
+  "pandas==3.0.4",
+  "opencv-python==4.13.0.92",
+  "matplotlib==3.11.0",
+  "PyYAML==6.0.3",
+  "pillow==12.2.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

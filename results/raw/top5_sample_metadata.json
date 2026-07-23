@@ -1,0 +1,37 @@
+[
+  {
+    "noise_id": "N07",
+    "noise_name": "jpeg_recompression",
+    "severity": 3,
+    "source_image": "WSSV-53-img-3.jpg",
+    "sample_path": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/top5_samples/N07_jpeg_recompression_thesis_sample.jpg"
+  },
+  {
+    "noise_id": "N06",
+    "noise_name": "auto_white_balance_color_cast",
+    "severity": 3,
+    "source_image": "WSSV-53-img-3.jpg",
+    "sample_path": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/top5_samples/N06_auto_white_balance_color_cast_thesis_sample.jpg"
+  },
+  {
+    "noise_id": "N01",
+    "noise_name": "low_light_sensor_noise",
+    "severity": 3,
+    "source_image": "WSSV-53-img-3.jpg",
+    "sample_path": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/top5_samples/N01_low_light_sensor_noise_thesis_sample.jpg"
+  },
+  {
+    "noise_id": "N03",
+    "noise_name": "localized_specular_flash_glare",
+    "severity": 3,
+    "source_image": "WSSV-53-img-3.jpg",
+    "sample_path": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/top5_samples/N03_localized_specular_flash_glare_thesis_sample.jpg"
+  },
+  {
+    "noise_id": "N10",
+    "noise_name": "lens_smudge_fingerprint",
+    "severity": 3,
+    "source_image": "WSSV-53-img-3.jpg",
+    "sample_path": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/top5_samples/N10_lens_smudge_fingerprint_thesis_sample.jpg"
+  }
+]

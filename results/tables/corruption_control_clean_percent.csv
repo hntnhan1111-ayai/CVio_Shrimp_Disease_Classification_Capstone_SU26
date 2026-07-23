@@ -1,0 +1,8 @@
+metric,baseline_percent,recsra_percent,absolute_gain_pp,relative_change_percent
+mAP50,14.418,16.036,1.618,11.22
+mAP50_95,4.147,4.657,0.51,12.3
+mAP75,1.097,1.118,0.02,1.85
+precision,20.428,24.342,3.914,19.16
+recall,24.98,24.695,-0.284,-1.14
+AP_BG_mAP50_95,4.477,5.373,0.897,20.03
+AP_WSSV_mAP50_95,3.816,3.94,0.123,3.23

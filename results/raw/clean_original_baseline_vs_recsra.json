@@ -1,0 +1,27 @@
+{
+  "baseline_context": "original_yolo11s_14_model_benchmark",
+  "baseline_source": "paper_ready_summary_percent.html (YOLO11s original baseline row, original benchmark setting)",
+  "recsra_experiment_id": "SD001_A_RCCM_EV015FAIR_200E_SEED42",
+  "recsra_raw_source": "results/raw/metrics_json/CLEAN/recsra.json",
+  "baseline": {
+    "mAP50": 0.129,
+    "mAP50_95": 0.038,
+    "precision": 0.224,
+    "recall": 0.218,
+    "AP_BG_mAP50_95": 0.040,
+    "AP_WSSV_mAP50_95": 0.035,
+    "fps": 169.5,
+    "size_mb": 18.39,
+    "parameters_million": 9.43,
+    "diagnosis_macro_f1_conf025": 0.773,
+    "no_detection_miss_rate_conf025": 0.081
+  },
+  "recsra": {
+    "mAP50": 0.16036460211295228,
+    "mAP50_95": 0.04656557248773138,
+    "precision": 0.24342293531508974,
+    "recall": 0.24695395068557527,
+    "AP_BG_mAP50_95": 0.05373382316831867,
+    "AP_WSSV_mAP50_95": 0.03939732180714409
+  }
+}

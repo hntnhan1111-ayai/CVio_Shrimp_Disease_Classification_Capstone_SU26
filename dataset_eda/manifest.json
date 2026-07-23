@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-07-03T08:02:14",
+  "eda_out": "/home/drnguyenvinh/notebooks/shrimp_yolo11s_full_method_zoo/paper_final_outputs/dataset_eda",
+  "zip_out": "/home/drnguyenvinh/notebooks/cvio_yolo_dataset_eda_no_raw_images.zip",
+  "summary": {
+    "data_yaml": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15/data.yaml",
+    "dataset_root": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15",
+    "classes": "0:BG, 1:WSSV",
+    "total_images": 746,
+    "total_boxes": 5569,
+    "train_images": 523,
+    "val_images": 112,
+    "test_images": 111,
+    "audit_issue_images": 0,
+    "empty_or_missing_label_images_total": 0,
+    "include_thumbnails": false,
+    "mean_boxes_per_image": 7.465,
+    "median_boxes_per_image": 6.0,
+    "mean_box_area_percent": 0.0997,
+    "median_box_area_percent": 0.0491,
+    "tiny_box_count_<0.1%": 3933,
+    "small_box_count_0.1-1%": 1598
+  },
+  "tables": {
+    "Image records": "tables/image_records.csv",
+    "Label records": "tables/label_records.csv",
+    "Audit issues": "tables/audit_issues.csv",
+    "Dataset overview": "tables/dataset_overview.csv",
+    "Class counts by split": "tables/class_counts_by_split.csv",
+    "Class counts total": "tables/class_counts_total.csv",
+    "Image count with class": "tables/image_count_with_class.csv",
+    "Box size buckets": "tables/box_size_buckets.csv",
+    "Class co-occurrence by image": "tables/class_cooccurrence_by_image.csv",
+    "Class co-occurrence summary": "tables/class_cooccurrence_summary.csv",
+    "Duplicate labels": "tables/duplicate_labels.csv"
+  },
+  "figures": {
+    "Split image count": "figures/fig_split_image_count.png",
+    "Split box count": "figures/fig_split_box_count.png",
+    "Class boxes total": "figures/fig_class_boxes_total.png",
+    "Class boxes by split": "figures/fig_class_boxes_by_split.png",
+    "Box area distribution": "figures/fig_box_area_percent_hist.png",
+    "Box width height scatter": "figures/fig_box_width_height_scatter.png",
+    "Aspect ratio distribution": "figures/fig_box_aspect_ratio_hist.png",
+    "Box size bucket": "figures/fig_box_size_bucket.png",
+    "Box center heatmap": "figures/fig_box_center_heatmap.png",
+    "Boxes per image": "figures/fig_boxes_per_image_hist.png",
+    "Class percent total": "figures/fig_class_percent_total.png",
+    "Image resolution distribution": "figures/fig_image_resolution_scatter.png"
+  },
+  "raw_images_included": false,
+  "note": "Default mode does not copy raw dataset images. Optional contact sheets are resized derived thumbnails only."
+}

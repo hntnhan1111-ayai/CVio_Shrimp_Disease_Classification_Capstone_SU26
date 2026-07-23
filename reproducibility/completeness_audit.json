@@ -1,0 +1,22 @@
+{
+  "source_evidence_manifest_rows": 321,
+  "source_manifest_verified_before_refactor": true,
+  "training_epochs": 200,
+  "clean_metric_rows": 2,
+  "corruption_metric_rows": 100,
+  "expected_total_metric_rows": 102,
+  "actual_total_metric_rows": 102,
+  "noise_families": 10,
+  "severity_levels_per_noise": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "top5_samples": 5,
+  "standalone_validation_artifact_directory_in_source_collection": false,
+  "standalone_test_artifact_directory_in_source_collection": false,
+  "clean_test_numeric_metrics_available": true,
+  "clean_test_regeneration_script_included": true
+}

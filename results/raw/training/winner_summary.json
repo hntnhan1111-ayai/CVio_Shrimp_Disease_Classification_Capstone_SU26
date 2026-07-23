@@ -1,0 +1,20 @@
+{
+  "variant_id": 1,
+  "family": "A_RCCM",
+  "status": "ok",
+  "best_pt": "/home/drnguyenvinh/notebooks/shrimp_yolo11s_full_method_zoo/sldra54_ev015fair200/seed_42/runs_train/SD001_A_RCCM_EV015FAIR_200E_SEED42/weights/best.pt",
+  "error": "",
+  "val_mAP50": 0.12188330390169978,
+  "val_mAP50_95": 0.03392748522138968,
+  "val_precision": 0.19452828489966906,
+  "val_recall": 0.23044225631060705,
+  "val_AP_BG_mAP50_95": 0.03853720875684273,
+  "val_AP_WSSV_mAP50_95": 0.02931776168593664,
+  "devtest_mAP50": 0.16036460211295228,
+  "devtest_mAP50_95": 0.04656557248773138,
+  "devtest_precision": 0.24342293531508974,
+  "devtest_recall": 0.24695395068557527,
+  "devtest_AP_BG_mAP50_95": 0.05373382316831867,
+  "devtest_AP_WSSV_mAP50_95": 0.03939732180714409,
+  "elapsed_sec": 2246.646998643875
+}

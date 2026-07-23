@@ -1,0 +1,28 @@
+{
+  "data_yaml": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15/data.yaml",
+  "dataset_base": "/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15",
+  "class_names": {
+    "0": "BG",
+    "1": "WSSV"
+  },
+  "splits": {
+    "train": {
+      "image_count": 523,
+      "label_count": 523,
+      "missing_label_count": 0,
+      "missing_labels": []
+    },
+    "val": {
+      "image_count": 112,
+      "label_count": 112,
+      "missing_label_count": 0,
+      "missing_labels": []
+    },
+    "test": {
+      "image_count": 111,
+      "label_count": 111,
+      "missing_label_count": 0,
+      "missing_labels": []
+    }
+  }
+}

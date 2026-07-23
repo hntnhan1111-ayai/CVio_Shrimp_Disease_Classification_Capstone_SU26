@@ -1,0 +1,7 @@
+split,class_id,class_name,box_count
+test,0,BG,379
+test,1,WSSV,539
+train,0,BG,1443
+train,1,WSSV,2372
+val,0,BG,299
+val,1,WSSV,537

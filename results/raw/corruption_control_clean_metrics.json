@@ -1,0 +1,24 @@
+{
+  "baseline_context": "paired_corruption_control_checkpoint",
+  "usage": "clean sanity check inside the robustness experiment; paired corruption evaluation; ten-corruption tables; top-five corruption rankings; per-severity robustness figures",
+  "note": "This checkpoint was evaluated as the locked control under the corruption benchmark protocol. Its clean metrics differ from the original YOLO11s benchmark baseline and must NOT be used as the main clean-test headline comparison.",
+  "baseline_clean_source": "results/raw/metrics_json/CLEAN/baseline.json",
+  "baseline": {
+    "mAP50": 0.14418131018074604,
+    "mAP50_95": 0.0414657850886188,
+    "mAP75": 0.010973000005464048,
+    "precision": 0.204284828227624,
+    "recall": 0.24979807226320608,
+    "AP_BG_mAP50_95": 0.044768038291569244,
+    "AP_WSSV_mAP50_95": 0.03816353188566835
+  },
+  "recsra": {
+    "mAP50": 0.16036460211295228,
+    "mAP50_95": 0.04656557248773138,
+    "mAP75": 0.011175987245767124,
+    "precision": 0.24342293531508974,
+    "recall": 0.24695395068557527,
+    "AP_BG_mAP50_95": 0.05373382316831867,
+    "AP_WSSV_mAP50_95": 0.03939732180714409
+  }
+}

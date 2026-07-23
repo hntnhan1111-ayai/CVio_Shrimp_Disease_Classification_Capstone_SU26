@@ -1,0 +1,10 @@
+split,classes_present,image_count
+test,BG,29
+test,BG+WSSV,33
+test,WSSV,49
+train,BG,141
+train,BG+WSSV,152
+train,WSSV,230
+val,BG,30
+val,BG+WSSV,33
+val,WSSV,49

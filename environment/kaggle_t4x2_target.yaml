@@ -1,0 +1,18 @@
+profile_name: kaggle_t4x2_reproduction_target
+status: reproduction_target_not_current_result_provenance
+accelerator:
+  type: NVIDIA Tesla T4
+  count: 2
+  vram_per_gpu_gb: 16
+  total_vram_gb: 32
+host_estimate:
+  cpu_vcores: 4
+  system_ram_gb: 30
+  temporary_disk_gb: "100-150"
+execution_plan:
+  training_device: "0,1"
+  baseline_robustness_device: 0
+  recsra_robustness_device: 1
+notes:
+  - Runtime allocation can vary; capture actual hardware with scripts/capture_runtime.py.
+  - Current frozen results were produced/evaluated on an RTX 4090 and must not be relabeled as T4×2 results.

@@ -1,0 +1,18 @@
+{
+  "mAP50": 0.10608802079091434,
+  "mAP50_95": 0.029713842806117986,
+  "mAP75": 0.00624703966845914,
+  "precision": 0.2077156225434017,
+  "recall": 0.21817741248574268,
+  "AP_BG_mAP50_95": 0.03233252956521028,
+  "AP_WSSV_mAP50_95": 0.02709515604702568,
+  "speed": {
+    "preprocess": 1.009540756812229,
+    "inference": 6.782017504519899,
+    "loss": 0.002629270327176798,
+    "postprocess": 0.5418192613433348
+  },
+  "model_path": "/home/drnguyenvinh/notebooks/shrimp_yolo11s_full_method_zoo/baseline_reuse_lock/yolo11s_baseline_best.pt",
+  "data_yaml": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/temporary_corrupted_testsets/N05_S4/data.yaml",
+  "cuda_visible_devices": "0"
+}

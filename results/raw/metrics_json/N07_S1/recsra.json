@@ -1,0 +1,18 @@
+{
+  "mAP50": 0.1572183526107463,
+  "mAP50_95": 0.04601870377654186,
+  "mAP75": 0.011252866770793554,
+  "precision": 0.23218178316809565,
+  "recall": 0.25012849946886884,
+  "AP_BG_mAP50_95": 0.05399832998618411,
+  "AP_WSSV_mAP50_95": 0.03803907756689962,
+  "speed": {
+    "preprocess": 0.9731757928166844,
+    "inference": 8.43654429731409,
+    "loss": 0.0028657117221522277,
+    "postprocess": 0.5599586486225546
+  },
+  "model_path": "/home/drnguyenvinh/notebooks/shrimp_yolo11s_full_method_zoo/sldra54_ev015fair200/seed_42/runs_train/SD001_A_RCCM_EV015FAIR_200E_SEED42/weights/best.pt",
+  "data_yaml": "/home/drnguyenvinh/notebooks/recsra_mobile10_output_rtx4090/temporary_corrupted_testsets/N07_S1/data.yaml",
+  "cuda_visible_devices": "0"
+}

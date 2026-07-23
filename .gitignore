@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Generated datasets and experiments
+runs/
+outputs/
+artifacts/generated/
+data/
+datasets/
+*.cache
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Large local archives and logs
+*.tar
+*.tar.gz
+*.7z
+*.tmp
+full_experiment_log.txt
+
+# Legacy archives (not part of public narrative)
+cvio_yolo11s_paper_ready_outputs_no_weights/
+cvio_yolo11s_paper_ready_outputs_no_weights.zip
+shrimp_od_200ep_visual_report.zip
+dataset_eda.zip
+cvio_yolo_dataset_eda_no_raw_images.zip
+
+# Final release ZIPs
+*_Q1_Academic_Release_*.zip
+*_Q1_Academic_Release_*.zip.sha256
+CVio_RECSRA_PRE_REFACTOR_BACKUP_*.zip
+
+# Old figure directories (regenerated)
+results/figures/original_robustness/
+results/figures/original_training/
+results/figures/paper/
+results/qualitative/top5_original/
+results/qualitative/top5_thesis_2x2/

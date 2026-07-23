@@ -1,0 +1,9 @@
+split: test
+imgsz: 1536
+iou: 0.55
+conf: 0.0005
+max_det: 600
+batch: 1
+workers: 4
+half: false
+plots: true

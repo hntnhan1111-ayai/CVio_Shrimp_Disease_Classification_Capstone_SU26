@@ -1,0 +1,11 @@
+{
+  "project_name": "CVio_RECSRA_Shrimp_Disease_Detection",
+  "file_count": 365,
+  "total_size_bytes": 83712936,
+  "checkpoints": 3,
+  "metric_rows": 102,
+  "paper_figures": 8,
+  "qualitative_top5_figures": 5,
+  "recommended_branch": "paper/yolo11s-recsra-mobile-robustness",
+  "portable_notebook": "notebooks/RECSRA_Reproduction.ipynb"
+}

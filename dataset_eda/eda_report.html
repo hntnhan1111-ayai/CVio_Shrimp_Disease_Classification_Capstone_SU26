@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CVio YOLO Dataset EDA Report</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 32px; background:#f8fafc; color:#0f172a; }
+h1,h2,h3 { color:#0f172a; }
+.card { background:white; border:1px solid #e2e8f0; border-radius:16px; padding:20px; margin:18px 0; box-shadow:0 8px 24px rgba(15,23,42,.06); }
+.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:18px; }
+img { max-width:100%; border:1px solid #e2e8f0; border-radius:12px; background:white; }
+table { border-collapse:collapse; width:100%; background:white; font-size:14px; }
+th,td { border-bottom:1px solid #e2e8f0; padding:8px; text-align:left; }
+th { background:#e2e8f0; }
+.code { font-family: Consolas, monospace; background:#f1f5f9; padding:2px 4px; border-radius:4px; }
+.warn { color:#b45309; font-weight:bold; }
+.good { color:#047857; font-weight:bold; }
+.small { color:#64748b; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>CVio YOLO Dataset EDA Report</h1>
+<p class="small">Generated: 2026-07-03T08:02:14</p>
+
+<div class="card">
+<h2>Executive Summary</h2>
+<table>
+<tr><th>Item</th><th>Value</th></tr>
+<tr><td>data_yaml</td><td>/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15/data.yaml</td></tr>
+<tr><td>dataset_root</td><td>/home/drnguyenvinh/notebooks/shrimp_yolo_canonical_bg_wssv_2cls_split70_15_15</td></tr>
+<tr><td>classes</td><td>0:BG, 1:WSSV</td></tr>
+<tr><td>total_images</td><td>746</td></tr>
+<tr><td>total_boxes</td><td>5569</td></tr>
+<tr><td>train_images</td><td>523</td></tr>
+<tr><td>val_images</td><td>112</td></tr>
+<tr><td>test_images</td><td>111</td></tr>
+<tr><td>audit_issue_images</td><td>0</td></tr>
+<tr><td>empty_or_missing_label_images_total</td><td>0</td></tr>
+<tr><td>include_thumbnails</td><td>False</td></tr>
+<tr><td>mean_boxes_per_image</td><td>7.465</td></tr>
+<tr><td>median_boxes_per_image</td><td>6.0</td></tr>
+<tr><td>mean_box_area_percent</td><td>0.0997</td></tr>
+<tr><td>median_box_area_percent</td><td>0.0491</td></tr>
+<tr><td>tiny_box_count_<0.1%</td><td>3933</td></tr>
+<tr><td>small_box_count_0.1-1%</td><td>1598</td></tr>
+</table></div>
+<div class='card'><h2>Figures</h2><div class='grid'>
+<div><h3>Split image count</h3><img src='figures/fig_split_image_count.png'></div>
+<div><h3>Split box count</h3><img src='figures/fig_split_box_count.png'></div>
+<div><h3>Class boxes total</h3><img src='figures/fig_class_boxes_total.png'></div>
+<div><h3>Class boxes by split</h3><img src='figures/fig_class_boxes_by_split.png'></div>
+<div><h3>Box area distribution</h3><img src='figures/fig_box_area_percent_hist.png'></div>
+<div><h3>Box width height scatter</h3><img src='figures/fig_box_width_height_scatter.png'></div>
+<div><h3>Aspect ratio distribution</h3><img src='figures/fig_box_aspect_ratio_hist.png'></div>
+<div><h3>Box size bucket</h3><img src='figures/fig_box_size_bucket.png'></div>
+<div><h3>Box center heatmap</h3><img src='figures/fig_box_center_heatmap.png'></div>
+<div><h3>Boxes per image</h3><img src='figures/fig_boxes_per_image_hist.png'></div>
+<div><h3>Class percent total</h3><img src='figures/fig_class_percent_total.png'></div>
+<div><h3>Image resolution distribution</h3><img src='figures/fig_image_resolution_scatter.png'></div>
+</div></div>
+<div class='card'><h2>CSV Tables</h2><ul>
+<li><a href='tables/image_records.csv'>Image records</a></li>
+<li><a href='tables/label_records.csv'>Label records</a></li>
+<li><a href='tables/audit_issues.csv'>Audit issues</a></li>
+<li><a href='tables/dataset_overview.csv'>Dataset overview</a></li>
+<li><a href='tables/class_counts_by_split.csv'>Class counts by split</a></li>
+<li><a href='tables/class_counts_total.csv'>Class counts total</a></li>
+<li><a href='tables/image_count_with_class.csv'>Image count with class</a></li>
+<li><a href='tables/box_size_buckets.csv'>Box size buckets</a></li>
+<li><a href='tables/class_cooccurrence_by_image.csv'>Class co-occurrence by image</a></li>
+<li><a href='tables/class_cooccurrence_summary.csv'>Class co-occurrence summary</a></li>
+<li><a href='tables/duplicate_labels.csv'>Duplicate labels</a></li>
+</ul></div>
+
+<div class="card">
+<h2>Notes for Paper</h2>
+<ul>
+<li>Use split/class distribution tables in the Dataset section.</li>
+<li>Use box area and width-height distributions to justify the small-lesion detection difficulty.</li>
+<li>Use label audit tables to report missing labels, empty labels, invalid normalized coordinates, and out-of-image boxes.</li>
+<li>This package excludes raw dataset images by default.</li>
+</ul>
+</div>
+</body></html>

@@ -1,0 +1,2 @@
+epochs_completed,best_validation_epoch,best_validation_mAP50_percent,best_validation_mAP50_95_percent,final_train_box_loss,final_train_cls_loss,final_train_dfl_loss,elapsed_minutes,parameters,gflops,seed
+200,21,12.466000000000001,3.826,1.6917,0.66997,1.38014,37.444116644064586,8343534,20.2,42

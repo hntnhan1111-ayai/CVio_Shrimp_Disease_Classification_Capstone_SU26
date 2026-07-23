@@ -1,0 +1,1 @@
+class_id,class_name,x_center_norm,y_center_norm,width_norm,height_norm,area_norm,area_percent,aspect_ratio,x1_px,y1_px,x2_px,y2_px,width_px,height_px,area_px,size_bucket,line_no,line_errors,raw_label_line,split,image_path,image_name,label_path,image_width_px,image_height_px

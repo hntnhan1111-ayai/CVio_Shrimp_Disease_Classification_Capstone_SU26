@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{Top-five mobile corruptions ranked by mean mAP50-95 gain across five severity levels. Baseline is the paired corruption-control checkpoint.}
+\label{tab:top5-corruptions}
+\begin{tabular}{lrrrrr}
+\hline
+Corruption & Baseline mAP50-95 (\%) & RECSRA mAP50-95 (\%) & Gain (pp) & Relative (\%) & Severity wins \\
+\hline
+N07 — jpeg recompression & 3.600 & 4.132 & +0.532 & +14.78 & 5/5 \\
+N06 — auto white balance color cast & 3.725 & 4.211 & +0.485 & +13.03 & 5/5 \\
+N01 — low light sensor noise & 0.906 & 1.385 & +0.479 & +52.86 & 5/5 \\
+N03 — localized specular flash glare & 3.975 & 4.440 & +0.464 & +11.68 & 5/5 \\
+N10 — lens smudge fingerprint & 3.385 & 3.786 & +0.401 & +11.86 & 5/5 \\
+\hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,188 @@
+{
+  "benchmark_name": "RECSRA Mobile-On-Shore RTX4090 Corruption Benchmark",
+  "context": "A farmer removes one or more shrimp from the pond, places them onshore, and photographs individual shrimp using a consumer mobile phone camera.",
+  "selection_metric": "mean_test_mAP50_95_across_five_severities",
+  "top5_rule": "retain only noise families where RECSRA mean mAP50-95 exceeds baseline; rank by delta mAP50-95, then delta mAP50, robustness retention, and recall",
+  "severities": 5,
+  "noises": [
+    {
+      "id": "N01",
+      "name": "low_light_sensor_noise",
+      "mobile_cause": "Small phone sensor, high ISO, weak ambient light and handheld capture",
+      "implementation": "exposure attenuation plus deterministic Poisson shot noise and Gaussian read noise",
+      "severity": {
+        "exposure_factor": [
+          0.8,
+          0.65,
+          0.5,
+          0.35,
+          0.25
+        ],
+        "photon_peak": [
+          220,
+          140,
+          80,
+          40,
+          20
+        ],
+        "read_sigma_255": [
+          2,
+          4,
+          7,
+          11,
+          16
+        ]
+      }
+    },
+    {
+      "id": "N02",
+      "name": "global_overexposure_clipping",
+      "mobile_cause": "Automatic exposure error, strong daylight or flash exposure",
+      "implementation": "global exposure amplification with highlight clipping",
+      "severity": {
+        "gain": [
+          1.1,
+          1.25,
+          1.45,
+          1.7,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "N03",
+      "name": "localized_specular_flash_glare",
+      "mobile_cause": "Wet shrimp shell reflecting the phone flash or a strong lamp",
+      "implementation": "blurred elliptical glare masks blended into the image",
+      "severity": {
+        "alpha": [
+          0.1,
+          0.18,
+          0.28,
+          0.4,
+          0.55
+        ],
+        "spots": [
+          1,
+          1,
+          2,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "N04",
+      "name": "handheld_motion_blur",
+      "mobile_cause": "Hand shake or shrimp movement during exposure",
+      "implementation": "directional line-kernel convolution",
+      "severity": {
+        "kernel": [
+          3,
+          5,
+          9,
+          13,
+          17
+        ]
+      }
+    },
+    {
+      "id": "N05",
+      "name": "autofocus_defocus_blur",
+      "mobile_cause": "Phone autofocus locks on the background or wrong shrimp region",
+      "implementation": "disc point-spread kernel followed by alias smoothing",
+      "severity": {
+        "radius": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "N06",
+      "name": "auto_white_balance_color_cast",
+      "mobile_cause": "Different phone ISP pipelines and mixed daylight/indoor lighting",
+      "implementation": "deterministic warm or cool RGB channel gains",
+      "severity": {
+        "delta": [
+          0.04,
+          0.08,
+          0.13,
+          0.2,
+          0.28
+        ]
+      }
+    },
+    {
+      "id": "N07",
+      "name": "jpeg_recompression",
+      "mobile_cause": "Saving, messaging, cloud upload or repeated image compression",
+      "implementation": "OpenCV JPEG encode-decode",
+      "severity": {
+        "quality": [
+          85,
+          70,
+          50,
+          30,
+          15
+        ]
+      }
+    },
+    {
+      "id": "N08",
+      "name": "low_resolution_resampling",
+      "mobile_cause": "Low-end phone camera, app resizing, digital processing or remote upload",
+      "implementation": "downscale then upscale without changing image geometry",
+      "severity": {
+        "scale": [
+          0.85,
+          0.7,
+          0.55,
+          0.4,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "N09",
+      "name": "uneven_cast_shadow",
+      "mobile_cause": "Farmer hand, body, phone or nearby object partially blocks illumination",
+      "implementation": "soft irregular shadow mask over part of the image",
+      "severity": {
+        "darkness": [
+          0.1,
+          0.2,
+          0.3,
+          0.45,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "N10",
+      "name": "lens_smudge_fingerprint",
+      "mobile_cause": "Oil, fingerprint, moisture or dirt on a consumer phone lens cover",
+      "implementation": "localized veil plus spatially varying blur",
+      "severity": {
+        "coverage": [
+          0.05,
+          0.09,
+          0.14,
+          0.21,
+          0.3
+        ],
+        "sigma": [
+          3,
+          5,
+          8,
+          12,
+          18
+        ]
+      }
+    }
+  ],
+  "evaluation_hardware": "NVIDIA GeForce RTX 4090, single-GPU sequential evaluation"
+}

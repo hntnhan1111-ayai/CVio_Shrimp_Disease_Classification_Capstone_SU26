@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite this software and the associated paper when available."
+title: "CVio YOLO11s-RECSRA for Robust Shrimp Disease Detection"
+type: software
+version: 0.1.0
+date-released: 2026-07-23
+authors:
+  - name: "CVio Research Team"
+repository-code: "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26"
+keywords:
+  - shrimp disease detection
+  - object detection
+  - attention mechanism
+  - mobile robustness
+  - YOLO11s
+  - RECSRA
+  - small-object detection
+license: other

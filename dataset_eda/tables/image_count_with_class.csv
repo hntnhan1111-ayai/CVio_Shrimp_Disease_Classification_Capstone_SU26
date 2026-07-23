@@ -1,0 +1,7 @@
+split,class_name,image_count_with_class
+test,BG,62
+test,WSSV,82
+train,BG,293
+train,WSSV,382
+val,BG,63
+val,WSSV,82

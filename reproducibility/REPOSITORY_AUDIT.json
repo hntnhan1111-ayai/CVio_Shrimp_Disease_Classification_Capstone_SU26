@@ -1,0 +1,31 @@
+{
+  "repository_url": "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26",
+  "branch": "paper/yolo11s-recsra-q1-academic-release-20260723",
+  "created_at": "2026-07-23T20:00:00+07:00",
+  "baseline_contexts": {
+    "original_yolo11s_benchmark": {
+      "description": "Recorded original YOLO11s baseline from independent 14-model benchmark",
+      "source": "results/raw/clean_original_baseline_vs_recsra.json",
+      "mAP50_percent": 12.9,
+      "mAP50_95_percent": 3.8
+    },
+    "corruption_control_checkpoint": {
+      "description": "Paired baseline checkpoint re-evaluated under corruption benchmark protocol",
+      "source": "results/raw/corruption_control_clean_metrics.json",
+      "mAP50_percent": 14.4181310180746,
+      "mAP50_95_percent": 4.14657850886188
+    }
+  },
+  "recsra": {
+    "experiment_id": "SD001_A_RCCM_EV015FAIR_200E_SEED42",
+    "mAP50_percent": 16.03646021129522,
+    "mAP50_95_percent": 4.6565572487731295
+  },
+  "top5_corruptions": ["N07", "N06", "N01", "N03", "N10"],
+  "metric_rows": 102,
+  "forbidden_terms_excluded": ["V007", "SimAM"],
+  "checkpoint_sha256": {
+    "yolo11s_baseline_best.pt": "b9e30aa76f819126c7e6e9f3d3007a74d0839ad1f95941978a6a214484eb219d",
+    "yolo11s_recsra_best.pt": "c1652101bb870a0b174b569ac47a70bb8cfafe119577e1ca2fe2de87f57824ff"
+  }
+}

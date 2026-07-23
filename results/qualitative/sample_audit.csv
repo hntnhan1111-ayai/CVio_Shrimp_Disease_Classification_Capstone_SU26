@@ -1,0 +1,6 @@
+noise_id,source,output,note
+N07,N07_jpeg_recompression_thesis_sample.jpg,N07_jpeg_recompression_2x2.jpg,Controlled illustration; same source image is used for all five corruptions.
+N06,N06_auto_white_balance_color_cast_thesis_sample.jpg,N06_auto_white_balance_color_cast_2x2.jpg,Controlled illustration; same source image is used for all five corruptions.
+N01,N01_low_light_sensor_noise_thesis_sample.jpg,N01_low_light_sensor_noise_2x2.jpg,Controlled illustration; same source image is used for all five corruptions.
+N03,N03_localized_specular_flash_glare_thesis_sample.jpg,N03_localized_specular_flash_glare_2x2.jpg,Controlled illustration; same source image is used for all five corruptions.
+N10,N10_lens_smudge_fingerprint_thesis_sample.jpg,N10_lens_smudge_fingerprint_2x2.jpg,Controlled illustration; same source image is used for all five corruptions.
