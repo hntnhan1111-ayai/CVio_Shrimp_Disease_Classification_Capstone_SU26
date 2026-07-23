@@ -80,15 +80,15 @@ Takeaway: Fourier is not uniformly beneficial. It is strongest in the weak/bare 
 |---|---|---|
 | `001_clean-aug-off-hook-off-baseline.ipynb` | Step 1 bare YOLO baseline | yes |
 | `00_clean-aug-hook-off.ipynb` / `only_fourier_01_light_aug_hook_off_baseline.ipynb` | clean-light hook-off control | maybe, as ablation/context |
-| `01_fourier-highpass-alpha01sigma50.ipynb` | Step 2 initial F1 on bare data | yes |
+| `training_log/1to10/1/01_fourier-highpass-alpha01sigma50.ipynb` | Step 2 initial F1 on bare data | yes |
 | `02_fourier-highpass-alpha03sigma50.ipynb` | stronger F1 alpha control; worse than alpha 0.10 | appendix/sweep |
 | `03`-`07` Fourier transform notebooks | band-pass, damping, low-frequency flatten, homomorphic | appendix/sweep, supports stopping broad Fourier-only search |
 | `08`-`10` train-only / train-copy Fourier augmentation variants | early Fourier augmentation attempts | appendix/sweep, not main result |
 | `11` alpha sweep | high-pass alpha 0.05/0.15/0.20 | appendix/sweep |
 | `12` factorial A-H | Steps 3-4, clean-light/hook/Fourier interaction | yes |
-| `013-mode-g-fourier-tuning-seed42.ipynb` | Fourier type/config tuning around Mode G | appendix/sweep |
-| `014-mode-g-highpass-local-sweep-seed42.ipynb` | local alpha/sigma sweep around Mode G | yes/appendix, supports "F1 stayed best" |
-| `015_fouirer-hev-aug-attention.ipynb` / Path 15 | Steps 6-8, Fourier Mode B `0.577126` and no-Fourier Mode A `0.595095` | yes |
+| `training_log/11to20/013_mode_G_fourier_tuning/013-mode-g-fourier-tuning-seed42.ipynb` | Fourier type/config tuning around Mode G | appendix/sweep |
+| `training_log/11to20/14_highpass_local_sweep/014-mode-g-highpass-local-sweep-seed42.ipynb` | local alpha/sigma sweep around Mode G | yes/appendix, supports "F1 stayed best" |
+| `training_log/11to20/015_fourier_attention_interaction/015_modeBCD-fouirer-hev-aug-attention.ipynb` / Path 15 | Steps 6-8, Fourier Mode B `0.577126` and no-Fourier Mode A `0.595095` | yes |
 | `u2net_bgrem_clean_aug_hook_on.ipynb` | background removal negative result | no main paper, maybe mention dropped |
 | `99_noise-ablation-baseline.ipynb` | robustness/noise side study | separate paper/appendix only |
 
@@ -327,9 +327,9 @@ The current paper story should not claim that Fourier causes the best result. Wi
 | Artifact | Path |
 |---|---|
 | Running metrics report | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/only_fourier_running_metrics_report.md` |
-| Path 15 analysis | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/15_fourier_G4_strong_aug_attention_log_analysis.md` |
-| Path 15 Mode A analysis | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/15_mode_A_strong_aug_baseline_log_analysis.md` |
+| Path 15 analysis | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/11to20/015_fourier_attention_interaction/15_fourier_G4_strong_aug_attention_log_analysis.md` |
+| Path 15 Mode A analysis | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/11to20/015_fourier_attention_interaction/15_mode_A_strong_aug_baseline_log_analysis.md` |
 | Historical Fourier summary | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/training_log_summary.md` |
 | Factorial A-H summary CSV | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/only_fourier_factorial_A_H_highpass_s50_a0p10_summary.csv` |
-| High-pass local sweep summary CSV | `shrimp-leakage-aware-segmentation/ONLY_fourier/highpass_local_sweep/training_log/only_fourier_mode_G_highpass_local_sweep_seed42_summary.csv` |
+| High-pass local sweep summary CSV | `shrimp-leakage-aware-segmentation/ONLY_fourier/training_log/11to20/14_highpass_local_sweep/only_fourier_mode_G_highpass_local_sweep_seed42_summary.csv` |
 | Path 15 source notebook | `C:\Users\Admin\Downloads\notebookae2e3c4caa.ipynb` |

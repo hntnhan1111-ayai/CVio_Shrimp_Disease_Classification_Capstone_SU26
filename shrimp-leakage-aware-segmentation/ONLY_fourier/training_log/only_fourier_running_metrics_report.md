@@ -120,7 +120,7 @@ Source analysis: `15_fourier_G4_strong_aug_attention_log_analysis.md`
 | canonical_markdown_summary | markdown_main_results | 16 | shrimp-leakage-aware-segmentation\ONLY_fourier\training_log\training_log_summary.md |
 | path_15_fourier_G4_strong_aug_attention | notebook_training_log | 3 | C:\Users\Admin\Downloads\notebookae2e3c4caa.ipynb |
 | factorial_A_H_highpass_s50_a0p10 | csv_summary | 8 | shrimp-leakage-aware-segmentation\ONLY_fourier\training_log\only_fourier_factorial_A_H_highpass_s50_a0p10_summary.csv |
-| mode_G_fourier_tuning | notebook_rendered_table | 3 | shrimp-leakage-aware-segmentation\ONLY_fourier\mode_G_fourier_tuning\training_log\013-mode-g-fourier-tuning-seed42.ipynb |
+| mode_G_fourier_tuning | notebook_rendered_table | 3 | shrimp-leakage-aware-segmentation\ONLY_fourier\training_log\11to20\013_mode_G_fourier_tuning\013-mode-g-fourier-tuning-seed42.ipynb |
 | mode_G_highpass_local_sweep_seed42 | csv_summary | 9 | shrimp-leakage-aware-segmentation\ONLY_fourier\highpass_local_sweep\training_log\only_fourier_mode_G_highpass_local_sweep_seed42_summary.csv |
 
 ## Quick Read

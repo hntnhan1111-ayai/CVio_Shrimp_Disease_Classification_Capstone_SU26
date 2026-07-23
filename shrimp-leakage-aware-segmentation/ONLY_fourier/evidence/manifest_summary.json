@@ -1,0 +1,15 @@
+{
+  "scope": "shrimp-leakage-aware-segmentation\\ONLY_fourier",
+  "downloads_scope": "C:\\Users\\Admin\\Downloads",
+  "repository_artifacts": 173,
+  "download_artifacts_considered": 113,
+  "download_exact_duplicates": 80,
+  "download_unique_copied": 33,
+  "generated_at_utc": "2026-07-23T03:02:10.922584+00:00",
+  "canonical_priority": [
+    "executed notebook with outputs",
+    "raw CSV/JSON/TXT",
+    "analysis Markdown",
+    "unexecuted generator notebook"
+  ]
+}

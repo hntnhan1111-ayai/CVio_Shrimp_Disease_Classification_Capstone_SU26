@@ -1,0 +1,29 @@
+{
+  "exact_duplicate_groups": [
+    {
+      "sha256": "4ceb8d26950d444738e88acede903aa9d5486fd31af589719e55a92ced768b1f",
+      "files": [
+        "015_modeA-fouirer-hev-aug-attention.ipynb",
+        "training_log/11to20/015_fourier_attention_interaction/015_modeA-fouirer-hev-aug-attention.ipynb"
+      ]
+    },
+    {
+      "sha256": "ab95f3c370f8145ba812ec95248beae6d5ad4e608539f42063dd8e767b74a6fb",
+      "files": [
+        "013-mode-g-fourier-tuning-seed42.ipynb",
+        "training_log/11to20/013_mode_G_fourier_tuning/013-mode-g-fourier-tuning-seed42.ipynb",
+        "training_log/11to20/013_mode_G_fourier_tuning/013-mode-g-fourier-tuning-seed42_1.ipynb"
+      ]
+    },
+    {
+      "sha256": "afbbd0992b1f51dde8d5dca321987f81b23aaf14e68aaf239ca87ef6566d642d",
+      "files": [
+        "014-mode-g-highpass-local-sweep-seed42.ipynb",
+        "training_log/11to20/14_highpass_local_sweep/014-mode-g-highpass-local-sweep-seed42.ipynb"
+      ]
+    }
+  ],
+  "generated_cache_files": [
+    "scripts/__pycache__/generate_017_learnable_fddem_no_aug.cpython-314.pyc"
+  ]
+}
