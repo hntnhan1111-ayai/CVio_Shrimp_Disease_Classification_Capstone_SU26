@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 venv/
+*.egg-info/
 
 # Generated datasets and experiments
 runs/
@@ -30,6 +31,7 @@ Thumbs.db
 *.7z
 *.tmp
 full_experiment_log.txt
+uv.lock
 
 # Legacy archives (not part of public narrative)
 cvio_yolo11s_paper_ready_outputs_no_weights/

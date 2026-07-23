@@ -83,7 +83,7 @@ def test_checkpoint_hashes():
 def test_no_v007_in_public():
     exclude = ["cvio_yolo11s_paper_ready_outputs_no_weights", "__pycache__", ".venv", "tests", "scripts"]
     # V007 is allowed in documentation that explicitly accounts for its exclusion
-    v007_allowed = {"METRIC_PROVENANCE.md", "FINAL_REFACTOR_AUDIT.md", "PRE_REFACTOR_AUDIT.md", "REPOSITORY_AUDIT.json", "test_repository.py", "verify_repository_full.py"}
+    v007_allowed = {"METRIC_PROVENANCE.md", "FINAL_REFACTOR_AUDIT.md", "PRE_REFACTOR_AUDIT.md", "REPOSITORY_AUDIT.json", "test_repository.py", "verify_repository_full.py", "GIT_RELEASE_RECORD.md"}
     public_ext = {".md", ".html", ".csv", ".tex", ".py", ".yaml", ".yml", ".json"}
     violations = []
     for path in ROOT.rglob("*"):
