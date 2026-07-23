@@ -34,6 +34,10 @@ These notebooks reproduce the paper-facing experiments for leakage-aware shrimp 
    - `noise_ablation/yolo11n_grouped_clean_baseline_noise_ablation_kaggle.ipynb`
    - Retrains the grouped clean-light YOLO11n baseline, then evaluates the trained checkpoint on clean and five noisy test conditions.
 
+8. New-data split diagnostic:
+   - `baseline/yolo11n_new_dataset_mixed_split_baseline_kaggle.ipynb`
+   - Downloads the new Roboflow export, applies grouped-specimen stratification to convention-matched filenames, applies label-stratified random splitting to unmatched filenames, merges both branches, and trains one baseline for protocol validation.
+
 ## Shared Conventions
 
 - Paper-facing baseline uses `DISABLE_ULTRALYTICS_ALBUMENTATIONS = False`.
