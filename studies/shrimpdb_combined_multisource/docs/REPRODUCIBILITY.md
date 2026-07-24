@@ -1,5 +1,12 @@
 # Reproducibility
 
+## Merged-package validation
+
+Run `uv run python tools/generate_merged_best_artifacts.py` to validate the reviewed ZIP,
+verify the selected metrics against `metrics_raw.json` and provenance, import only selected
+evaluation artifacts, and regenerate tables, figures, registries, and the HTML report. The
+command does not copy checkpoints or edit raw metrics. Run `uv run pytest -q` afterward.
+
 This document provides instructions for reproducing the **shrimpdb_combined_multisource**
 study, including environment setup, package versions, and command references.
 

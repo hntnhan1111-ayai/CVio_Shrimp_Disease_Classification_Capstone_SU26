@@ -1,119 +1,26 @@
-# Model Card
+# Model Card and Checkpoint Distribution
 
-This model card documents the **yolo26m_asl_ldam_simam_dcfr_combined4_best.pt** checkpoint
-produced by the **shrimpdb_combined_multisource** study.
+This study contains YOLO26m-cls classification checkpoints selected from a merged
+best-by-dataset package. Checkpoints are not tracked in Git. The authoritative registry is
+[`model_registry/selected_best_by_dataset.json`](../model_registry/selected_best_by_dataset.json).
 
-## 1. Model Details
+| Dataset | Display label | Actual source method | Classes | SHA-256 |
+|---|---|---|---:|---|
+| ShrimpDB-3 | ASL-LDAM + SimAM-DCFR | ASL-LDAM + SimAM-DCFR | 3 | `ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36` |
+| Combined-4 | ASL-LDAM + SimAM-DCFR | CE Baseline | 4 | `adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad` |
 
-| Attribute | Value |
-|---|---|
-| Model name | YOLO26m-cls + ASL-LDAM + SimAM-DCFR |
-| Checkpoint | `artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt` |
-| SHA-256 | `9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606` |
-| Architecture | YOLO26m-cls |
-| Loss | ASL-LDAM (gamma_pos=0.0, gamma_neg=4.0, label_smoothing=0.1, ldam_max_m=0.5, ldam_scale=30.0) |
-| Attention | SimAM-DCFR (e_lambda=0.0001) |
-| Training data | ShrimpDB-3 (315 images) + ShrimpDiseaseDB (1,149 images) = 1,464 images |
-| Test data | 220 images (Combined-4 test split) |
-| Classes | Healthy, BG, WSSV, WSSV_BG |
-| Input | RGB, 224 x 224 |
-| Output | 4-class logits |
-| Seed | 42 |
-| Framework | PyTorch 2.10.0+cu128, Ultralytics 8.4.75 |
+Input is RGB 224 × 224. Class order is `Healthy, BG, WSSV` for ShrimpDB-3 and
+`Healthy, BG, WSSV, WSSV_BG` for Combined-4. Retrieve a checkpoint from the reviewed
+merged package, compute SHA-256, and compare it with the registry before use.
 
-## 2. Intended Use
+The common display label is presentation metadata only. The Combined-4 selected checkpoint
+is a CE baseline model with no custom attention; it must not be integrated as an ASL-LDAM or
+SimAM-DCFR model. Application code should load the dataset-specific registry entry and use
+its class order, source method, and hash rather than selecting by filename.
 
-This model is a **research prototype** intended for:
+## Intended use and limitations
 
-- Academic studies on class-imbalanced shrimp disease image classification
-- Benchmarking of ASL-LDAM loss and SimAM-DCFR attention mechanisms
-- Evaluation of multi-source training protocols under image-level splits
-
-**This model is not intended for clinical veterinary diagnosis, aquaculture management
-decisions, or any safety-critical application.** The model was trained and evaluated on
-research datasets with limited clinical validation.
-
-## 3. Performance Characteristics
-
-The model was evaluated on the Combined-4 test split (220 images) under the following
-conditions:
-
-| Metric | Value |
-|---|---:|
-| Accuracy | 83.18% |
-| Balanced accuracy | 83.85% |
-| Macro-F1 | 82.18% |
-| Weighted-F1 | 83.19% |
-| Cohen's kappa | 77.15% |
-| MCC | 77.51% |
-| Top-2 accuracy | 95.45% |
-| ECE (15 bins) | 33.46% |
-
-### 3.1 Per-Class Performance
-
-| Class | Precision | Recall | F1-score | Support |
-|---|---:|---:|---:|---:|
-| Healthy | 88.00% | 91.67% | 89.80% | 72 |
-| BG | 80.85% | 84.44% | 82.61% | 45 |
-| WSSV | 90.91% | 71.43% | 80.00% | 70 |
-| WSSV_BG | 67.44% | 87.88% | 76.32% | 33 |
-
-### 3.2 Source-Domain Performance
-
-| Source Dataset | Images | Accuracy | Balanced Accuracy | Macro-F1 |
-|---|---:|---:|---:|---:|
-| ShrimpDB | 47 | 85.11% | 87.92% | 64.77% |
-| ShrimpDiseaseDB | 173 | 82.66% | 82.34% | 81.95% |
-
-## 4. Limitations
-
-- **Single seed only**: All metrics are from a single fixed-seed (42) run. No mean ± standard
-  deviation or statistical significance testing is reported.
-- **Small test set**: The Combined-4 test set contains 220 images. Confidence intervals are
-  wide (see bootstrap 95% CI in `artifacts/evaluation/combined4/best_pt/metrics_raw.json`).
-- **Image-level split**: The split is image-level. Specimen or animal identity was not
-  established, so images from the same specimen may appear in both training and test sets.
-- **Calibration**: Expected calibration error (ECE) is 33.46%, indicating that the model's
-  predicted probabilities are not well calibrated. The model should not be used where
-  calibrated probabilities are required.
-- **Class space mismatch**: The model was trained on four classes. If applied to data that
-  includes only a subset of classes (e.g., the original ShrimpDB three-class space), the
-  `WSSV_BG` class has zero support and its presence in the output reduces the standard
-  macro-averaged metrics.
-- **Domain shift**: Performance on the ShrimpDB test set is lower when evaluated through the
-  Combined-4 model compared to the ShrimpDB-only model, suggesting domain shift effects.
-- **No external validation**: Performance on datasets beyond ShrimpDB and ShrimpDiseaseDB has
-  not been evaluated.
-
-## 5. Ethical Considerations
-
-- This model is a research prototype and is **not a veterinary diagnostic system**.
-- Results should not be used to make decisions about animal health or treatment without
-  independent clinical validation.
-- The model may perform differently on images from devices, lighting conditions, or shrimp
-  species not represented in the training data.
-- Misclassification could lead to unnecessary treatment or missed disease detection if used
-  outside its intended research context.
-
-## 6. Distribution Instructions
-
-The checkpoint file `artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt`
-is the designated distribution artifact. The repository `.gitignore` excludes `*.pt`
-files, so the checkpoint is **not tracked in Git**; it is documented only via
-`model_registry/checkpoints.json` and `artifacts/final_application_model/class_mapping.json`.
-
-To obtain and distribute the checkpoint:
-
-1. Pull the upstream result archive (or re-run `scripts/03_train_shrimpdb3.py` /
-   `scripts/04_train_combined4.py`) and place the file at
-   `artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt`.
-2. Verify the SHA-256 hash:
-   ```bash
-   sha256sum artifacts/final_application_model/yolo26m_asl_ldam_simam_dcfr_combined4_best.pt
-   # Expected: 9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606
-   ```
-3. Run `uv run python tools/verify_checksums.py --root .` to confirm the
-   documented SHA-256 matches the on-disk file.
-4. Include the class mapping (`artifacts/final_application_model/class_mapping.json`),
-   this model card, and `docs/CLAIMS_AND_LIMITATIONS.md` with any distributed
-   checkpoint.
+Research evaluation and reproducibility only. These results are from one fixed seed and are
+not a veterinary diagnostic claim, clinical validation, production-readiness claim, or proof
+of universal superiority. Dataset shift, specimen correlation, label quality, calibration,
+and external validity require additional studies.

@@ -38,6 +38,8 @@ def run() -> int:
         assert entry["experiment"], "missing experiment"
         assert entry["checkpoint"], "missing checkpoint"
         assert entry["split"], "missing split"
+        assert entry["verified_method"], "missing verified_method"
+        assert entry["identity_audit_reference"], "missing identity_audit_reference"
 
     LOGGER.info("Figure registry validated (entries=%d)", len(entries))
     return 0

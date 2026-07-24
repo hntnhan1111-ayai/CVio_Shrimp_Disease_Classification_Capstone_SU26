@@ -1,5 +1,13 @@
 # Experiment Protocol
 
+## Merged result selection
+
+The integrated package is a merged best-by-dataset archive, not a single-method rerun.
+Within each dataset, the highest Macro-F1 is selected and accuracy breaks ties. The common
+display label is retained alongside the verified source method, label-match flag, and
+checkpoint hash. Combined-4's selected 87.73% accuracy / 86.51% Macro-F1 result is CE
+Baseline; ShrimpDB-3's 91.49% / 91.29% result is ASL-LDAM + SimAM-DCFR.
+
 This document describes the dataset split protocol, the rationale for the source-wise then
 partition-wise union approach, and reproducibility considerations for the
 **shrimpdb_combined_multisource** study.

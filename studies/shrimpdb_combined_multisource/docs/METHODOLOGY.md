@@ -1,5 +1,15 @@
 # Methodology
 
+## Method-identity scope
+
+This study preserves two executable method definitions. The CE baseline uses
+`CrossEntropyLoss` with no custom attention. The proposed method uses ASL-LDAM with
+`gamma_pos=0.0`, `gamma_neg=4.0`, `label_smoothing=0.1`, `ldam_max_m=0.5`,
+`ldam_scale=30.0`, and SimAM-DCFR attention with `e_lambda=0.0001`. The merged package's
+display label is not a substitute for `actual_source_method`; the selected Combined-4
+metrics are from CE Baseline, while the selected ShrimpDB-3 metrics are from ASL-LDAM +
+SimAM-DCFR. See `artifacts/metadata/merged_result_registry.json`.
+
 This document describes the model architecture, loss function, attention mechanism, and training
 configuration used in the **shrimpdb_combined_multisource** study.
 
