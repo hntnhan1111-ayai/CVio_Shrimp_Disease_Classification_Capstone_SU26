@@ -1,0 +1,56 @@
+{
+  "status": "verified",
+  "audit_timestamp_utc": "2026-07-24T08:45:46.505952+00:00",
+  "packages": [
+    {
+      "input_path": "D:\\CVio\\CVio_ShrimpDB_Combined_YOLO26m_CE_Baseline_seed42_RESULTS\\selected_best_by_dataset\\shrimpdb3",
+      "original_label": "ASL-LDAM + SimAM-DCFR",
+      "verified_method": "asl_ldam_simam_dcfr",
+      "confidence": "high",
+      "evidence": [
+        "FINAL_BEST_RESULTS.json actual_source_method",
+        "selected_best_by_dataset/shrimpdb3/PROVENANCE.json actual_source_method",
+        "selected_best_by_dataset/shrimpdb3/evaluation/metrics_raw.json checkpoint and metrics",
+        "checkpoint_sha256 ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36"
+      ],
+      "contradictions": [],
+      "metrics_sources": [
+        "artifacts/merged_best_by_dataset/evaluation/shrimpdb3/metrics_raw.json",
+        "artifacts/merged_best_by_dataset/provenance/shrimpdb3_PROVENANCE.json"
+      ],
+      "checkpoint_hashes": ["ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36"]
+    },
+    {
+      "input_path": "D:\\CVio\\CVio_ShrimpDB_Combined_YOLO26m_CE_Baseline_seed42_RESULTS\\selected_best_by_dataset\\combined4",
+      "original_label": "ASL-LDAM + SimAM-DCFR",
+      "verified_method": "baseline_ce",
+      "confidence": "high",
+      "evidence": [
+        "FINAL_BEST_RESULTS.json actual_source_method",
+        "FINAL_BEST_RESULTS.json label_matches_source_method false",
+        "selected_best_by_dataset/combined4/PROVENANCE.json actual_source_method",
+        "selected_best_by_dataset/combined4/evaluation/metrics_raw.json checkpoint and metrics",
+        "checkpoint_sha256 adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad"
+      ],
+      "contradictions": [
+        "display_label does not match actual_source_method; this is an explicit merged-package presentation condition"
+      ],
+      "metrics_sources": [
+        "artifacts/merged_best_by_dataset/evaluation/combined4/metrics_raw.json",
+        "artifacts/merged_best_by_dataset/provenance/combined4_PROVENANCE.json"
+      ],
+      "checkpoint_hashes": ["adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad"]
+    }
+  ],
+  "label_corrections": [
+    {
+      "old_label": "ASL-LDAM + SimAM-DCFR",
+      "new_label": "CE Baseline (actual source method)",
+      "scope": "Combined-4 selected result provenance fields",
+      "reason": "The merged package explicitly records the selected metrics as CE Baseline while retaining the common display label."
+    }
+  ],
+  "unresolved_items": [
+    "The preserved historical standalone-package audit remains contradictory for the superseded requested cross-assignment; the merged package mapping itself is verified."
+  ]
+}
