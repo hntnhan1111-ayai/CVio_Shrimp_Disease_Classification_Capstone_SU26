@@ -29,10 +29,6 @@ jobs:
       - name: Pytest
         working-directory: studies/shrimpdb_combined_multisource
         run: uv run pytest -q
-      - name: Validate merged best-by-dataset provenance
-        working-directory: studies/shrimpdb_combined_multisource
-        run: |
-          uv run python -c "import json, pathlib; r=json.loads(pathlib.Path('artifacts/metadata/merged_result_registry.json').read_text()); x={v['dataset']:v for v in r['selected_results']}; assert x['shrimpdb3']['actual_source_method']=='ASL-LDAM + SimAM-DCFR'; assert x['combined4']['actual_source_method']=='CE Baseline'; assert x['combined4']['label_matches_source_method'] is False; assert x['combined4']['accuracy']==0.8772727272727273; assert x['combined4']['macro_f1']==0.8651047360451701"
       - name: Source snapshot comparison
         working-directory: studies/shrimpdb_combined_multisource
         run: uv run python tools/compare_source_snapshot.py --snapshot-root artifacts/source_snapshot

@@ -1,55 +1,55 @@
-# ShrimpDB Combined Multi-Source Benchmark
+# ShrimpDB Combined Multi-Source Classification
 
-[![Python](https://img.shields.io/badge/Python-3.12.13-blue)](#verified-runtime) [![PyTorch](https://img.shields.io/badge/PyTorch-2.10.0%2Bcu128-green)](#verified-runtime) [![TorchVision](https://img.shields.io/badge/TorchVision-0.25.0%2Bcu128-green)](#verified-runtime) [![Ultralytics](https://img.shields.io/badge/Ultralytics-8.4.75-red)](#verified-runtime) [![CUDA](https://img.shields.io/badge/CUDA-12.8-76b900)](#verified-runtime) [![Kaggle](https://img.shields.io/badge/Runtime-Kaggle-20beff)](#kaggle-reproduction) [![uv](https://img.shields.io/badge/managed%20by-uv-6f42c1)](#reproduction) [![pandas](https://img.shields.io/badge/pandas-2.3.3-150458)](#verified-runtime) [![scikit--learn](https://img.shields.io/badge/scikit--learn-1.6.1-f7931e)](#verified-runtime) [![Matplotlib](https://img.shields.io/badge/Matplotlib-3.10.0-11557c)](#verified-runtime) [![OpenCV](https://img.shields.io/badge/OpenCV-research-5c3ee8)](#reproduction) [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26/shrimpdb-combined-ci.yml?branch=paper%2Fshrimpdb-combined-asl-ldam-simam-dcfr&label=CI)](../../actions)
+Nguyen, Vinh Dinh; Nguyen, Phong Van; Tran, Nhan Huu; Le Thi, Nhu Huynh.
+
+[![Python](https://img.shields.io/badge/Python-3.12.13-blue)](#installation) [![PyTorch](https://img.shields.io/badge/PyTorch-2.10.0%2Bcu128-green)](#runtime) [![Ultralytics](https://img.shields.io/badge/Ultralytics-8.4.75-red)](#runtime) [![Kaggle](https://img.shields.io/badge/Runtime-Kaggle-20beff)](#kaggle-reproduction) [![uv](https://img.shields.io/badge/managed%20by-uv-6f42c1)](#installation)
+
+Research repository for fixed-seed YOLO26m-cls experiments on ShrimpDB and
+ShrimpDiseaseDB. The accompanying report and citation metadata are maintained at the
+[repository root](../../README.md) and in [CITATION.cff](../../CITATION.cff).
 
 ## Abstract
 
-This study evaluates YOLO26m-cls for shrimp disease image classification under a fixed
-seed-42, source-wise 70/15/15 split protocol. The repository preserves two method families:
-CrossEntropyLoss (CE baseline, no custom attention) and ASL-LDAM with SimAM-DCFR attention.
-The newly integrated merged package selects the highest Macro-F1 result independently for
-each dataset, with accuracy as the tie-breaker.
+We evaluate a CE baseline and ASL-LDAM with SimAM-DCFR attention for shrimp disease image
+classification. ShrimpDB is harmonized to three classes and combined with ShrimpDiseaseDB
+using source-wise stratified partitions. The reported execution uses seed 42 and a
+70%/15%/15% train/validation/test split. A merged package selects the highest Macro-F1
+result independently for each dataset, with accuracy as tie-breaker.
 
-The merged package uses the common display label **ASL-LDAM + SimAM-DCFR** while retaining
-the verified `actual_source_method` and checkpoint SHA-256. Therefore, the selected
-ShrimpDB-3 result is ASL-LDAM + SimAM-DCFR, whereas the selected Combined-4 result is from
-the CE baseline archive. This distinction is intentional and is enforced by the registries
-and tests.
+The merged archive uses a common display label while retaining the verified source method.
+Consequently, the selected ShrimpDB-3 result is ASL-LDAM + SimAM-DCFR, while the selected
+Combined-4 result is from the CE baseline archive. This distinction is preserved in
+`artifacts/results/FINAL_BEST_RESULTS.json` and in the main table.
 
-## Research questions and contributions
+## Highlights
 
-The study asks how the two training methods behave on ShrimpDB-3 and Combined-4, how
-source-wise partitioning affects reproducibility, and whether a merged best-by-dataset
-selection can be presented without obscuring method provenance. Contributions include
-source-wise stratified splitting, label harmonization, executable method-identity auditing,
-provenance-preserving result integration, machine-readable tables, and checkpoint hash
-records. Results are fixed seed-42 observations; they do not establish statistical
-significance or universal superiority.
+- ShrimpDB-3 selected result: 91.49% accuracy and 91.29% Macro-F1.
+- Combined-4 selected result: 87.73% accuracy and 86.51% Macro-F1.
+- Results are validation-selected, fixed seed-42 observations, not multi-seed estimates.
 
-## Repository structure
+## Main results
 
-`configs/` contains dataset and training configuration; `src/` contains reusable
-training/evaluation code; `scripts/` contains audit, split, training, evaluation, reporting,
-and packaging entry points; `artifacts/` contains generated evidence; `artifacts/merged_best_by_dataset/`
-contains only selected evaluation files and provenance; `model_registry/` records external
-checkpoint metadata; `docs/` contains academic documentation; `tests/` validates registries,
-tables, figures, links, and repository hygiene.
+Generated from `artifacts/results/FINAL_BEST_RESULTS.json` and the selected raw metrics:
 
-## Datasets and label harmonization
+| Dataset | Display label | Actual source method | Accuracy | Balanced Accuracy | Macro-F1 | ECE |
+|---|---|---|---:|---:|---:|---:|
+| ShrimpDB-3 | ASL-LDAM + SimAM-DCFR | ASL-LDAM + SimAM-DCFR | 91.49% | 91.55% | 91.29% | 19.30% |
+| Combined-4 | ASL-LDAM + SimAM-DCFR | CE Baseline | 87.73% | 87.43% | 86.51% | 6.19% |
+
+The common display label is not a method claim for Combined-4. Its selected checkpoint is
+CE Baseline and `label_matches_source_method` is `false`.
+
+## Datasets and split
 
 - [ShrimpDB](https://www.kaggle.com/datasets/vohoangtu/shrimpdb)
 - [ShrimpDiseaseDB / processed-images](https://www.kaggle.com/datasets/uynnhy/processed-images)
 
-For ShrimpDB, `Tom_BT -> Healthy`, `Den_Mang -> BG`, and `Dom_Trang -> WSSV`.
-ShrimpDiseaseDB contributes `Healthy`, `BG`, `WSSV`, and `WSSV_BG`.
-
-## Dataset audit and split protocol
-
-The target split is 70% train, 15% validation, and 15% test with `seed = 42`. Each source
-is partitioned independently before combination:
+ShrimpDB labels are harmonized as `Tom_BT -> Healthy`, `Den_Mang -> BG`, and
+`Dom_Trang -> WSSV`. The split target is 70% train, 15% validation, and 15% test with
+`seed = 42`. Each source is partitioned before combination:
 
 `Combined train = ShrimpDB train + ShrimpDiseaseDB train`
-`Combined val = ShrimpDB val + ShrimpDiseaseDB val`
+`Combined validation = ShrimpDB validation + ShrimpDiseaseDB validation`
 `Combined test = ShrimpDB test + ShrimpDiseaseDB test`
 
 | Dataset / split | Healthy | BG | WSSV | WSSV_BG | Total |
@@ -61,60 +61,31 @@ is partitioned independently before combination:
 | Combined-4 validation | 70 | 47 | 69 | 33 | 219 |
 | Combined-4 test | 72 | 45 | 70 | 33 | 220 |
 
-## Methods and shared training configuration
+The machine-readable version is [`dataset_split_counts.csv`](artifacts/tables/dataset_split_counts.csv).
 
-Both methods use `yolo26m-cls`, task `classify`, image size 224, 30 epochs, seed 42,
-deterministic execution, patience 15, batch 32, workers 4, AMP, AdamW, `lr0=0.00125`,
-`lrf=0.01`, cosine learning rate, no cache, RandAugment, erasing 0.4, and plots enabled.
+## Methodology
+
+Both experiments use YOLO26m-cls, classification task, 224px input, 30 epochs, patience 15,
+batch 32, four workers, AMP, AdamW, `lr0=0.00125`, `lrf=0.01`, cosine learning rate,
+RandAugment, erasing 0.4, deterministic seed 42, and no cache.
 
 | Method | Loss | Attention |
 |---|---|---|
-| CE baseline | CrossEntropyLoss | none |
+| CE baseline | CrossEntropyLoss | None |
 | ASL-LDAM + SimAM-DCFR | ASL-LDAM (`gamma_pos=0`, `gamma_neg=4`, `label_smoothing=0.1`, `ldam_max_m=0.5`, `ldam_scale=30`) | SimAM-DCFR (`e_lambda=0.0001`) |
 
-The executable identity audit and historical correction trail are in
-`artifacts/metadata/method_identity_audit.{json,md}` and
-`artifacts/metadata/label_correction_manifest.json`. The merged package adds a separate
-verified registry at `artifacts/metadata/merged_result_registry.json`.
+See [METHODOLOGY.md](docs/METHODOLOGY.md) and [EXPERIMENT_PROTOCOL.md](docs/EXPERIMENT_PROTOCOL.md).
 
-## Merged best-by-dataset selection
+## Runtime
 
-Selection is the highest Macro-F1 within each dataset, with accuracy as the tie-breaker.
-The table below is generated from `FINAL_BEST_RESULTS.json`; raw decimal metrics remain in
-the JSON evaluation artifacts.
-
-| Dataset | Display label | Actual source method | Accuracy | Macro-F1 | Label/source match |
-|---|---|---|---:|---:|---|
-| ShrimpDB-3 | ASL-LDAM + SimAM-DCFR | ASL-LDAM + SimAM-DCFR | 91.49% | 91.29% | Yes |
-| Combined-4 | ASL-LDAM + SimAM-DCFR | CE Baseline | 87.73% | 86.51% | No |
-
-The merged package applies a common display label to the selected best-by-dataset results
-while retaining the verified source method and checkpoint SHA-256 for each result. The
-Combined-4 selected metrics originate from the CE baseline run; the ShrimpDB-3 selected
-metrics originate from the ASL-LDAM + SimAM-DCFR run.
-
-### Selected benchmark metrics
-
-| Dataset / source method | Accuracy | Balanced accuracy | Macro-F1 | ECE |
-|---|---:|---:|---:|---:|
-| ShrimpDB-3 / ASL-LDAM + SimAM-DCFR | 91.49% | 91.55% | 91.29% | 19.30% |
-| Combined-4 / CE Baseline | 87.73% | 87.43% | 86.51% | 6.19% |
-
-Full method comparisons, including the non-selected result for each dataset, are generated
-in `artifacts/tables/all_methods_comparison_percent.csv`. Per-class and source-domain
-tables are generated from the imported selected evaluation files.
-
-## Verified runtime
-
-The reported execution was a Kaggle Notebook run using 2 × Tesla T4 GPUs, global batch 32,
-and seed 42.
+The reported run used a Kaggle Notebook with 2 × Tesla T4 GPUs, global batch 32, and seed 42.
 
 | Component | Version |
 |---|---|
 | Python | 3.12.13 |
 | PyTorch | 2.10.0+cu128 |
 | TorchVision | 0.25.0+cu128 |
-| CUDA reported by PyTorch | 12.8 |
+| CUDA | 12.8 |
 | Ultralytics | 8.4.75 |
 | pandas | 2.3.3 |
 | scikit-learn | 1.6.1 |
@@ -122,18 +93,35 @@ and seed 42.
 | Pillow | 11.3.0 |
 | PyYAML | 6.0.3 |
 
-## Figures and reports
+## Quantitative and qualitative artifacts
 
-The selected figure set is in `artifacts/merged_best_by_dataset/figures/` and is registered
-with SHA-256, source artifact, checkpoint, split, display label, and actual source method in
-`artifacts/metadata/figure_registry.json`. It includes split distribution, selected metric
-comparisons, all-method comparisons, count and normalized confusion matrices, source-domain
-comparison, and checkpoint provenance. The generated HTML report is
-`artifacts/merged_best_by_dataset/reports/merged_best_by_dataset_report.html`.
-The compatibility report path is
-`artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html`.
+Tables are in [`artifacts/tables/main_results_percent.csv`](artifacts/tables/main_results_percent.csv)
+and the neighboring table files: main results, method comparison,
+per-class results, split counts, source-domain metrics, and checkpoint summary. Imported raw
+evaluation files are in `artifacts/results/`, including predictions,
+confusion-matrix CSVs/PNGs, and provenance JSON files.
 
-## Reproduction
+Figures are linked directly from the repository:
+
+| Figure | Description |
+|---|---|
+| [fig01_dataset_split_distribution.png](artifacts/figures/fig01_dataset_split_distribution.png) | Dataset split distribution |
+| [fig02_selected_accuracy_by_dataset.png](artifacts/figures/fig02_selected_accuracy_by_dataset.png) | Selected accuracy |
+| [fig03_selected_macro_f1_by_dataset.png](artifacts/figures/fig03_selected_macro_f1_by_dataset.png) | Selected Macro-F1 |
+| [fig04_all_methods_shrimpdb3_comparison.png](artifacts/figures/fig04_all_methods_shrimpdb3_comparison.png) | ShrimpDB-3 method comparison |
+| [fig05_all_methods_combined4_comparison.png](artifacts/figures/fig05_all_methods_combined4_comparison.png) | Combined-4 method comparison |
+| [fig06_shrimpdb3_confusion_matrix_counts.png](artifacts/figures/fig06_shrimpdb3_confusion_matrix_counts.png) | ShrimpDB-3 count confusion matrix |
+| [fig07_shrimpdb3_confusion_matrix_normalized.png](artifacts/figures/fig07_shrimpdb3_confusion_matrix_normalized.png) | ShrimpDB-3 normalized confusion matrix |
+| [fig08_combined4_confusion_matrix_counts.png](artifacts/figures/fig08_combined4_confusion_matrix_counts.png) | Combined-4 count confusion matrix |
+| [fig09_combined4_confusion_matrix_normalized.png](artifacts/figures/fig09_combined4_confusion_matrix_normalized.png) | Combined-4 normalized confusion matrix |
+| [fig10_combined4_source_domain_comparison.png](artifacts/figures/fig10_combined4_source_domain_comparison.png) | Source-domain comparison |
+| [fig11_checkpoint_provenance_diagram.png](artifacts/figures/fig11_checkpoint_provenance_diagram.png) | Checkpoint/source mapping |
+| [fig02_shrimpdb3_training_curves.png](artifacts/figures/fig02_shrimpdb3_training_curves.png) | ShrimpDB-3 training curves |
+| [fig03_combined4_training_curves.png](artifacts/figures/fig03_combined4_training_curves.png) | Combined-4 training curves |
+
+The standalone HTML report is [`artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html`](artifacts/reports/CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html).
+
+## Installation
 
 ```powershell
 Set-Location "D:\CVio\CVio_ShrimpDB_Combined_Research_Repo\studies\shrimpdb_combined_multisource"
@@ -141,53 +129,51 @@ uv python install 3.12
 uv venv --python 3.12
 .\.venv\Scripts\Activate.ps1
 uv sync --frozen
+```
+
+## Reproduction
+
+```powershell
+uv run python scripts\01_audit_datasets.py --config configs\study.yaml
+uv run python scripts\02_prepare_splits.py --config configs\study.yaml
+uv run python scripts\03_train_shrimpdb3.py --config configs\study.yaml
+uv run python scripts\04_train_combined4.py --config configs\study.yaml
+uv run python scripts\05_evaluate_checkpoints.py --config configs\study.yaml
+uv run python scripts\generate_paper_artifacts.py
 uv run pytest -q
 ```
 
-Separate workflow commands are:
+For Kaggle, attach `vohoangtu/shrimpdb`, enable Internet, select a GPU accelerator, and use
+Save Version -> Run All. The notebook downloads `uynnhy/processed-images` when it is not
+attached. The reported execution used 2 × Tesla T4.
 
-```powershell
-uv run python scripts\01_audit_datasets.py --config configs\study.yaml       # dataset audit
-uv run python scripts\02_prepare_splits.py --config configs\study.yaml        # split preparation
-uv run python scripts\03_train_shrimpdb3.py --config configs\study.yaml       # CE/ASL training entry points
-uv run python scripts\04_train_combined4.py --config configs\study.yaml
-uv run python scripts\05_evaluate_checkpoints.py --config configs\study.yaml  # evaluation
-uv run python tools\audit_method_identity.py                                  # identity audit
-uv run python tools\generate_merged_best_artifacts.py                          # merged validation, tables, figures, report
-uv run python scripts\07_generate_html_report.py --config configs\study.yaml  # legacy report workflow
-```
+## Checkpoints
 
-For Kaggle reproduction, attach `vohoangtu/shrimpdb`, enable Internet, select a GPU
-accelerator, and use **Save Version -> Run All**. The notebook downloads
-`uynnhy/processed-images` when it is not attached. The reported execution used 2 × Tesla T4.
+Checkpoint files are not tracked. The selected checkpoints are documented in
+[`checkpoint_summary.csv`](artifacts/tables/checkpoint_summary.csv):
 
-## Checkpoint provenance and application integration
+- ShrimpDB-3, ASL-LDAM + SimAM-DCFR: `ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36`.
+- Combined-4, CE Baseline: `adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad`.
 
-The selected checkpoint files are not tracked in Git. `model_registry/selected_best_by_dataset.json`
-records the external source path, filename, SHA-256, class count, class order, display label,
-and actual source method. The ShrimpDB-3 selected checkpoint hash is
-`ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36`; the Combined-4 selected
-checkpoint hash is `adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad`.
-Retrieve a checkpoint from the merged package, verify its hash, and use the registry's class
-order. Do not treat the common display label as evidence that the Combined-4 checkpoint uses
-ASL-LDAM or SimAM-DCFR; it is a CE baseline checkpoint.
+Retrieve a checkpoint from the reviewed result package, verify its SHA-256, and use the
+class order in the checkpoint summary. Do not select a checkpoint by display label alone.
 
-## Claims and limitations
+## Limitations
 
-These are validation-selected, fixed seed-42 results from one reported run. They do not
-establish statistical significance, universal superiority, clinical validity, or production
-readiness. The split is image-level and is not asserted to be specimen-safe; dataset shift,
-label noise, calibration error, and external validity remain limitations. See
-`docs/CLAIMS_AND_LIMITATIONS.md` and `docs/MERGED_BEST_BY_DATASET_RESULTS.md`.
+These are one-run, fixed seed-42 results. They do not establish statistical significance,
+state-of-the-art performance, universal superiority, clinical validity, or production
+readiness. The split is image-level and is not claimed to be specimen-safe. Dataset shift,
+label harmonization, calibration, and external validity remain limitations.
 
 ## Citation and license
 
 ```bibtex
 @software{nguyen2026shrimpdb_combined,
-  title = {ShrimpDB Combined Multi-Source Classification Benchmark},
+  title = {ShrimpDB Combined Multi-Source Classification},
+  author = {Nguyen, Vinh Dinh and Nguyen, Phong Van and Tran, Nhan Huu and Le Thi, Nhu Huynh},
   year = {2026},
   url = {https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26}
 }
 ```
 
-Code: [AGPL-3.0-or-later](../../LICENSE). Datasets are not redistributed.
+Code is licensed under [AGPL-3.0-or-later](../../LICENSE). Datasets and checkpoints are not redistributed.

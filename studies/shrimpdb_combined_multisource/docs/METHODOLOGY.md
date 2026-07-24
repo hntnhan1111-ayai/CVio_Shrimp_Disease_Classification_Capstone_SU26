@@ -8,7 +8,7 @@ This study preserves two executable method definitions. The CE baseline uses
 `ldam_scale=30.0`, and SimAM-DCFR attention with `e_lambda=0.0001`. The merged package's
 display label is not a substitute for `actual_source_method`; the selected Combined-4
 metrics are from CE Baseline, while the selected ShrimpDB-3 metrics are from ASL-LDAM +
-SimAM-DCFR. See `artifacts/metadata/merged_result_registry.json`.
+SimAM-DCFR. The selected source method is retained in `artifacts/results/FINAL_BEST_RESULTS.json`.
 
 This document describes the model architecture, loss function, attention mechanism, and training
 configuration used in the **shrimpdb_combined_multisource** study.

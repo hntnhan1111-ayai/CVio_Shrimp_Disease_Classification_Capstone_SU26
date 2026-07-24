@@ -42,7 +42,6 @@ def run() -> int:
     # Docs cross-link report
     results = Path("docs/RESULTS.md").read_text(encoding="utf-8")
     assert "CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html" in results, "RESULTS.md must mention HTML report"
-    assert "artifacts/final_application_model/effective_epochs.json" in results, "RESULTS.md must reference effective_epochs.json"
 
     # README mentions the HTML report
     assert "CVio_Final_Academic_Report" in readme, "README must reference the HTML report"

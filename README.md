@@ -1,10 +1,23 @@
-# CVio_Shrimp_Disease_Classification_Capstone_SU26
+# CVio Shrimp Disease Classification
 
-## Studies
+Research code and paper artifacts for shrimp disease image classification.
 
-The merged best-by-dataset package is provenance-preserving: its common display label is
-`ASL-LDAM + SimAM-DCFR`, while `actual_source_method` remains authoritative. The selected
-ShrimpDB-3 result is ASL-LDAM + SimAM-DCFR (91.49% accuracy, 91.29% Macro-F1); the selected
-Combined-4 result is from the CE baseline archive (87.73% accuracy, 86.51% Macro-F1).
+## Study
 
-- [`studies/shrimpdb_combined_multisource`](studies/shrimpdb_combined_multisource/README.md) — Paper-oriented subproject for the seed-42 ShrimpDB-3 and Combined-4 ASL-LDAM + SimAM-DCFR experiments on the branch `paper/shrimpdb-combined-asl-ldam-simam-dcfr`.
+The main paper-oriented study is [`studies/shrimpdb_combined_multisource`](studies/shrimpdb_combined_multisource/README.md).
+It contains installation, dataset protocol, reproducible training commands, quantitative
+results, figures, checkpoint hashes, citation, and limitations.
+
+## Selected results
+
+The selected results are fixed seed-42 observations. ShrimpDB-3 uses the ASL-LDAM +
+SimAM-DCFR source method. The selected Combined-4 metrics use the CE Baseline checkpoint;
+the common merged display label is retained as presentation metadata only.
+
+| Dataset | Actual source method | Accuracy | Macro-F1 |
+|---|---|---:|---:|
+| ShrimpDB-3 | ASL-LDAM + SimAM-DCFR | 91.49% | 91.29% |
+| Combined-4 | CE Baseline | 87.73% | 86.51% |
+
+See the [study README](studies/shrimpdb_combined_multisource/README.md),
+[CITATION.cff](CITATION.cff), and [LICENSE](LICENSE).
