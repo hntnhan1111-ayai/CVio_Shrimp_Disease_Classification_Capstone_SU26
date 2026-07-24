@@ -1,0 +1,3 @@
+dataset,display_label,actual_source_method,label_matches_source_method,accuracy,balanced_accuracy,macro_f1,weighted_f1,ece,test_images,checkpoint_sha256
+ShrimpDB-3,ASL-LDAM + SimAM-DCFR,ASL-LDAM + SimAM-DCFR,true,91.49%,91.55%,91.29%,91.63%,19.30%,47,ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36
+Combined-4,ASL-LDAM + SimAM-DCFR,CE Baseline,false,87.73%,87.43%,86.51%,87.88%,6.19%,220,adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad

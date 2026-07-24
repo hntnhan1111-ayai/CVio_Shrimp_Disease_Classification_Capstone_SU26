@@ -45,7 +45,7 @@
   },
   "status": "verified",
   "merged_best_by_dataset": {
-    "filename": "artifacts/merged_best_by_dataset/reports/merged_best_by_dataset_report.html",
+    "filename": "artifacts/reports/merged_best_by_dataset_report.html",
     "source_artifact": "artifacts/metadata/merged_result_registry.json",
     "sha256": "dc6ae564f1daf1a44879212a1819030b19aaf057f28e01537b7008542e6def01",
     "status": "verified"

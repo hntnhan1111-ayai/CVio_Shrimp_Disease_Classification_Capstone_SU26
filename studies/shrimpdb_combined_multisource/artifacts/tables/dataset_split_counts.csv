@@ -1,0 +1,7 @@
+dataset,split,BG,Healthy,WSSV,WSSV_BG,total
+Combined-4,test,45,72,70,33,220
+Combined-4,train,217,331,323,154,1025
+Combined-4,val,47,70,69,33,219
+ShrimpDB-3,test,16,11,20,0,47
+ShrimpDB-3,train,78,49,94,0,221
+ShrimpDB-3,val,17,10,20,0,47

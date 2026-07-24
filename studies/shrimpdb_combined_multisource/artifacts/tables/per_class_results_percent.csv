@@ -1,0 +1,8 @@
+dataset,class,precision,recall,f1,support
+ShrimpDB-3,Healthy,90.91%,90.91%,90.91%,11
+ShrimpDB-3,BG,83.33%,93.75%,88.24%,16
+ShrimpDB-3,WSSV,100.00%,90.00%,94.74%,20
+Combined-4,Healthy,92.96%,91.67%,92.31%,72
+Combined-4,BG,86.36%,84.44%,85.39%,45
+Combined-4,WSSV,92.31%,85.71%,88.89%,70
+Combined-4,WSSV_BG,72.50%,87.88%,79.45%,33
