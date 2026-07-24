@@ -212,7 +212,7 @@
     }
   },
   "repository_hygiene": {
-    "tracked_file_count": 219,
+    "tracked_file_count": 284,
     "total_tracked_bytes": 6383664,
     "forbidden_tracked_files": [],
     "unapproved_pt_files": [],
