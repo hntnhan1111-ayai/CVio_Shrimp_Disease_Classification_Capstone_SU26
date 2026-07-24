@@ -1,0 +1,4 @@
+Label: ASL-LDAM + SimAM-DCFR
+Accuracy: 91.49%
+Macro-F1: 91.29%
+Actual source method: ASL-LDAM + SimAM-DCFR

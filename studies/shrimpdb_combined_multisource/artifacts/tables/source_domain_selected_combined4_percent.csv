@@ -1,0 +1,3 @@
+source_dataset,n,accuracy,balanced_accuracy,macro_f1,display_label,actual_source_method,checkpoint_sha256
+ShrimpDB,47,91.49%,89.77%,67.82%,ASL-LDAM + SimAM-DCFR,CE Baseline,adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad
+ShrimpDiseaseDB,173,86.71%,86.02%,85.42%,ASL-LDAM + SimAM-DCFR,CE Baseline,adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad

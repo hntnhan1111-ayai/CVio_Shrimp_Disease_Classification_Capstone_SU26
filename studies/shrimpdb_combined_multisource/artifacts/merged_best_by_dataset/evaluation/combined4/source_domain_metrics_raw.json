@@ -1,0 +1,150 @@
+{
+  "ShrimpDB": {
+    "n": 47,
+    "accuracy": 0.9148936170212766,
+    "balanced_accuracy": 0.8977272727272728,
+    "macro_precision": 0.6856060606060607,
+    "macro_recall": 0.6732954545454546,
+    "macro_f1": 0.6781874039938556,
+    "weighted_f1": 0.9133575187109847,
+    "cohen_kappa": 0.8675123326286117,
+    "matthews_corrcoef": 0.8694057859196604,
+    "top1_accuracy": 0.9148936170212766,
+    "ece_15_bins": 0.07596716031115104,
+    "classification_report": {
+      "Healthy": {
+        "precision": 0.9,
+        "recall": 0.8181818181818182,
+        "f1-score": 0.8571428571428571,
+        "support": 11.0
+      },
+      "BG": {
+        "precision": 0.9333333333333333,
+        "recall": 0.875,
+        "f1-score": 0.9032258064516129,
+        "support": 16.0
+      },
+      "WSSV": {
+        "precision": 0.9090909090909091,
+        "recall": 1.0,
+        "f1-score": 0.9523809523809523,
+        "support": 20.0
+      },
+      "WSSV_BG": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.9148936170212766,
+      "macro avg": {
+        "precision": 0.6856060606060607,
+        "recall": 0.6732954545454546,
+        "f1-score": 0.6781874039938556,
+        "support": 47.0
+      },
+      "weighted avg": {
+        "precision": 0.9152159896840748,
+        "recall": 0.9148936170212766,
+        "f1-score": 0.9133575187109847,
+        "support": 47.0
+      }
+    },
+    "top2_accuracy": 0.9787234042553191,
+    "bootstrap_ci95": {
+      "accuracy": {
+        "estimate": 0.9150744680851064,
+        "ci95_low": 0.8297872340425532,
+        "ci95_high": 0.9787234042553191,
+        "bootstrap_samples": 2000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.8984914772727274,
+        "ci95_low": 0.7973011363636364,
+        "ci95_high": 0.9791666666666666,
+        "bootstrap_samples": 2000
+      },
+      "macro_f1": {
+        "estimate": 0.6777712009217713,
+        "ci95_low": 0.6041165919418726,
+        "ci95_high": 0.735837922895358,
+        "bootstrap_samples": 2000
+      }
+    },
+    "source_dataset": "ShrimpDB"
+  },
+  "ShrimpDiseaseDB": {
+    "n": 173,
+    "accuracy": 0.8670520231213873,
+    "balanced_accuracy": 0.8602000787981569,
+    "macro_precision": 0.8543112486360709,
+    "macro_recall": 0.8602000787981569,
+    "macro_f1": 0.8541870095283487,
+    "weighted_f1": 0.8683811027188659,
+    "cohen_kappa": 0.8182856099008997,
+    "matthews_corrcoef": 0.8201250442949092,
+    "top1_accuracy": 0.8670520231213873,
+    "ece_15_bins": 0.07669218220462695,
+    "classification_report": {
+      "Healthy": {
+        "precision": 0.9344262295081968,
+        "recall": 0.9344262295081968,
+        "f1-score": 0.9344262295081968,
+        "support": 61.0
+      },
+      "BG": {
+        "precision": 0.8275862068965517,
+        "recall": 0.8275862068965517,
+        "f1-score": 0.8275862068965517,
+        "support": 29.0
+      },
+      "WSSV": {
+        "precision": 0.9302325581395349,
+        "recall": 0.8,
+        "f1-score": 0.8602150537634409,
+        "support": 50.0
+      },
+      "WSSV_BG": {
+        "precision": 0.725,
+        "recall": 0.8787878787878788,
+        "f1-score": 0.7945205479452054,
+        "support": 33.0
+      },
+      "accuracy": 0.8670520231213873,
+      "macro avg": {
+        "precision": 0.8543112486360709,
+        "recall": 0.8602000787981569,
+        "f1-score": 0.8541870095283487,
+        "support": 173.0
+      },
+      "weighted avg": {
+        "precision": 0.8753562306761662,
+        "recall": 0.8670520231213873,
+        "f1-score": 0.8683811027188659,
+        "support": 173.0
+      }
+    },
+    "top2_accuracy": 0.953757225433526,
+    "bootstrap_ci95": {
+      "accuracy": {
+        "estimate": 0.8669277456647398,
+        "ci95_low": 0.8208092485549133,
+        "ci95_high": 0.9132947976878613,
+        "bootstrap_samples": 2000
+      },
+      "balanced_accuracy": {
+        "estimate": 0.8598655088904877,
+        "ci95_low": 0.8052160397074191,
+        "ci95_high": 0.910747728129229,
+        "bootstrap_samples": 2000
+      },
+      "macro_f1": {
+        "estimate": 0.8538750262778093,
+        "ci95_low": 0.8006775479650957,
+        "ci95_high": 0.9049307188240672,
+        "bootstrap_samples": 2000
+      }
+    },
+    "source_dataset": "ShrimpDiseaseDB"
+  }
+}

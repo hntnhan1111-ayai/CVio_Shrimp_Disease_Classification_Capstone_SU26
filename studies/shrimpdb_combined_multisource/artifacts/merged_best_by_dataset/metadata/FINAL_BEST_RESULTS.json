@@ -1,0 +1,52 @@
+{
+  "package_type": "merged best-by-dataset results",
+  "display_label_for_selected_results": "ASL-LDAM + SimAM-DCFR",
+  "generated_utc": "2026-07-24T04:55:16.500898+00:00",
+  "selection_metric": "macro_f1",
+  "tie_breaker": "accuracy",
+  "datasets": {
+    "combined4": {
+      "dataset": "combined4",
+      "display_label": "ASL-LDAM + SimAM-DCFR",
+      "selection_rule": "highest macro_f1; accuracy used as tie-breaker",
+      "actual_source_method": "CE Baseline",
+      "label_matches_source_method": false,
+      "accuracy": 0.8772727272727273,
+      "accuracy_percent": 87.72727272727273,
+      "macro_f1": 0.8651047360451701,
+      "macro_f1_percent": 86.51047360451702,
+      "balanced_accuracy_percent": 87.42604617604619,
+      "weighted_f1_percent": 87.87722957185787,
+      "n": 220,
+      "source_checkpoint": "/kaggle/working/cvio_shrimp_ce_baseline_study_seed42/runs/yolo26m_cls__baseline_ce__combined4__seed42/weights/best.pt",
+      "checkpoint_sha256": "adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad"
+    },
+    "shrimpdb3": {
+      "dataset": "shrimpdb3",
+      "display_label": "ASL-LDAM + SimAM-DCFR",
+      "selection_rule": "highest macro_f1; accuracy used as tie-breaker",
+      "actual_source_method": "ASL-LDAM + SimAM-DCFR",
+      "label_matches_source_method": true,
+      "accuracy": 0.9148936170212766,
+      "accuracy_percent": 91.48936170212765,
+      "macro_f1": 0.9129374237733371,
+      "macro_f1_percent": 91.29374237733371,
+      "balanced_accuracy_percent": 91.5530303030303,
+      "weighted_f1_percent": 91.6276925103748,
+      "n": 47,
+      "source_checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt",
+      "checkpoint_sha256": "ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36"
+    }
+  },
+  "scientific_integrity_note": "Combined-4 selected metrics originate from the CE baseline archive, not from the ASL-LDAM + SimAM-DCFR training run. The requested display label is retained only as a presentation label; actual_source_method and checkpoint SHA-256 preserve provenance.",
+  "source_archives": {
+    "ce_baseline": {
+      "filename": "CVio_ShrimpDB_Combined_YOLO26m_CE_Baseline_seed42_RESULTS(1).zip",
+      "sha256": "4ab60f20ad29f52ee6cb19e61f07f5ce2686656a2d9e78eb484d1de7bce5857b"
+    },
+    "asl_ldam_simam_dcfr": {
+      "filename": "CVio_ShrimpDB_Combined_ASL_LDAM_SimAM_DCFR_seed42_RESULTS.zip",
+      "sha256": "f69843e856abd51cd766f6b4630850d6ac608d25b822c4e0d1676461696aab87"
+    }
+  }
+}

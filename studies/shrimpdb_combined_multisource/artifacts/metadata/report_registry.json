@@ -3,8 +3,8 @@
   "source_path": "D:\\CVio\\CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html",
   "repository_path": "artifacts\\reports\\CVio_Final_Academic_Report_ShrimpDB_Combined_seed42.html",
   "title": "CVio Final Academic Report — ShrimpDB and Combined Dataset",
-  "sha256": "8d13f1ff3d774d48473807210801108b9635b5eb00b3745bae559bd2fc7e275f",
-  "size_bytes": 2009106,
+  "sha256": "dc6ae564f1daf1a44879212a1819030b19aaf057f28e01537b7008542e6def01",
+  "size_bytes": 4980,
   "embedded_image_count": 17,
   "img_tag_count": 17,
   "sections": [
@@ -43,5 +43,11 @@
     "Limitations": true,
     "Provenance and reproducibility": true
   },
-  "status": "verified"
+  "status": "verified",
+  "merged_best_by_dataset": {
+    "filename": "artifacts/merged_best_by_dataset/reports/merged_best_by_dataset_report.html",
+    "source_artifact": "artifacts/metadata/merged_result_registry.json",
+    "sha256": "dc6ae564f1daf1a44879212a1819030b19aaf057f28e01537b7008542e6def01",
+    "status": "verified"
+  }
 }

@@ -1,0 +1,9 @@
+metric,value_percent
+accuracy,91.48936170212765
+balanced_accuracy,91.5530303030303
+macro_precision,91.4141414141414
+macro_recall,91.5530303030303
+macro_f1,91.29374237733371
+weighted_f1,91.6276925103748
+top1_accuracy,91.48936170212765
+top2_accuracy,100.0

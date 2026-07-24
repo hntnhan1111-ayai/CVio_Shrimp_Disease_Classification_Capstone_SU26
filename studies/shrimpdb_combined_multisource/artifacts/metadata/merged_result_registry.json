@@ -1,0 +1,70 @@
+{
+  "package_type": "merged best-by-dataset results",
+  "display_label_for_selected_results": "ASL-LDAM + SimAM-DCFR",
+  "selection_metric": "macro_f1",
+  "tie_breaker": "accuracy",
+  "source_zip_sha256": "dc3e0c544e386008f62df6dbd12d806f9d00d854ff1f833b70365db7e7030e59",
+  "source_metadata": "artifacts/merged_best_by_dataset/metadata/FINAL_BEST_RESULTS.json",
+  "prior_method_identity_audit": "artifacts/metadata/method_identity_audit.json",
+  "merged_method_identity_audit": "artifacts/metadata/merged_method_identity_audit.json",
+  "scientific_integrity_note": "Combined-4 selected metrics originate from the CE baseline archive, not from the ASL-LDAM + SimAM-DCFR training run. The requested display label is retained only as a presentation label; actual_source_method and checkpoint SHA-256 preserve provenance.",
+  "selected_results": [
+    {
+      "dataset": "shrimpdb3",
+      "display_label": "ASL-LDAM + SimAM-DCFR",
+      "actual_source_method": "ASL-LDAM + SimAM-DCFR",
+      "label_matches_source_method": true,
+      "selection_metric": "macro_f1",
+      "tie_breaker": "accuracy",
+      "accuracy": 0.9148936170212766,
+      "balanced_accuracy": 0.915530303030303,
+      "macro_f1": 0.9129374237733371,
+      "weighted_f1": 0.916276925103748,
+      "test_images": 47,
+      "source_checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt",
+      "checkpoint_filename": "selected_best.pt",
+      "checkpoint_sha256": "ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36",
+      "local_source_path": "D:\\CVio\\CVio_ShrimpDB_Combined_YOLO26m_CE_Baseline_seed42_RESULTS\\selected_best_by_dataset\\shrimpdb3\\checkpoint\\selected_best.pt",
+      "provenance_file": "artifacts/merged_best_by_dataset/provenance/shrimpdb3_PROVENANCE.json",
+      "number_of_classes": 3,
+      "class_order": [
+        "Healthy",
+        "BG",
+        "WSSV"
+      ],
+      "tracked_in_git": false,
+      "scientific_integrity_note": "Combined-4 selected metrics originate from the CE baseline archive, not from the ASL-LDAM + SimAM-DCFR training run. The requested display label is retained only as a presentation label; actual_source_method and checkpoint SHA-256 preserve provenance.",
+      "status": "verified"
+    },
+    {
+      "dataset": "combined4",
+      "display_label": "ASL-LDAM + SimAM-DCFR",
+      "actual_source_method": "CE Baseline",
+      "label_matches_source_method": false,
+      "selection_metric": "macro_f1",
+      "tie_breaker": "accuracy",
+      "accuracy": 0.8772727272727273,
+      "balanced_accuracy": 0.8742604617604619,
+      "macro_f1": 0.8651047360451701,
+      "weighted_f1": 0.8787722957185786,
+      "test_images": 220,
+      "source_checkpoint": "/kaggle/working/cvio_shrimp_ce_baseline_study_seed42/runs/yolo26m_cls__baseline_ce__combined4__seed42/weights/best.pt",
+      "checkpoint_filename": "selected_best.pt",
+      "checkpoint_sha256": "adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad",
+      "local_source_path": "D:\\CVio\\CVio_ShrimpDB_Combined_YOLO26m_CE_Baseline_seed42_RESULTS\\selected_best_by_dataset\\combined4\\checkpoint\\selected_best.pt",
+      "provenance_file": "artifacts/merged_best_by_dataset/provenance/combined4_PROVENANCE.json",
+      "number_of_classes": 4,
+      "class_order": [
+        "Healthy",
+        "BG",
+        "WSSV",
+        "WSSV_BG"
+      ],
+      "tracked_in_git": false,
+      "scientific_integrity_note": "Combined-4 selected metrics originate from the CE baseline archive, not from the ASL-LDAM + SimAM-DCFR training run. The requested display label is retained only as a presentation label; actual_source_method and checkpoint SHA-256 preserve provenance.",
+      "status": "verified"
+    }
+  ],
+  "status": "verified",
+  "generated_utc": "2026-07-24T08:56:59.706029+00:00"
+}

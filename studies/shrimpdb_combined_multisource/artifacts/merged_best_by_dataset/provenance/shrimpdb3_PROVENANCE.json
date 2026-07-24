@@ -1,0 +1,17 @@
+{
+  "dataset": "shrimpdb3",
+  "display_label": "ASL-LDAM + SimAM-DCFR",
+  "selection_rule": "highest macro_f1; accuracy used as tie-breaker",
+  "actual_source_method": "ASL-LDAM + SimAM-DCFR",
+  "label_matches_source_method": true,
+  "accuracy": 0.9148936170212766,
+  "accuracy_percent": 91.48936170212765,
+  "macro_f1": 0.9129374237733371,
+  "macro_f1_percent": 91.29374237733371,
+  "balanced_accuracy_percent": 91.5530303030303,
+  "weighted_f1_percent": 91.6276925103748,
+  "n": 47,
+  "source_checkpoint": "/kaggle/working/cvio_shrimp_academic_study_seed42/runs/yolo26m_cls__asl_ldam_simam_dcfr__shrimpdb3__seed42/weights/best.pt",
+  "checkpoint_sha256": "ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36",
+  "packaged_checkpoint": "selected_best_by_dataset/shrimpdb3/checkpoint/selected_best.pt"
+}

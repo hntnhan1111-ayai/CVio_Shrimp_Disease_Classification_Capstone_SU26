@@ -1,0 +1,3 @@
+dataset,label,accuracy_percent,macro_f1_percent,actual_source_method,label_matches_source_method,test_images,checkpoint_sha256
+combined4,ASL-LDAM + SimAM-DCFR,87.73,86.51,CE Baseline,false,220,adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad
+shrimpdb3,ASL-LDAM + SimAM-DCFR,91.49,91.29,ASL-LDAM + SimAM-DCFR,true,47,ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36

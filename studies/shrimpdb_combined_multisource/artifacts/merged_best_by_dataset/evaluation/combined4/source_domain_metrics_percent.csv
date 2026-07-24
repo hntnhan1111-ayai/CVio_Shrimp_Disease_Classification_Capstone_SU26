@@ -1,0 +1,3 @@
+source_dataset,n,accuracy_percent,balanced_accuracy_percent,macro_f1_percent
+ShrimpDB,47,91.48936170212765,89.77272727272728,67.81874039938556
+ShrimpDiseaseDB,173,86.70520231213872,86.02000787981568,85.41870095283487

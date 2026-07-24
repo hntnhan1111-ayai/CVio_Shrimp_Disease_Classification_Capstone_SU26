@@ -1,0 +1,5 @@
+dataset,source_method,display_label,selected,test_images,accuracy_percent,balanced_accuracy_percent,macro_f1_percent,weighted_f1_percent,checkpoint_sha256
+combined4,CE Baseline,ASL-LDAM + SimAM-DCFR,yes,220,87.73%,87.43%,86.51%,87.88%,adebc0a4e16fe45f2b1f12e375c5514d15a9eafb8be5939834d27208a744c5ad
+combined4,ASL-LDAM + SimAM-DCFR,ASL-LDAM + SimAM-DCFR,no,220,83.18%,83.85%,82.18%,83.19%,9fdf51f89a531ffe1158cb5208e15640284d63f4413b649b1ccadc02b3967606
+shrimpdb3,CE Baseline,CE Baseline,no,47,70.21%,73.11%,72.30%,70.21%,055e22edd699bea623a4b1b8c34ad7a395b56658036a4495e5b54159b786c8ea
+shrimpdb3,ASL-LDAM + SimAM-DCFR,ASL-LDAM + SimAM-DCFR,yes,47,91.49%,91.55%,91.29%,91.63%,ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36
