@@ -1,0 +1,3 @@
+dataset_id,display_name,status,class_names,image_count,test_images,notes
+legacy_129_test,Legacy report protocol (129-image test),historical_only,BG|WSSV,,129,Original data YAML and split manifest are missing from the workspace
+mrtu_v1,Expanded dataset - ShrimpDisBD-TigerShrimp_MrTuDat v1,audit_available,BG|WSSV,1452,,Expanded/combined dataset; use grouped near-duplicate leakage-safe split

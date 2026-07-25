@@ -1,0 +1,6 @@
+id: simam_ca_strong
+display_name: SimAM + CA strong
+protocol: strong_augmentation_v1
+selection: best disease mAP50, disease mAP50-95 and HA in the legacy report
+implementation_status: not_ported
+legacy_source: yolov11n_attention/yolov11n_grouped_attention/yolo11n_seg_simam_ca_experiment (1).ipynb

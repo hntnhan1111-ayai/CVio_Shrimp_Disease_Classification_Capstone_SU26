@@ -33,6 +33,18 @@ tflite_work_simam_ca/
 *.pb
 *.zip
 
+# Reproducibility layer generated outputs (curated CSV/Markdown artifacts stay tracked)
+/reproducible_segmentation/artifacts/generated/
+/reproducible_segmentation/.env
+
+# Local datasets, raw output packages and temporary tooling
+# The compact, reviewable results for Git live in reproducible_segmentation/artifacts/.
+/tmp/
+/.tmp/
+/outputs/*
+!/outputs/README.md
+/tools/kaggle_cli_deps/
+
 # Node / Android generated files
 **/node_modules/
 **/.gradle/

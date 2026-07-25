@@ -1,0 +1,7 @@
+split,class_id,class_name,annotation_count,image_count_with_class
+train,0,BG,548,445
+train,1,WSSV,582,554
+valid,0,BG,61,56
+valid,1,WSSV,71,68
+test,0,BG,71,66
+test,1,WSSV,84,80

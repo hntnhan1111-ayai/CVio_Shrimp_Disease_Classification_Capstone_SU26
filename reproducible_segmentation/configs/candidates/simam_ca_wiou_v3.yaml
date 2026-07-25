@@ -1,0 +1,6 @@
+id: simam_ca_wiou_v3
+display_name: SimAM + CA + WIoU v3
+protocol: strong_augmentation_v1
+selection: lowest healthy false-positive rate among report-selected candidates
+implementation_status: missing_new_dataset_notebook
+legacy_source: yolov11n_attention/yolov11n_simam_NhomB/yolov11n_simam_WIoUv3.ipynb

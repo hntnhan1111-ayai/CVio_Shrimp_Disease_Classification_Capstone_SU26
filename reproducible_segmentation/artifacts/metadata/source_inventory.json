@@ -1,0 +1,16 @@
+{
+  "report": "yolov11n_attention/BAO_CAO_TONG_HOP_MODULE_DO_CHINH_XAC_CAO.md",
+  "scope": "baseline plus the five report-selected candidates only",
+  "historical_result_table": "artifacts/tables/legacy_top5_single_run.csv",
+  "expanded_dataset_output_import": "artifacts/metadata/mrtu_output_import.json",
+  "new_dataset_audit": [
+    "tmp/tigershrimp_yolo26_audit.json",
+    "tmp/tigershrimp_yolo26_structure_audit.json"
+  ],
+  "excluded_from_new_layer": [
+    "all other historical attention modules",
+    "raw datasets and labels",
+    "training runs, weights and export archives",
+    "vendored ultralytics source"
+  ]
+}

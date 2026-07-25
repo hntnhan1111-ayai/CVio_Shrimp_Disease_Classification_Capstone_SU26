@@ -1,0 +1,7 @@
+id: dpca_strong
+display_name: DPCA strong
+protocol: strong_augmentation_v1
+variants: [P4, P3_P4_P5]
+selection: best new attention candidate in the legacy report
+implementation_status: not_ported
+legacy_source: yolov11n_attention/new_research_attention/dpca_dual_polarity_contrast/dpca_dual_polarity_contrast.ipynb

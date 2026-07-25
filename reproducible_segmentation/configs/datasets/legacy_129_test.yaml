@@ -1,0 +1,16 @@
+id: legacy_129_test
+display_name: Legacy report protocol (129-image test)
+status: historical_only
+data_yaml: null
+classes: [BG, WSSV]
+test_images: 129
+healthy_negative_images: 41
+disease_or_labeled_images: 88
+split_policy: unknown_not_yet_migrated
+required_before_rerun:
+  - original data.yaml
+  - immutable train_val_test manifest
+  - preprocessing and augmentation provenance
+notes: >-
+  The report provides the test composition and historical metrics, but the
+  source data.yaml/split manifest is not available in the current workspace.

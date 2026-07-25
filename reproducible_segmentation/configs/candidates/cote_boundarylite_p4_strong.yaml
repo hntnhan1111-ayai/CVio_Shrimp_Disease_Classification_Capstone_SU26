@@ -1,0 +1,7 @@
+id: cote_boundarylite_p4_strong
+display_name: CoTE + BoundaryLite P4 strong
+protocol: strong_augmentation_v1
+selection: strongest CoTE refinement in the legacy report
+implementation_status: not_ported
+legacy_source: yolov11n_attention/improving_labeled_test/cote_boundarylite_p4_strong.ipynb
+model_yaml: yolov11n_attention/custom_attention_research_modules/cote_bl_gate/generated_yamls/cote_bl_p4_strong.yaml

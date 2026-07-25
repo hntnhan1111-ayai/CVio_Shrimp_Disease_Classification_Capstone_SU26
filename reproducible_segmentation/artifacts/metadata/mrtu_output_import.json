@@ -1,0 +1,50 @@
+{
+  "source_directory": "outputs/",
+  "dataset_id": "expanded_dataset_mrtu_v1",
+  "dataset_label": "Expanded dataset (ShrimpDisBD-TigerShrimp_MrTuDat v1)",
+  "selection_rule": "Strong run with the highest completed epoch in each imported package.",
+  "source_packages": [
+    {
+      "zip": "yolo11n_simam_ca_new_data_leakage.zip",
+      "sha256": "7907f82adc6441d70a774c5f327d8fdf55963a074c8746a5bd9fc2ca0522bb32",
+      "candidate_id": "simam_ca_strong",
+      "runs_imported": 2,
+      "selected_runs": [
+        "simam_ca_mixed_split_run_simam_ca_strong"
+      ]
+    },
+    {
+      "zip": "yolo11n_seg_dpca_p4_new_data_leakage.zip",
+      "sha256": "2d577e16207093be6e0482d4a9e7feb004d80a9bf070c8f17344207695498e61",
+      "candidate_id": "dpca_p4_strong",
+      "runs_imported": 3,
+      "selected_runs": [
+        "yolo11n_seg_dpca_p4_new_data_leakage/yolo11n_seg_dpca_p4_strong_200e"
+      ]
+    },
+    {
+      "zip": "yolo11n_seg_dpca_p3p4p5_new_data_leakage.zip",
+      "sha256": "5854f6055416670cbe6c72c652a2f3bc20ce20f322c742e24e957f776296f446",
+      "candidate_id": "dpca_p3p4p5_strong",
+      "runs_imported": 2,
+      "selected_runs": [
+        "yolo11n_seg_dpca_p3p4p5_new_data_leakage/yolo11n_seg_dpca_p3p4p5_strong_200e"
+      ]
+    },
+    {
+      "zip": "yolo11n_seg_cote_boundarylite_p4_strong_new_data_leakage.zip",
+      "sha256": "8949807df51144f00f8f74cda647dbd8c4ccc7bfb598f390e6a2b0a7827347bb",
+      "candidate_id": "cote_boundarylite_p4_strong",
+      "runs_imported": 4,
+      "selected_runs": [
+        "yolo11n_seg_cote_boundarylite_p4_strong_new_data_leakage/yolo11n_seg_cote_boundary_p4_strong_200e"
+      ]
+    }
+  ],
+  "notes": [
+    "Metrics are final Ultralytics validation metrics from results.csv.",
+    "They are not a replacement for a separately documented held-out test evaluation.",
+    "The imported runs are results on the expanded dataset.",
+    "Weights and notebooks remain only in the original ZIP packages."
+  ]
+}

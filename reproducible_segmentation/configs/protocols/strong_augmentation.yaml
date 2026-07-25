@@ -1,0 +1,24 @@
+id: strong_augmentation_v1
+comparison_rule: >-
+  All candidates and the baseline must use the same split, image size, seed,
+  threshold, epoch budget and checkpoint rule.
+augmentation:
+  fliplr: 0.5
+  flipud: 0.3
+  hsv_h: 0.05
+  hsv_s: 0.5
+  hsv_v: 0.4
+  degrees: 10
+  translate: 0.1
+  scale: 0.5
+  erasing: 0.15
+  mosaic: 0.0
+  mixup: 0.0
+  copy_paste: 0.0
+required_metrics:
+  - full_mask_map50
+  - disease_mask_map50
+  - disease_mask_map50_95
+  - healthy_fp_rate
+  - healthy_aware
+recommended_seeds: [42, 43, 44]

@@ -1,0 +1,5 @@
+[project]
+name = "cvio-shrimp-seg-repro"
+version = "0.1.0"
+description = "Reproducibility catalog for selected YOLO11n-Seg shrimp experiments"
+requires-python = ">=3.10"

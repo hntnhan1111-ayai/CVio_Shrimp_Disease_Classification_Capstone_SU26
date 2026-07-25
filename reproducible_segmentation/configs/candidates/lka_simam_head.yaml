@@ -1,0 +1,6 @@
+id: lka_simam_head
+display_name: LKA -> SimAM head
+protocol: strong_augmentation_v1
+selection: best full-test mask mAP50 in the legacy report
+implementation_status: not_ported
+legacy_source: yolov11n_attention/yolov11n_simam_NhomC/lka_head/yolov11n-simam-lka-head.ipynb

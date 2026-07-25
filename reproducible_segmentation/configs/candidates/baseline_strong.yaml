@@ -1,0 +1,6 @@
+id: baseline_strong
+kind: control
+display_name: YOLO11n-Seg baseline strong
+protocol: strong_augmentation_v1
+purpose: Matched control for every strong-augmentation candidate.
+implementation_status: catalog_only

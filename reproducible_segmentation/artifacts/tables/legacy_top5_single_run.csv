@@ -1,0 +1,6 @@
+candidate_id,display_name,full_mask_map50,disease_mask_map50,disease_mask_map50_95,healthy_fp_rate,healthy_aware,selection_intent,evidence_status
+simam_ca_strong,SimAM + CA strong,0.4971,0.5507,0.1964,0.3410,0.4808,Overall disease-segmentation candidate,Single seed historical result
+lka_simam_head,LKA -> SimAM head,0.5003,0.5249,0.1812,0.3660,0.4518,Best full-test mask mAP50,Single seed historical result
+dpca_strong,DPCA strong,0.4880,0.5225,0.1580,0.2680,0.4590,Best new attention candidate,Single seed historical result
+cote_boundarylite_p4_strong,CoTE + BoundaryLite P4 strong,0.4921,0.5174,0.1660,0.3410,0.4540,Best CoTE refinement,Single seed historical result
+simam_ca_wiou_v3,SimAM + CA + WIoU v3,0.4314,0.4539,0.1473,0.1710,0.3954,Low false-positive option,Single seed historical result

@@ -1,0 +1,18 @@
+id: mrtu_v1
+display_name: Expanded dataset - ShrimpDisBD-TigerShrimp_MrTuDat v1
+dataset_role: expanded_combined_dataset
+status: audit_available
+data_yaml: ${CVIO_MRTU_DATA_YAML}
+classes: [BG, WSSV]
+image_count: 1452
+empty_label_images: 403
+source: Roboflow ShrimpDisBD-TigerShrimp_MrTuDat v1 export
+split_policy: grouped_near_duplicate_leakage_safe
+required_before_rerun:
+  - set CVIO_MRTU_DATA_YAML to an external YOLO data.yaml
+  - persist the final grouped split manifest
+  - document the near-duplicate resolution policy
+notes: >-
+  This is the expanded/combined dataset used by the imported output results.
+  The raw export and train folder are intentionally not copied into this
+  reproducibility layer. Audit evidence remains in the legacy tmp workspace.
