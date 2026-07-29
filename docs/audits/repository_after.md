@@ -6,6 +6,8 @@ Repository: `hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26`
 
 Branch: `main`
 
+Visibility: private, confirmed through the authenticated GitHub API after push
+
 Original HEAD: `969544bd80658c90d093ba4c2b99b9cd798aeb86`
 
 Audited implementation HEAD: `d46d655`
@@ -106,11 +108,18 @@ No analytics, ads, remote fonts, dynamic profile cards, hosted image generators,
 4. `8b05b4a` — `ci: validate documentation links assets and provenance`
 5. `b9a930d` — `docs: record final repository audit`
 6. `d46d655` — `fix: remove generated SVG trailing whitespace`
-7. Final audit-update commit — records the post-verification fix in this report.
+7. `f1798a4` — `docs: update audit after verification fix`
+8. Publication-status commit — records the successful push and hosted checks below.
 
 ## Push and follow-up
 
-The authorized target is `origin/main`. Push status is recorded in the task handoff after this report is committed and the final checks are rerun. If branch protection rejects the push, the required fallback is a feature branch and pull request; protection must not be bypassed.
+The audited tree through `f1798a4` was pushed fast-forward to `origin/main` without force or history rewriting. GitHub Actions then completed successfully for all three hosted workflows at that SHA:
+
+- Documentation quality — run `30459773725`;
+- Documentation assets — run `30459773695`;
+- Local link validation — run `30459773896`.
+
+This publication-status update is the only commit created after those runs. Its local checks are rerun before push, and its hosted checks are verified in the task handoff. Branch protection did not block the authorized direct push.
 
 Recommended next actions:
 
