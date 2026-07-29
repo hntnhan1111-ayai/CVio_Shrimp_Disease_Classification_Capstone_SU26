@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img"
+  aria-labelledby="title desc">
+  <title id="title">CVio shrimp aperture logo</title>
+  <desc id="desc">A coral shrimp curls around a cyan camera aperture.</desc>
+  
+  <rect width="600" height="600" rx="132" fill="#071A2B"/>
+  <circle cx="300" cy="300" r="174" fill="none" stroke="#14B8C4" stroke-width="34"/>
+  <path d="M165 324c25-125 197-154 270-42 50 77-9 171-101 163-71-6-101-64-75-112 20-37 73-46 105-17"
+        fill="none" stroke="#FF6B6B" stroke-width="38" stroke-linecap="round"/>
+  <circle cx="203" cy="268" r="12" fill="#F5E9D3"/>
+  <path d="M157 301l-64-44m75 23-36-72m269 155 72 37m-86-15 38 66"
+        stroke="#FF6B6B" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="324" cy="353" r="34" fill="#0F9D8A"/>
+
+</svg>

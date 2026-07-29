@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" role="img"
+  aria-labelledby="title desc">
+  <title id="title">Illustrated research avatar for TBD</title>
+  <desc id="desc">An abstract, non-photorealistic CVio laboratory avatar representing Team Member with dataset panel.</desc>
+  
+  <rect width="400" height="480" rx="44" fill="#071A2B"/>
+  <circle cx="200" cy="150" r="86" fill="#F5E9D3"/>
+  <path d="M116 144c8-76 160-98 173 10v26H112z" fill="#0B4F6C"/>
+  <circle cx="168" cy="157" r="7" fill="#071A2B"/><circle cx="232" cy="157" r="7" fill="#071A2B"/>
+  <path d="M174 195q26 20 52 0" fill="none" stroke="#071A2B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M95 425v-88c0-61 46-103 105-103s105 42 105 103v88" fill="#0B4F6C"/>
+  <rect x="124" y="285" width="152" height="108" rx="12" fill="#0B3248" stroke="#14B8C4" stroke-width="4"/>
+  <text x="200" y="353" text-anchor="middle" fill="#F5E9D3" font-size="44" font-family="Arial, sans-serif">{ }</text>
+  <rect y="414" width="400" height="66" fill="#06131F"/>
+  <text x="200" y="441" text-anchor="middle" fill="#F5E9D3" font-size="20" font-family="Arial, sans-serif" font-weight="700">TBD</text>
+  <text x="200" y="465" text-anchor="middle" fill="#B9DDE4" font-size="14" font-family="Arial, sans-serif">Team Member</text>
+
+</svg>

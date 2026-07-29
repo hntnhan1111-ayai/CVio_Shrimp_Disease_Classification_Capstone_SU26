@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" role="img"
+  aria-labelledby="title desc">
+  <title id="title">CVio — Lightweight Deep Learning for Robust Shrimp Disease Analysis</title>
+  <desc id="desc">A mobile camera observes a shrimp while classification probabilities and an instance segmentation contour illustrate the two CVio research tracks.</desc>
+  
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#071A2B"/><stop offset="1" stop-color="#0B4F6C"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1600" height="720" rx="38" fill="url(#water)"/>
+  <circle cx="1370" cy="120" r="180" fill="#14B8C4" opacity=".10" filter="url(#soft)"/>
+  <circle cx="280" cy="620" r="220" fill="#0F9D8A" opacity=".11" filter="url(#soft)"/>
+  <g fill="#14B8C4" opacity=".24">
+    <circle cx="88" cy="80" r="5"/><circle cx="148" cy="144" r="3"/><circle cx="1510" cy="568" r="6"/>
+    <circle cx="1430" cy="622" r="3"/><circle cx="1190" cy="94" r="4"/><circle cx="990" cy="652" r="3"/>
+  </g>
+  <g transform="translate(90 116)">
+    <rect width="440" height="500" rx="52" fill="#06131F" stroke="#14B8C4" stroke-width="6"/>
+    <rect x="28" y="62" width="384" height="360" rx="20" fill="#0B3248"/>
+    <rect x="168" y="24" width="104" height="12" rx="6" fill="#0B4F6C"/>
+    <circle cx="220" cy="461" r="18" fill="none" stroke="#F5E9D3" opacity=".5" stroke-width="4"/>
+    <path d="M95 272c35-126 202-146 273-41 44 66-3 148-84 150-64 1-105-44-91-91 12-39 58-58 94-36"
+          fill="none" stroke="#FF6B6B" stroke-width="30" stroke-linecap="round"/>
+    <path d="M76 281c42-153 240-177 325-49 52 78-5 179-102 181"
+          fill="none" stroke="#14B8C4" stroke-width="5" stroke-dasharray="12 10"/>
+    <circle cx="132" cy="227" r="9" fill="#F5E9D3"/>
+    <path d="M94 259l-55-35m65 17-29-63" stroke="#FF6B6B" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(610 112)" font-family="Arial, sans-serif">
+    <text x="0" y="64" fill="#14B8C4" font-size="28" font-weight="700" letter-spacing="5">GRADUATION CAPSTONE RESEARCH</text>
+    <text x="0" y="160" fill="#F5E9D3" font-size="88" font-weight="700">CVio</text>
+    <text x="0" y="222" fill="#F5E9D3" font-size="38" font-weight="600">Lightweight Deep Learning for Robust</text>
+    <text x="0" y="272" fill="#F5E9D3" font-size="38" font-weight="600">Shrimp Disease Analysis</text>
+    <text x="0" y="332" fill="#B9DDE4" font-size="23">Classification + instance segmentation + mobile-oriented inference</text>
+    <text x="0" y="370" fill="#B9DDE4" font-size="23">under diverse environmental conditions</text>
+    <g transform="translate(0 420)">
+      <rect width="260" height="104" rx="18" fill="#0B3248" stroke="#14B8C4"/>
+      <text x="24" y="36" fill="#B9DDE4" font-size="18">CLASSIFICATION</text>
+      <rect x="24" y="55" width="164" height="12" rx="6" fill="#0B4F6C"/><rect x="24" y="55" width="122" height="12" rx="6" fill="#14B8C4"/>
+      <rect x="24" y="77" width="164" height="12" rx="6" fill="#0B4F6C"/><rect x="24" y="77" width="66" height="12" rx="6" fill="#FF6B6B"/>
+      <text x="202" y="71" fill="#F5E9D3" font-size="15">p(class)</text>
+    </g>
+    <g transform="translate(286 420)">
+      <rect width="260" height="104" rx="18" fill="#0B3248" stroke="#0F9D8A"/>
+      <text x="24" y="36" fill="#B9DDE4" font-size="18">INSTANCE MASK</text>
+      <path d="M27 77c24-30 61-32 87-8 25 22 54 17 82-4" fill="none" stroke="#14B8C4" stroke-width="5" stroke-dasharray="8 6"/>
+      <circle cx="198" cy="64" r="10" fill="#FF6B6B"/>
+    </g>
+    <g transform="translate(572 420)">
+      <rect width="260" height="104" rx="18" fill="#0B3248" stroke="#F6C453"/>
+      <text x="24" y="36" fill="#B9DDE4" font-size="18">MOBILE TARGET</text>
+      <rect x="28" y="51" width="48" height="40" rx="7" fill="none" stroke="#F6C453" stroke-width="4"/>
+      <path d="M95 72h119" stroke="#0F9D8A" stroke-width="7" stroke-linecap="round"/>
+      <path d="M201 61l14 11-14 11" fill="none" stroke="#0F9D8A" stroke-width="6"/>
+    </g>
+  </g>
+
+</svg>

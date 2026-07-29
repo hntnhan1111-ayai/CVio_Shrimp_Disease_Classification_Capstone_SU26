@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img"
+  aria-labelledby="title desc">
+  <title id="title">CVio wordmark</title>
+  <desc id="desc">CVio wordmark with the phrase Aquaculture Vision Intelligence.</desc>
+  
+  <rect width="1200" height="280" rx="40" fill="#071A2B"/>
+  <text x="72" y="160" fill="#F5E9D3" font-size="128" font-family="Arial, sans-serif" font-weight="700">C</text>
+  <text x="170" y="160" fill="#14B8C4" font-size="128" font-family="Arial, sans-serif" font-weight="700">Vio</text>
+  <rect x="76" y="190" width="622" height="8" rx="4" fill="#FF6B6B"/>
+  <text x="76" y="238" fill="#F5E9D3" opacity=".78" font-size="27" font-family="Arial, sans-serif" letter-spacing="6">AQUACULTURE VISION INTELLIGENCE</text>
+
+</svg>
