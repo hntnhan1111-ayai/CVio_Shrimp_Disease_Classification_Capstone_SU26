@@ -1,0 +1,89 @@
+name: Experiment result submission
+description: Register a run for provenance review before publishing a metric.
+title: "[Experiment]: "
+labels: ["experiment", "provenance-review"]
+body:
+  - type: input
+    id: experiment_id
+    attributes:
+      label: Experiment ID
+    validations:
+      required: true
+  - type: dropdown
+    id: track
+    attributes:
+      label: Research track
+      options:
+        - Image classification
+        - Instance segmentation
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Full commit SHA
+    validations:
+      required: true
+  - type: input
+    id: config
+    attributes:
+      label: Config path and hash
+    validations:
+      required: true
+  - type: textarea
+    id: dataset
+    attributes:
+      label: Dataset version and split
+      description: Include dataset fingerprint, split-manifest path, and split hash.
+    validations:
+      required: true
+  - type: input
+    id: seed
+    attributes:
+      label: Random seed
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and hardware
+      description: Include OS, package lock, framework, accelerator, and deterministic settings.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Exact command
+    validations:
+      required: true
+  - type: textarea
+    id: checkpoint
+    attributes:
+      label: Checkpoint path and hash
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Metrics, predictions, and logs
+      description: Provide repository-safe paths and metric definitions.
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failure and exclusion notes
+      description: Include partial runs, excluded samples, and known anomalies.
+    validations:
+      required: true
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Integrity confirmation
+      options:
+        - label: Test data did not guide model, checkpoint, or threshold selection.
+          required: true
+        - label: I did not modify measured values or omit known failed runs.
+          required: true
+        - label: Linked artifacts contain no secrets, private data, or restricted files.
+          required: true

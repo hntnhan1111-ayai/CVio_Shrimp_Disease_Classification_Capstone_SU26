@@ -7,8 +7,6 @@
 .buildlog/
 .history
 
-
-
 # Flutter repo-specific
 /bin/cache/
 /bin/internal/bootstrap.bat
@@ -117,3 +115,28 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Local documentation QA artifacts.
+.playwright-cli/
+output/playwright/
+readme-preview.html
+
+# Python caches and environments.
+__pycache__/
+*.py[cod]
+.venv/
+.venv_*/
+
+# Local secrets and environment overrides.
+.env
+.env.*
+!.env.example
+
+# Research artifacts that require explicit review before tracking.
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.ckpt
+wandb/
+runs/

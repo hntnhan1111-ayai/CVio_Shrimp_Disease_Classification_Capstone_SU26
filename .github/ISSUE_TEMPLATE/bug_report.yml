@@ -1,0 +1,50 @@
+name: Bug report
+description: Report reproducible incorrect repository or software behavior.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include secrets, private images, restricted datasets, or personal data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the observed and expected behavior.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA
+      placeholder: Full 40-character SHA
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include exact commands and redacted inputs.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python/runtime versions, hardware, and relevant package versions.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs and evidence
+      description: Paste minimal redacted logs or link to a safe artifact.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed secrets, private data, and restricted assets.
+          required: true

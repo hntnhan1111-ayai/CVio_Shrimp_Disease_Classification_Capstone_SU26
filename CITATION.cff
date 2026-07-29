@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use CVio, cite the archived release and associated paper when those records become available."
+title: "CVio — Lightweight Deep Learning for Robust Shrimp Disease Analysis"
+type: software
+authors:
+  - name: "CVio research team"
+repository-code: "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26"
+abstract: >-
+  Graduation capstone research on shrimp disease image classification,
+  instance segmentation, and mobile-oriented inference under diverse
+  environmental conditions.
+keywords:
+  - computer vision
+  - shrimp disease
+  - image classification
+  - instance segmentation
+  - mobile inference
+version: "0.1.0-development"
