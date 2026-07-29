@@ -19,11 +19,11 @@ The latest `main` release surface contains only a one-line README and no tagged 
 
 - [x] Confirmed `main`, remote, and original HEAD.
 - [x] Audited the one-file baseline and remote-branch evidence.
-- [ ] Added brand, hero, animation, team, and gallery assets.
-- [ ] Added README and research documentation.
-- [ ] Added governance and CI.
-- [ ] Passed local validation.
-- [ ] Recorded final audit and handoff.
+- [x] Added brand, hero, animation, team, and gallery assets.
+- [x] Added README and research documentation.
+- [x] Added governance and CI.
+- [x] Passed local validation.
+- [x] Recorded final audit and handoff.
 
 ## Surprises & Discoveries
 
@@ -41,4 +41,4 @@ The latest `main` release surface contains only a one-line README and no tagged 
 
 ## Outcomes & Retrospective
 
-Pending implementation and final validation.
+The repository now has a visual academic landing page, provenance-first research documentation, original reproducible assets, governance foundations, and offline CI gates. No branch-local metric was promoted without integrated evidence. The primary unresolved risks are project-owner facts, licensing, dataset approval, runtime integration, verified results, and device-level deployment evidence.

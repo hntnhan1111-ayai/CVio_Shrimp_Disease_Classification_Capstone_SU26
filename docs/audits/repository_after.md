@@ -1,0 +1,120 @@
+# Repository Final Audit
+
+Audit date: 2026-07-29
+
+Repository: `hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26`
+
+Branch: `main`
+
+Original HEAD: `969544bd80658c90d093ba4c2b99b9cd798aeb86`
+
+Audited implementation HEAD: `8b05b4a`
+
+This report and the completed ExecPlan are committed after the audited implementation HEAD. The exact final task HEAD and push result are reported in the task handoff because a commit cannot contain its own hash before it exists.
+
+## Change inventory
+
+Relative to the original HEAD, the completed tree has 47 added files and 2 modified files:
+
+- Modified: `README.md` and `.gitignore`.
+- Added: three GitHub workflows, four issue-template files, one PR template, four governance/citation files, eight primary research documents, five audit/plan documents including this report, eighteen visual-asset/source files, and six documentation scripts.
+- Existing Flutter, Dart, Android, iOS, desktop, coverage, and editor ignore rules were preserved before project-specific ignore rules were appended.
+- No runtime, dataset, checkpoint, metric, remote-branch, or Git-history artifact was changed.
+
+Use this exact command to enumerate the final paths:
+
+```powershell
+git diff --name-status 969544bd80658c90d093ba4c2b99b9cd798aeb86..HEAD
+```
+
+## Design decisions
+
+- A self-contained dark aquaculture-laboratory hero provides stable light/dark-theme contrast.
+- Cyan represents analysis/focus, teal represents verified forward flow, coral carries shrimp/anomaly identity, and amber marks pending deployment concerns.
+- The hero communicates classification, instance masks, and mobile targets without fabricated metrics.
+- The 36-frame pixel shrimp is original, deterministic, non-flashing, and shown as a small easter egg.
+- Five abstract team avatars avoid invented likenesses. The responsive lineup is used in the README; individual assets remain available.
+- One original “Reviewer #2 Shrimp” panel lives in the gallery rather than crowding the landing page.
+- GitHub-native Mermaid describes the intended system flow.
+- Results and mobile claims remain visibly pending until full provenance exists.
+
+## Verified project facts used
+
+- Project type: graduation capstone.
+- Research scope: image classification, instance segmentation, mobile-oriented deployment, and diverse environmental conditions.
+- Supplied roles: Mentor Vinh, Nhan, Phong, and Nhu.
+- Git authorship independently supports the student names Nhan, Phong, and Nhu.
+- Remote branch names and trees support the existence of classification, segmentation, and mobile-oriented work.
+- The original `main` tree had no integrated research runtime or publishable result evidence.
+
+## Deferred placeholders
+
+- Fourth student name.
+- Institution, course code, capstone schedule, preferred citation order, and formal supervisor identity.
+- Source-code, documentation, visual, model-weight, dataset, and third-party licensing decisions.
+- Integrated datasets, cards, counts, classes, licenses, split manifests, and leakage evidence.
+- Frozen baselines, proposed methods, training/evaluation entry points, checkpoints, configs, and verified metrics.
+- Mobile export format, target device, runtime, latency, memory, accuracy-retention, and operator evidence.
+- Private security and conduct contacts.
+
+These are publication blockers for the corresponding claim, not failures of the documentation build.
+
+## Checks performed
+
+| Check | Result |
+|---|---|
+| Ruff format check on six Python scripts | Pass |
+| Ruff lint on six Python scripts | Pass |
+| Python bytecode compilation | Pass |
+| Markdown structure across 22 documents | Pass |
+| Local links and anchors across 22 documents | Pass |
+| SVG XML, safety, title/description, names, formats, inventory | Pass |
+| GIF size and GIF/PNG signatures | Pass |
+| Required result and metric-provenance columns | Pass |
+| Eight YAML/CFF files parsed as mappings | Pass |
+| Generated-asset SHA-256 determinism across 12 files | Pass |
+| `git diff --check` | Pass; Windows line-ending notices only |
+| High-confidence secret-pattern filename/content scan | Pass; no matches |
+| Working-tree file size scan | Pass; no file above 2 MB |
+| Desktop hero render at 1600 × 720 | Pass |
+| README viewport checks at 1440 px and 420 px | Pass with a local Markdown renderer; team layout changed to responsive lineup |
+
+Gitleaks, Lychee, markdownlint, and a GitHub-native pre-push README renderer were not installed. Equivalent offline checks cover repository-local links, Markdown structure, assets, and common high-confidence secret patterns. External workflow badges become verifiable only after push.
+
+## Asset sizes and licensing
+
+The 12 rendered SVG/GIF/PNG assets total 95,320 bytes. The animated GIF is 53,094 bytes; the editable source sheet is 25,073 bytes; every individual SVG is below 4,200 bytes.
+
+All visual assets are original programmatic CVio artwork generated by repository scripts. No external font, stock asset, game sprite, meme template, portrait, logo, script, or tracker is embedded. Their reuse license remains unresolved with the repository license; this is documented rather than guessed.
+
+## External services and dependencies
+
+- GitHub-hosted workflow badges are the only remote README images.
+- GitHub Actions uses `actions/checkout@v6` and `actions/setup-python@v7`, verified against their official repositories on 2026-07-29.
+- Contributor Covenant 2.1 is linked for attribution.
+- Pillow 12.2.0 generated the GIF locally.
+- Ruff was executed through `uvx`.
+- Chromium was used locally for viewport screenshots; QA artifacts are ignored.
+
+No analytics, ads, remote fonts, dynamic profile cards, hosted image generators, or critical third-party widgets are used.
+
+## Commits
+
+1. `dfdf9a6` — `design: add CVio visual system and animated shrimp`
+2. `3c49721` — `docs: establish provenance-first academic repository`
+3. `c6a5255` — `chore: add research governance foundations`
+4. `8b05b4a` — `ci: validate documentation links assets and provenance`
+5. Final audit commit — contains this report and the completed ExecPlan.
+
+## Push and follow-up
+
+The authorized target is `origin/main`. Push status is recorded in the task handoff after this report is committed and the final checks are rerun. If branch protection rejects the push, the required fallback is a feature branch and pull request; protection must not be bypassed.
+
+Recommended next actions:
+
+1. Confirm the fourth student, institution, schedule, citation order, and secure contacts.
+2. Select repository and artifact licenses with project owners and the institution.
+3. Review and integrate one canonical implementation per research track.
+4. Freeze dataset cards and leakage-aware split manifests before publishing results.
+5. Submit metrics through the experiment form and provenance audit.
+6. Add device-level export and benchmark evidence before making mobile-performance claims.
