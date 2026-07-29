@@ -2,8 +2,7 @@
   aria-labelledby="title desc">
   <title id="title">Reviewer number two shrimp</title>
   <desc id="desc">A playful original shrimp reviewer asks where the ablation study is.</desc>
-  
-  <rect width="1000" height="420" rx="34" fill="#071A2B"/>
+<rect width="1000" height="420" rx="34" fill="#071A2B"/>
   <path d="M105 233c35-121 197-137 264-35 42 64-7 140-83 137-55-2-89-43-74-83 15-39 62-52 94-25"
         fill="none" stroke="#FF6B6B" stroke-width="34" stroke-linecap="round"/>
   <circle cx="141" cy="191" r="10" fill="#F5E9D3"/>
@@ -14,5 +13,4 @@
   <text x="560" y="145" fill="#14B8C4" font-size="23" font-family="Arial, sans-serif" font-weight="700">REVIEWER #2 SHRIMP</text>
   <text x="560" y="220" fill="#F5E9D3" font-size="34" font-family="Arial, sans-serif">Where is the</text>
   <text x="560" y="265" fill="#FF6B6B" font-size="42" font-family="Arial, sans-serif" font-weight="700">ablation study?</text>
-
 </svg>

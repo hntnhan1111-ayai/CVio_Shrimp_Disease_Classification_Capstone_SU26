@@ -23,7 +23,7 @@ def svg_shell(
   aria-labelledby="title desc">
   <title id="title">{html.escape(title)}</title>
   <desc id="desc">{html.escape(description)}</desc>
-  {body}
+{body.strip()}
 </svg>"""
 
 

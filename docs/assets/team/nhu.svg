@@ -2,8 +2,7 @@
   aria-labelledby="title desc">
   <title id="title">Illustrated research avatar for Nhu</title>
   <desc id="desc">An abstract, non-photorealistic CVio laboratory avatar representing Research Member with segmentation mask.</desc>
-  
-  <rect width="400" height="480" rx="44" fill="#071A2B"/>
+<rect width="400" height="480" rx="44" fill="#071A2B"/>
   <circle cx="200" cy="150" r="86" fill="#F5E9D3"/>
   <path d="M116 144c8-76 160-98 173 10v26H112z" fill="#FF6B6B"/>
   <circle cx="168" cy="157" r="7" fill="#071A2B"/><circle cx="232" cy="157" r="7" fill="#071A2B"/>
@@ -14,5 +13,4 @@
   <rect y="414" width="400" height="66" fill="#06131F"/>
   <text x="200" y="441" text-anchor="middle" fill="#F5E9D3" font-size="20" font-family="Arial, sans-serif" font-weight="700">Nhu</text>
   <text x="200" y="465" text-anchor="middle" fill="#B9DDE4" font-size="14" font-family="Arial, sans-serif">Research Member</text>
-
 </svg>
