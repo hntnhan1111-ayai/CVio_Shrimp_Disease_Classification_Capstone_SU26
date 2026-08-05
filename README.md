@@ -1,231 +1,310 @@
-# ASL-LDAM: A Class-Imbalance-Aware Loss for Robust Shrimp Disease Image Classification Under Noisy Imaging Conditions
+# CVio: imbalance-aware shrimp disease image classification
 
-**ASL-LDAM with SimAM-DCFR Attention for Robust YOLO-Based Shrimp Disease Image Classification Under Noisy Imaging Conditions**
+**Research claim:** on one fixed seed-42 split, the reported SDI-4 selected
+ASL-LDAM + SimAM-DCFR result exceeds CE, while audited additional-regime results
+show that the advantage is dataset-dependent and reverses after combining
+SDI-4 with EXT-3-Original.
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![Seed](https://img.shields.io/badge/Seed-42-orange)
-![Task](https://img.shields.io/badge/Task-Shrimp%20Disease%20Classification-purple)
-![Status](https://img.shields.io/badge/Status-Paper%20Artifacts-informational)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-2f6b9a)
+![Seed 42](https://img.shields.io/badge/seed-42-d49a2a)
+![EXT-3 weights verified](https://img.shields.io/badge/EXT--3%20weights-verified-2f6b9a)
+![SDI-4 weights unresolved](https://img.shields.io/badge/SDI--4%20weights-unresolved-8b6f47)
+![License AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-526575)
 
 > [!IMPORTANT]
-> This repository contains **fixed seed-42 results only**. It does not claim
-> mean ± standard deviation across seeds or statistical significance. The split
-> is image-level and is not asserted to be animal/specimen-safe. This code is
-> for research reproducibility, not veterinary diagnosis.
+> The official SDI-4 metrics are retained result claims, but their exact
+> checkpoint binaries were not found. SHA-256 `4305e491...38c1` is a rejected
+> historical CE model, not the official proposed checkpoint. Only the two
+> three-class EXT-3-Original checkpoints under `weights/` are verified releases.
 
-> [!WARNING]
-> No raw dataset, corrupted image folders, or trained `.pt` checkpoints are
-> included. The two reviewer-facing TFLite files under `export/` are committed.
+## Abstract
 
-## Overview
+This repository studies four-class shrimp disease image classification under
+class imbalance and controlled image corruption. It combines a YOLO26m
+classification backbone with a project single-label ASL-LDAM objective and a
+late SimAM-DCFR feature-recalibration block. The fixed SDI-4 seed-42 result
+reports Accuracy `0.913295` and Macro-F1 `0.910137`, compared with `0.890200`
+for both CE metrics on 173 images. A release audit found no binary that matches
+that official architecture and result: the proposed-named uploaded candidate is
+a CE architecture and reproduces only Macro-F1 `0.863062`. Two exact-hash
+EXT-3-Original checkpoints were verified against a separate 47-image results
+package and are released through Git LFS. The combined-regime result favors CE,
+providing a retained counterexample to universal superiority.
 
-Four-class shrimp disease image classification:
+## Key contributions
 
-1. `Healthy`
-2. `BG`
-3. `WSSV`
-4. `WSSV_BG`
+- A reproducible single-label composition of LDAM margin adjustment followed by
+  asymmetric focusing.
+- A project-created late SimAM-DCFR block combining SimAM-style energy attention,
+  texture recalibration, a channel gate, and residual fusion.
+- A fixed seed-42 split manifest, clean/noise evaluators, deterministic figures,
+  and deployment export tooling.
+- A checkpoint registry that separates dataset regime, class order, architecture,
+  metrics, hashes, and publication status.
+- A negative-result record: historical candidates and the combined-regime
+  reversal remain visible instead of being relabeled or discarded.
 
-Main method: **YOLO26m-cls + ASL-LDAM + SimAM-DCFR**, evaluated on a fixed
-seed-42 image-level split and under the top-5 imaging corruptions.
+## Dataset regimes
 
-## What is included / not included
+### SDI-4
 
-**Included**
+Four mutually exclusive classes in this exact order: Healthy, BG, WSSV,
+WSSV_BG. The fixed image-level split contains 804 train, 172 validation, and
+173 test images. “Image-level” does not guarantee specimen-level independence.
 
-- Importable `src/cvio_asl_ldam` package (ASL-LDAM loss, SimAM-DCFR attention,
-  dataset audit/split, metrics, corruptions, export sanity check)
-- Python scripts `00?07` for the full reviewer workflow
-- Configs (`configs/`), split manifest, result tables, figures, XAI panels
-- Two TFLite files in `export/` (FP32 ~40 MB, FP16 ~20 MB)
-- Docs and lightweight tests
+![Horizontal grouped bars showing SDI-4 train, validation, and test class counts](docs/assets/results/class_distribution.png)
 
-**Not included**
+*Figure 1. SDI-4 fixed seed-42 distribution. The 173-image test support is
+Healthy 61, BG 29, WSSV 50, and WSSV_BG 33. Source:
+[`dataset_split_distribution_table_seed42.csv`](artifacts/tables/dataset/dataset_split_distribution_table_seed42.csv).*
 
-- Raw dataset (download from Kaggle `uynnhy/processed-images`)
-- Trained `.pt`/`.onnx`/SavedModel weights
-- Training run folders, caches, corrupted image folders
+### EXT-3-Original
 
-## Dataset
+Three classes only: Healthy, BG, WSSV. The audited results package has 47 test
+images (11/16/20). Its exact checkpoint hashes are verified and released. An
+EXT-3 model must not be used as an SDI-4 replacement because it has no WSSV_BG
+output.
 
-- Kaggle dataset: `uynnhy/processed-images` (already background-removed with U2Net/rembg)
-- Class counts: Healthy 403, BG 198, WSSV 328, WSSV_BG 220 (total 1,149)
-- Fixed seed-42 Stage-1 **image-level** split:
+### SDI-4 + EXT-3-Original
 
-| Split | Healthy | BG | WSSV | WSSV_BG | Total |
-|---|---:|---:|---:|---:|---:|
-| train | 282 | 139 | 229 | 154 | 804 |
-| val | 60 | 30 | 49 | 33 | 172 |
-| test | 61 | 29 | 50 | 33 | 173 |
+The retained combined package evaluates 220 images. Its CE result outperforms
+the proposed result, so additional source data did not preserve the original
+ordering. A legacy display label called the selected CE artifact proposed; the
+audit uses its actual source method instead.
 
-The default workflow does **not** rerun background removal. Details: [DATA.md](docs/DATA.md).
+## Architecture overview
 
-## Environment
+The classifier transforms a 224 × 224 RGB image into a late feature tensor. The
+proposed variant inserts SimAM-DCFR immediately before the original Ultralytics
+`Classify` head; CE omits this block. Audited head inputs have shape
+`[1, 512, 7, 7]`, and outputs are `[1, 4]` for SDI-4 or `[1, 3]` for EXT-3.
 
-- Paper runtime: Kaggle T4x2 GPU, Python 3.12.3
-- Export runtime: **Python 3.12.2** with pinned versions (see [EXPORT_LITERT.md](docs/EXPORT_LITERT.md))
-- Record your environment:
+![Architecture overview showing the optional late SimAM-DCFR path before Classify](docs/assets/diagrams/architecture_overview.svg)
 
-```bash
-python scripts/00_check_env.py
-```
+*Figure 2. Proposed model path. Architecture identity is inspected from the
+module tree rather than inferred from a filename. See
+[`ARCHITECTURE_WALKTHROUGH.md`](docs/ARCHITECTURE_WALKTHROUGH.md).*
 
-Install training dependencies:
+## Published versus project-created components
+
+| Component | Status | Role here |
+|---|---|---|
+| [Ultralytics YOLO classification](https://docs.ultralytics.com/tasks/classify/) | published framework | YOLO26m feature extractor and `Classify` head |
+| [LDAM](https://proceedings.nips.cc/paper_files/paper/2019/hash/621461af90cadfdaf0e8d4cc25129f91-Abstract.html) | Cao et al., NeurIPS 2019 | class-count-aware true-class margin |
+| [ASL](https://openaccess.thecvf.com/content/ICCV2021/html/Ridnik_Asymmetric_Loss_for_Multi-Label_Classification_ICCV_2021_paper.html) | Ridnik et al., ICCV 2021 | asymmetric focusing principle, adapted to single-label softmax |
+| [SimAM](https://proceedings.mlr.press/v139/yang21o) | Yang et al., ICML 2021 | parameter-free energy attention term |
+| DCFR branches and residual rule | project-created | learned texture mask and channel gate |
+| Late attention injection | project-created | wraps the original `Classify` head |
+| LDAM → single-label ASL composition | project-created | exact implemented loss order |
+
+The complete SimAM-DCFR block has learned parameters; only its SimAM term is
+parameter-free.
+
+## ASL-LDAM computation
+
+Let `z_j` be class `j`'s logit, `y` the true class, and `n_j` the training count
+for class `j`. The implementation computes a normalized LDAM margin
+`m_j ∝ n_j^(-1/4)`, subtracts `m_y` only from the true-class logit, multiplies
+all adjusted logits by 30, and then applies the repository's single-label
+softmax ASL. With `gamma_pos=0`, `gamma_neg=4`, and label smoothing `0.1`, easy
+negative classes are down-weighted more strongly than hard negatives.
+
+![Flow showing class counts and the true label entering an LDAM adjustment before single-label ASL](docs/assets/diagrams/asl_ldam_flow.svg)
+
+*Figure 3. Repository loss order. LDAM → single-label ASL is an implementation
+choice and is not proven optimal against all alternative formulations. Full
+definitions: [`ASL_LDAM_EXPLAINED.md`](docs/ASL_LDAM_EXPLAINED.md).*
+
+## SimAM-DCFR computation
+
+For late tensor `X`, the block computes a SimAM-style spatial energy response,
+a sigmoid texture mask through depthwise 3 × 3 then pointwise 1 × 1
+convolutions, and a channel gate through global average pooling plus a pointwise
+1 × 1 convolution. Residual fusion returns
+`X + 0.5 × gate(X) × (simam(X) + texture(X))`.
+
+![Block diagram showing texture and channel branches combined in residual fusion](docs/assets/diagrams/simam_dcfr_block.svg)
+
+*Figure 4. Project-created SimAM-DCFR composite. Shape is preserved before the
+original head. Full definitions: [`SIMAM_DCFR_EXPLAINED.md`](docs/SIMAM_DCFR_EXPLAINED.md).*
+
+## Main clean results
+
+The table below is the official reported SDI-4 result. It is not a statement
+that an official-final binary is available.
+
+| Metric | CE | ASL-LDAM + SimAM-DCFR | Delta |
+|---|---:|---:|---:|
+| Accuracy | 0.890200 | 0.913295 | +0.023095 |
+| Macro-F1 | 0.890200 | 0.910137 | +0.019937 |
+
+![Grouped bar chart of reported SDI-4 accuracy and macro-F1](docs/assets/results/clean_results.png)
+
+*Figure 5. Reported official SDI-4 clean result, test n=173. The y-axis is
+focused and does not start at zero; exact values are labeled. The official
+checkpoint binaries remain unresolved.*
+
+No retained class-wise report or confusion matrix matches Macro-F1 `0.910137`.
+The historical `0.905448` matrices are therefore not displayed as official.
+See [`RESULTS.md`](docs/RESULTS.md) for evidence levels.
+
+## Controlled corruption results
+
+The retained corruption experiment belongs to a historical SDI-4 package whose
+clean Macro-F1 is `0.905448`. It cannot establish robustness for the unresolved
+official-final checkpoint, but it remains a useful controlled sensitivity result.
+
+![Horizontal grouped bars of mean macro-F1 across five controlled corruptions](docs/assets/results/corruption_results.png)
+
+*Figure 6. Mean Macro-F1 over severities 1–3 for the historical package and its
+CE comparator. All five deltas are positive; source-checkpoint identity limits
+the claim to that package.*
+
+## Additional-source results reverse the ordering
+
+The proposed method is higher in the reported SDI-4 result and the verified
+EXT-3 package, but lower after combining SDI-4 and EXT-3-Original. This reversal
+is a direct threat to claims of dataset-independent improvement.
+
+![Horizontal grouped bars comparing CE and proposed macro-F1 across SDI-4, EXT-3-Original, and their combination](docs/assets/results/regime_comparison.png)
+
+*Figure 7. Macro-F1 by regime. SDI-4 is reported-only, EXT-3 is exact-hash
+verified, and the combined row is an audited package. Source:
+[`verified_regime_results.csv`](artifacts/release_audit/verified_regime_results.csv).*
+
+| Regime | CE Macro-F1 | Proposed Macro-F1 | Evidence |
+|---|---:|---:|---|
+| SDI-4 | 0.890200 | 0.910137 | reported metrics; binaries unresolved |
+| EXT-3-Original | 0.722990 | 0.912937 | exact hashes/package verified |
+| SDI-4 + EXT-3-Original | 0.865105 | 0.821801 | audited package; reversal |
+
+## Checkpoints and verified purpose
+
+![Provenance diagram showing the sequential checkpoint publication gates](docs/assets/diagrams/checkpoint_provenance.svg)
+
+*Figure 8. Checkpoint release gate. Hash, regime, class order, architecture, and
+metric evidence must agree before publication.*
+
+| Role | SHA-256 | Status | Published location |
+|---|---|---|---|
+| SDI-4 CE | not located | `UNRESOLVED` | not published |
+| SDI-4 proposed | not located | `UNRESOLVED` | not published |
+| EXT-3 CE | `055e22...c8ea` | `VERIFIED_EXT3_ORIGINAL_CE` | `weights/ext3_original/yolo26m_cls_ce_seed42_best.pt` via LFS |
+| EXT-3 proposed | `ce0352...fb36` | `VERIFIED_EXT3_ORIGINAL_PROPOSED` | `weights/ext3_original/yolo26m_cls_asl_ldam_simam_dcfr_seed42_best.pt` via LFS |
+| SDI-4 FP32 TFLite | `9834ec...1689d` | `HISTORICAL_NONFINAL_EXPORT` | retained in `export/`, not approved deployment |
+| SDI-4 FP16 TFLite | `c8d1f7...275d7` | `UNRESOLVED_EXPORT` | retained in `export/`, not approved deployment |
+
+The full hashes and metadata are in [`weights/manifest.json`](weights/manifest.json)
+and [`CHECKPOINTS.md`](docs/CHECKPOINTS.md). The uploaded SHA
+`4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1`
+is `HISTORICAL_NONFINAL`: CE architecture, Accuracy `0.867052`, Macro-F1
+`0.863062`.
+
+## Reproduction commands
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-```
 
-## Quick start: reproduce split only
-
-```bash
 python scripts/01_prepare_dataset_and_split.py --seed 42
-```
-
-This downloads via KaggleHub (or uses `--data-root`), robustly detects the
-class root, validates counts (403/198/328/220), creates the seed-42 split
-(804/172/173), materializes `runs/prepared_seed42/{train,val,test}`, and writes
-`artifacts/manifests/split_manifest_seed42.csv` plus
-`artifacts/metadata/dataset_audit.json`.
-
-## Train main method
-
-```bash
-python scripts/03_train_yolo26m_asl_ldam_simam_dcfr.py --device 0 --skip-if-complete
-```
-
-Run-overwrite guards: `--skip-if-complete` (default), `--force`, `--resume`,
-`--run-name`. Each run writes `status.json`. Full training was **not** rerun
-for this refactor; use the provided TFLite files or train fresh.
-
-Reported main-method setting: seed=42, imgsz=224, epochs=30, patience=15,
-batch=32, optimizer=AdamW, lr0=0.00125, cos_lr=True,
-auto_augment=randaugment, erasing=0.4, workers=4. ASL-LDAM hyperparameters:
-gamma_pos=0.0, gamma_neg=4.0, label_smoothing=0.1, LDAM max margin=0.5,
-LDAM scale=30.0.
-
-## Optional: train CE baseline
-
-```bash
 python scripts/02_train_yolo26m_ce_baseline.py --device 0 --skip-if-complete
+python scripts/03_train_yolo26m_asl_ldam_simam_dcfr.py --device 0 --skip-if-complete
+python scripts/docs/generate_release_figures.py
 ```
 
-## Evaluate clean test
+The split command validates total counts 403/198/328/220 and produces
+804/172/173. Full instructions: [`REPRODUCE.md`](docs/REPRODUCE.md).
+
+## Evaluation commands
 
 ```bash
 python scripts/04_eval_clean.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt
-```
+  --weights runs/training/<run>/weights/best.pt \
+  --manifest artifacts/manifests/split_manifest_seed42.csv \
+  --data-dir /path/to/processed_images \
+  --output-dir artifacts/evaluation/<run>/clean \
+  --device cpu --imgsz 224
 
-## Evaluate top-5 noise robustness
-
-```bash
 python scripts/05_eval_noise_top5.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt
+  --weights runs/training/<run>/weights/best.pt
 ```
 
-Corruptions (severities 1?3): `impulse_noise`, `gaussian_noise`,
-`contrast_reduction`, `defocus_blur`, `low_light`. Corruptions are generated
-in memory; no corrupted image folders are saved.
+Official-final proposed acceptance requires the four-class architecture and both
+clean metrics to match at the predeclared absolute tolerance `1e-6`.
 
-## Export LiteRT/TFLite
-
-Use a clean Python 3.12.2 venv (3.13/base caused TensorFlow/tf-keras problems):
+## Export and deployment
 
 ```bash
-python -m venv .venv-export
-source .venv-export/bin/activate
-python -m pip install -r requirements-export-litert.txt
-
 python scripts/06_export_litert_fp32_fp16.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt \
-  --out-dir export \
-  --imgsz 224
+  --weights runs/training/<verified-run>/weights/best.pt \
+  --out-dir export --imgsz 224
 ```
 
-The export script never trains. See [EXPORT_LITERT.md](docs/EXPORT_LITERT.md).
+Export only from a source checkpoint that has already passed the release gate,
+then record its source hash and rerun evaluation. Current TFLite files are
+historical/unresolved and must not be called official proposed deployments. See
+[`EXPORT_LITERT.md`](docs/EXPORT_LITERT.md).
 
-## Use provided TFLite files
+## Qualitative XAI panel
 
-```
-export/yolo26m_asl_ldam_simam_dcfr_fp32.tflite
-export/yolo26m_asl_ldam_simam_dcfr_fp16.tflite
-```
+The panel below contains four selected examples from the historical method
+package. It can illustrate where a visualization responds, but it cannot prove
+causal feature use, model faithfulness, robustness, or population-level behavior.
 
-- **FP32** (~40 MB) is safest for baseline deployment testing.
-- **FP16** (~20 MB) is smaller and may be faster on compatible GPU/mobile delegates.
-- Input: RGB, 224?224, NHWC `[1,224,224,3]`, `float32`.
-- Output: `[1,4]` logits; apply softmax for probabilities.
-- Class order: `0: Healthy`, `1: BG`, `2: WSSV`, `3: WSSV_BG`.
-- FP16 keeps internal weights as float16; input/output may remain float32.
+![Four-class XAI grid for selected correctly classified shrimp images; qualitative evidence only](artifacts/figures/xai/xai_best_method_4class_grid.png)
 
-Sanity check:
-
-```bash
-python - <<'PY'
-import sys; sys.path.insert(0, "src")
-from cvio_asl_ldam.export import tflite_sanity_check
-print(tflite_sanity_check("export/yolo26m_asl_ldam_simam_dcfr_fp32.tflite"))
-PY
-```
-
-See [export/README.md](export/README.md).
-
-## Results
-
-Main result (fixed seed-42):
-
-| Metric | Baseline CE | Best: ASL-LDAM + SimAM-DCFR | Delta |
-|---|---:|---:|---:|
-| Macro-F1 | 0.890200 | 0.910137 | +0.019937 |
-| Accuracy | 0.890200 | 0.913295 | +0.023095 |
-| Cohen's Kappa | 0.850500 | 0.881593 | +0.031093 |
-
-Source: [key result CSV](artifacts/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv).
-Full baseline and noise tables: [RESULTS.md](docs/RESULTS.md).
-
-## Troubleshooting
-
-See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md). Common issues: export env
-mismatches, dataset-root detection, run-overwrite guards, CUDA OOM.
-
-## Claims and limitations
-
-- This repository contains fixed seed-42 results only. It does not claim mean ± standard deviation across seeds or statistical significance.
-- Results are seed-42-only. No multi-seed mean ± std or statistical significance is claimed.
-- The split is image-level and is not asserted to be animal/specimen-safe.
-- Training results may vary slightly due to GPU/library nondeterminism.
-- Exported TFLite files are provided for reviewer convenience.
-- Raw dataset and model weights are not included (TFLite files are committed).
-- This is research code, not a veterinary diagnostic tool.
-
-Full statements: [CLAIMS_AND_LIMITATIONS.md](docs/CLAIMS_AND_LIMITATIONS.md),
-[MODEL_CARD.md](docs/MODEL_CARD.md).
+*Figure 9. **Qualitative-only warning:** hand-selected correct examples from a
+historical package. Do not treat this panel as quantitative validation or as
+evidence for the unresolved official-final checkpoint.*
 
 ## Repository structure
 
 ```text
-configs/      dataset, training, noise, XAI configuration
-src/          importable ASL-LDAM research package (losses, attention, data, export, utils)
-scripts/      00-07 Python entrypoints + run_*.sh wrappers
-export/       reviewer-facing TFLite files + sanity checks
-artifacts/    manifests, tables, figures, XAI, metadata
-docs/         REPRODUCE, DATA, EXPORT_LITERT, CLAIMS_AND_LIMITATIONS, MODEL_CARD, TROUBLESHOOTING
-tests/        lightweight tests (no full dataset required)
+configs/                 dataset, training, noise, and XAI configuration
+src/cvio_asl_ldam/       loss, attention, data, evaluation, export utilities
+scripts/                 training, evaluation, audit, export, and figure tools
+weights/                 verified registry; EXT-3 binaries through Git LFS
+export/                  historical/unresolved TFLite artifacts
+artifacts/               manifests, retained tables/figures, release audit
+docs/                    methods, results, reproduction, model card, limitations
+tests/                   lightweight unit and smoke tests
 ```
 
-## Citation / license / contact
+## Limitations and threats to validity
+
+- One seed and one fixed image-level split; no multi-seed variance or
+  statistical-significance claim.
+- No proof of shrimp/specimen-level independence.
+- Official SDI-4 binaries are missing, preventing checkpoint-level reproduction.
+- EXT-3 verification lacks a second inference run because the 47 source images
+  were unavailable locally.
+- Controlled corruptions and XAI belong to a historical nonfinal package.
+- The combined-regime reversal limits generalization claims.
+- Background removal, acquisition domain, label quality, and runtime versions
+  may affect performance.
+- LDAM → single-label ASL is not proven optimal among alternative formulations.
+
+See [`CLAIMS_AND_LIMITATIONS.md`](docs/CLAIMS_AND_LIMITATIONS.md) and
+[`MODEL_CARD.md`](docs/MODEL_CARD.md).
+
+## Citation
 
 ```bibtex
 @software{nguyen2026asl_ldam_shrimp,
-  title = {ASL-LDAM with SimAM-DCFR Attention for Robust YOLO-Based Shrimp Disease Image Classification Under Noisy Imaging Conditions},
-  author = {Nguyen, Vinh Dinh and Nguyen, Phong Van and Tran, Nhan Huu and Le Thi, Nhu Huynh},
-  year = {2026},
+  title   = {ASL-LDAM with SimAM-DCFR Attention for Robust YOLO-Based Shrimp Disease Image Classification Under Noisy Imaging Conditions},
+  author  = {Nguyen, Vinh Dinh and Nguyen, Phong Van and Tran, Nhan Huu and Le Thi, Nhu Huynh},
+  year    = {2026},
   version = {0.1.0-paper-asl-ldam},
-  url = {https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26}
+  url     = {https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26}
 }
 ```
 
-Code: AGPL-3.0-or-later. Dataset not redistributed. Use the issue tracker for questions.
+Machine-readable citation metadata: [`CITATION.cff`](CITATION.cff).
+
+## License and non-clinical intended use
+
+Code is licensed under AGPL-3.0-or-later; the dataset is not redistributed and
+may have separate terms. This repository and its checkpoints are research
+artifacts, not veterinary, clinical, laboratory, biosecurity, or autonomous
+treatment tools. Expert review and confirmatory testing remain necessary.
