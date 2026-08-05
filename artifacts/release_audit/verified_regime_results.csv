@@ -1,0 +1,4 @@
+dataset_regime,evidence_level,test_size,ce_accuracy,ce_macro_f1,proposed_accuracy,proposed_macro_f1,interpretation
+SDI-4,reported_official_metrics_binary_unresolved,173,0.890200,0.890200,0.913295,0.910137,proposed_above_ce
+EXT-3-Original,exact_hash_and_results_package_verified,47,0.7021276595744681,0.722990271377368,0.9148936170212766,0.9129374237733371,proposed_above_ce
+SDI-4 + EXT-3-Original,audited_additional_regime_package,220,0.8772727272727273,0.8651047360451702,0.8318181818181817,0.8218010087330127,ce_above_proposed

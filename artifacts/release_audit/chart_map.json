@@ -1,0 +1,43 @@
+{
+  "surface": "README.md and supporting Markdown documentation",
+  "audience": "technical",
+  "palette_policy": "hard two-root cap plus neutrals",
+  "charts": [
+    {
+      "id": "class_distribution",
+      "question": "How are the four SDI-4 classes distributed across the fixed split?",
+      "takeaway": "The split retains class imbalance and contains 173 test images.",
+      "family": "composition",
+      "variant": "grouped horizontal bar",
+      "source": "artifacts/tables/dataset/dataset_split_distribution_table_seed42.csv",
+      "output": "docs/assets/results/class_distribution.png"
+    },
+    {
+      "id": "clean_results",
+      "question": "What is the reported clean SDI-4 difference between CE and the selected method?",
+      "takeaway": "The reported selected result exceeds CE, but neither official-final binary is available.",
+      "family": "comparison",
+      "variant": "grouped bar",
+      "source": "artifacts/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv",
+      "output": "docs/assets/results/clean_results.png"
+    },
+    {
+      "id": "corruption_results",
+      "question": "How did the retained historical method package compare under five corruptions?",
+      "takeaway": "The historical package exceeds its CE comparator on mean macro-F1 for all five corruptions; this is not the official-final checkpoint.",
+      "family": "comparison",
+      "variant": "grouped horizontal bar",
+      "source": "artifacts/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv",
+      "output": "docs/assets/results/corruption_results.png"
+    },
+    {
+      "id": "regime_comparison",
+      "question": "Does the proposed method retain its advantage when the dataset regime changes?",
+      "takeaway": "The advantage appears in reported SDI-4 and verified EXT-3 results but reverses in the combined regime.",
+      "family": "comparison",
+      "variant": "grouped horizontal bar",
+      "source": "artifacts/release_audit/verified_regime_results.csv",
+      "output": "docs/assets/results/regime_comparison.png"
+    }
+  ]
+}
