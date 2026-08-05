@@ -1,69 +1,99 @@
-# Results
+# Results and evidence levels
 
-All reported results use the fixed seed-42 Stage-1 split. They are not
-multi-seed averages.
+## The headline SDI-4 result is reported, but its binaries remain unresolved
 
-## Main YOLO26m Result
+The official selected seed-42 result is Accuracy `0.913295` and Macro-F1
+`0.910137` on 173 test images. The corresponding official-final checkpoint was
+not found, so these values are reported-result evidence rather than a
+reproducible checkpoint claim.
 
-| Metric | Baseline CE | ASL-LDAM + SimAM-DCFR | Delta |
+| Metric | CE | ASL-LDAM + SimAM-DCFR | Delta |
 |---|---:|---:|---:|
-| Macro-F1 | 0.890200 | 0.910137 | +0.019937 |
 | Accuracy | 0.890200 | 0.913295 | +0.023095 |
-| Cohen's Kappa | 0.850500 | 0.881593 | +0.031093 |
+| Macro-F1 | 0.890200 | 0.910137 | +0.019937 |
 
-Source:
-[`paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv`](../artifacts/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv)
+![Grouped bars comparing reported SDI-4 CE and proposed accuracy and macro-F1](assets/results/clean_results.png)
 
-## Class-Wise Clean Test
+*Figure 1. Reported official clean results on the fixed 173-image partition.
+The focused axis makes the small difference legible; the binary gap prevents
+checkpoint-level reproduction.*
 
-| Class | Precision | Recall | F1 | Support |
-|---|---:|---:|---:|---:|
-| Healthy | 1.000 | 0.869 | 0.930 | 61 |
-| BG | 0.900 | 0.931 | 0.915 | 29 |
-| WSSV | 0.900 | 0.900 | 0.900 | 50 |
-| WSSV_BG | 0.800 | 0.970 | 0.877 | 33 |
+Source: [`paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv`](../artifacts/tables/improvements/paper_key_yolo26m_best_method_vs_stage1_ce_seed42.csv).
+The Cohen's Kappa values retained in that row are 0.850500 and 0.881593, but
+they were not part of the two official metrics supplied as hard evidence.
 
-Source:
-[`best_method_classwise_metrics_seed42.csv`](../artifacts/tables/classwise/best_method_classwise_metrics_seed42.csv)
+### No official-final class-wise or confusion-matrix claim
 
-## YOLO Baselines
+The retained class-wise table and confusion matrices describe a historical
+clean result with Macro-F1 `0.905448`, not the official `0.910137` result. They
+remain available for provenance, but this page does not present them as the
+official-final matrix or report. The newly generated matrices under
+`artifacts/release_audit/evaluation/4305e491.../` describe the rejected
+`0.863062` candidate only.
 
-The full 15-model comparison is in
-[`yolo_baseline_comparison_seed42.csv`](../artifacts/tables/baselines/yolo_baseline_comparison_seed42.csv).
-YOLO26m-cls ranked first with Macro-F1 0.8902.
+## EXT-3-Original exact-hash package results
 
-## TIMM Baselines
+The 47-image results package contains no binary, but it references hashes that
+match the two separately located checkpoint files. Architecture, class order,
+stored training metadata, predictions, reports, matrices, and package hash audit
+agree.
 
-| Model | Macro-F1 | Accuracy | Kappa |
+| Metric | CE (`055e22...c8ea`) | Proposed (`ce0352...fb36`) |
+|---|---:|---:|
+| Accuracy | 0.702128 | 0.914894 |
+| Macro-F1 | 0.722990 | 0.912937 |
+| Cohen's Kappa | 0.550239 | 0.869444 |
+
+The local EXT-3 source images were unavailable for a second inference run.
+Consequently, this is exact-hash/package verification, not an independent
+rerun. Both outputs have exactly three classes: Healthy, BG, WSSV.
+
+## Controlled corruptions belong to a historical SDI-4 package
+
+The retained corruption tables are internally tied to a historical clean
+Macro-F1 `0.905448` package. They are useful as a controlled sensitivity study,
+but they do not establish robustness for the official-final `0.910137`
+checkpoint.
+
+![Horizontal bars comparing mean macro-F1 under five corruptions](assets/results/corruption_results.png)
+
+*Figure 2. Mean Macro-F1 across severities 1–3. The historical method package
+outperforms its CE comparator for all five selected corruptions; source-checkpoint
+identity prevents transferring that claim to the official-final model.*
+
+| Corruption | CE mean Macro-F1 | Historical method mean | Delta |
 |---|---:|---:|---:|
-| convnext_tiny_in22k | 0.8416 | 0.8522 | 0.7690 |
-| mobilenet_v3_large | 0.8010 | 0.8261 | 0.6114 |
-| efficientnet_b0 | 0.7701 | 0.7913 | 0.5940 |
-| repvgg_a0 | 0.7688 | 0.7739 | 0.5514 |
-| efficientnet_v2_s | 0.7678 | 0.7739 | 0.6627 |
+| Impulse noise | 0.4850 | 0.5582 | +0.0732 |
+| Gaussian noise | 0.7479 | 0.7850 | +0.0371 |
+| Contrast reduction | 0.8207 | 0.8810 | +0.0603 |
+| Defocus blur | 0.8300 | 0.8866 | +0.0567 |
+| Low light | 0.8315 | 0.9022 | +0.0707 |
 
-Source:
-[`timm_baseline_comparison_seed42.csv`](../artifacts/tables/baselines/timm_baseline_comparison_seed42.csv)
+Sources: [`top5_noise_baseline_vs_best_mean_summary.csv`](../artifacts/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv)
+and [`best_method_top5_noise_by_severity.csv`](../artifacts/tables/noise/best_method_top5_noise_by_severity.csv).
 
-## Top-5 Noise Robustness
+## Adding EXT-3 reverses the method ordering
 
-| Noise | Baseline Mean Macro-F1 | Best Mean Macro-F1 | Delta |
-|---|---:|---:|---:|
-| impulse_noise | 0.4850 | 0.5582 | +0.0732 |
-| gaussian_noise | 0.7479 | 0.7850 | +0.0371 |
-| contrast_reduction | 0.8207 | 0.8810 | +0.0603 |
-| defocus_blur | 0.8300 | 0.8866 | +0.0567 |
-| low_light | 0.8315 | 0.9022 | +0.0707 |
+![Horizontal bars comparing CE and proposed macro-F1 across three dataset regimes](assets/results/regime_comparison.png)
 
-Sources:
+*Figure 3. Dataset-regime comparison. The proposed method is higher for the
+reported SDI-4 row and verified EXT-3 row, but CE is higher in the audited
+combined regime.*
 
-- [`top5_noise_selection_from_ce_baseline.csv`](../artifacts/tables/noise/top5_noise_selection_from_ce_baseline.csv)
-- [`top5_noise_baseline_vs_best_mean_summary.csv`](../artifacts/tables/noise/top5_noise_baseline_vs_best_mean_summary.csv)
-- [`best_method_top5_noise_by_severity.csv`](../artifacts/tables/noise/best_method_top5_noise_by_severity.csv)
+| Regime | CE Macro-F1 | Proposed Macro-F1 | Evidence |
+|---|---:|---:|---|
+| SDI-4 | 0.890200 | 0.910137 | reported official metrics; binaries unresolved |
+| EXT-3-Original | 0.722990 | 0.912937 | exact hashes and package verified |
+| SDI-4 + EXT-3-Original | 0.865105 | 0.821801 | audited additional-regime package |
 
-## Efficiency and Confusion Matrices
+The combined package's selected CE model was historically display-labeled as
+ASL-LDAM + SimAM-DCFR. Audit evidence identifies its actual source method as CE;
+this page uses the source method and explicitly rejects the old display label.
 
-- [`model_efficiency_summary_seed42.csv`](../artifacts/tables/efficiency/model_efficiency_summary_seed42.csv)
-- [`baseline_ce_clean_confusion_matrix.csv`](../artifacts/confusion_matrices/baseline_ce_clean_confusion_matrix.csv)
-- [`best_method_clean_confusion_matrix.csv`](../artifacts/confusion_matrices/best_method_clean_confusion_matrix.csv)
-- [`best_method_impulse_noise_s3_confusion_matrix.csv`](../artifacts/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv)
+Source: [`verified_regime_results.csv`](../artifacts/release_audit/verified_regime_results.csv).
+
+## Interpretation boundary
+
+All results are single-seed, fixed-split descriptive comparisons. No confidence
+interval, multi-seed mean, statistical significance, animal-level independence,
+field generalization, or causal superiority is claimed.

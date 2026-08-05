@@ -23,6 +23,9 @@ The paths below are the curated, committed seed-42 paper artifacts.
 - `artifacts/tables/classwise/best_method_classwise_metrics_seed42.csv`
 - `artifacts/tables/classwise/best_method_classwise_overall_metrics_seed42.json`
 
+The class-wise files correspond to a historical clean Macro-F1 `0.905448`
+package and are not the official-final `0.910137` report.
+
 ## Dataset and Configuration Tables
 
 - `artifacts/tables/config/kaggle_reference_configuration_table.csv`
@@ -46,6 +49,9 @@ The paths below are the curated, committed seed-42 paper artifacts.
 - `artifacts/confusion_matrices/best_method_clean_confusion_matrix.csv`
 - `artifacts/confusion_matrices/best_method_impulse_noise_s3_confusion_matrix.csv`
 - PNG renderings under `artifacts/figures/confusion_matrices/`
+
+These matrices are historical artifacts and must not be presented as the
+official-final `0.910137` checkpoint matrices.
 
 ## Figures
 
@@ -73,5 +79,6 @@ The paths below are the curated, committed seed-42 paper artifacts.
 These files were migrated from the historical
 `paper_artifacts/asl_ldam_simam_dcfr_yolo_seed42/` and
 `paper_writing_bundle/asl_ldam_simam_dcfr_yolo_seed42/` layouts. Git history
-retains the original paths. Large data, weights, checkpoints, and archives are
-not part of the curated layout.
+retains the original paths. Raw data and archives are not part of the curated
+layout. The two verified EXT-3 checkpoints are published separately under
+`weights/ext3_original/` through Git LFS; no SDI-4 binary is published.

@@ -1,113 +1,137 @@
-# Reproduce the Seed-42 Paper Artifacts
+# Reproduction and verification
 
-This is the reviewer-facing reproduction workflow. It uses the numbered Python
-scripts under `scripts/`. Legacy `.sh` wrappers remain for back-compatibility
-but the Python scripts are the supported entry points.
+## Reproduction contract
 
-## Environment setup
+The repository fixes seed 42, image size 224, class order, and an image-level
+split. Reproduction has two distinct goals:
+
+1. rerun training/evaluation from the SDI-4 dataset; and
+2. verify the identity and output shape of released EXT-3 checkpoints.
+
+The official SDI-4 checkpoint binaries are unresolved, so no command below is
+claimed to load the official-final 0.910137 checkpoint.
+
+## Environment
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-
-python scripts/00_check_env.py     # writes artifacts/metadata/env_report.json
+python scripts/00_check_env.py
 ```
 
-Paper runtime: Kaggle T4x2 GPU, Python 3.12.3. Export runtime: Python 3.12.2
-(see [EXPORT_LITERT.md](EXPORT_LITERT.md)).
+The recorded training runtime was Kaggle T4×2 with Python 3.12.3. Evaluation
+of the rejected `4305e491...38c1` checkpoint was repeated with Ultralytics
+8.4.72 and 8.4.103 and produced identical predictions.
 
-## 1. Prepare the fixed seed-42 split
+## Prepare the fixed SDI-4 split
 
 ```bash
 python scripts/01_prepare_dataset_and_split.py --seed 42
 ```
 
-Downloads via KaggleHub (`uynnhy/processed-images`) unless `--data-root` is
-given, robustly detects the class root, validates counts (403/198/328/220),
-and creates the split (804/172/173). Outputs:
+The script downloads Kaggle dataset `uynnhy/processed-images` unless
+`--data-root` is supplied, validates total class counts 403/198/328/220, and
+creates train/validation/test sizes 804/172/173. It retains the manifest at
+`artifacts/manifests/split_manifest_seed42.csv`.
 
-- `artifacts/manifests/split_manifest_seed42.csv`
-- `artifacts/metadata/dataset_audit.json`
-- `runs/prepared_seed42/{train,val,test}`
-
-Skips if already complete (use `--force` to re-run).
-
-## 2. Train the main method
+## Train
 
 ```bash
+# CE
+python scripts/02_train_yolo26m_ce_baseline.py --device 0 --skip-if-complete
+
+# ASL-LDAM + SimAM-DCFR
 python scripts/03_train_yolo26m_asl_ldam_simam_dcfr.py --device 0 --skip-if-complete
 ```
 
-Run-overwrite guards: `--skip-if-complete` (default), `--force`, `--resume`,
-`--run-name`. Writes `status.json` per run.
+Each run uses a separate name and writes `status.json`. Inspect the checkpoint's
+stored run name, classes, and architecture after training; do not promote a file
+based on its path alone.
 
-## 3. (Optional) Train the CE baseline
-
-```bash
-python scripts/02_train_yolo26m_ce_baseline.py --device 0 --skip-if-complete
-```
-
-## 4. Evaluate the clean test set
+## Evaluate SDI-4 clean test
 
 ```bash
 python scripts/04_eval_clean.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt
+  --weights runs/training/<run>/weights/best.pt \
+  --manifest artifacts/manifests/split_manifest_seed42.csv \
+  --output-dir artifacts/evaluation/<run>/clean
 ```
 
-## 5. Evaluate top-5 noise robustness
+The release audit declared an absolute tolerance of `1e-6` before evaluation.
+For official-final reproduction, all of the following must hold:
+
+- exactly 173 test images;
+- class order Healthy, BG, WSSV, WSSV_BG;
+- proposed architecture includes the late SimAM-DCFR wrapper;
+- Accuracy equals 0.913295 within tolerance;
+- Macro-F1 equals 0.910137 within tolerance.
+
+The evaluator saves predictions, metrics/classification report, count and
+row-normalized confusion matrices, command, environment, and checkpoint hash.
+
+## Evaluate controlled corruptions
 
 ```bash
 python scripts/05_eval_noise_top5.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt
+  --weights runs/training/<run>/weights/best.pt
 ```
 
-Corruptions: `impulse_noise`, `gaussian_noise`, `contrast_reduction`,
-`defocus_blur`, `low_light` at severities 1?3. Generated in memory.
+The five corruptions are impulse noise, Gaussian noise, contrast reduction,
+defocus blur, and low light at severities 1–3. Existing retained corruption
+tables belong to a historical 0.905448 clean package, not the unresolved
+official-final checkpoint.
 
-## 6. Export LiteRT/TFLite
+## Verify released EXT-3 files
 
-Use a clean Python 3.12.2 venv:
+```powershell
+git lfs pull --include="weights/ext3_original/*.pt"
+Get-FileHash -Algorithm SHA256 weights\ext3_original\*.pt
+git lfs fsck
+```
+
+Expected hashes are recorded in `weights/SHA256SUMS.txt`. For trusted project
+checkpoints, register repository safe globals before loading:
+
+```python
+from cvio_asl_ldam.attention.patch_yolo import register_checkpoint_safe_globals
+
+register_checkpoint_safe_globals()
+```
+
+Do not load untrusted third-party pickle files. Both released EXT-3 models must
+produce shape `(1, 3)` for an input `(1, 3, 224, 224)` and use class order
+Healthy/BG/WSSV.
+
+## Regenerate documentation figures
 
 ```bash
-python -m venv .venv-export
-source .venv-export/bin/activate
-python -m pip install -r requirements-export-litert.txt
+python scripts/docs/generate_release_figures.py
+```
 
+The script reads retained CSV files, uses fixed styling, and rewrites the four
+quantitative PNGs and four SVG diagrams under `docs/assets/`.
+
+## Export a newly trained, verified checkpoint
+
+```bash
 python scripts/06_export_litert_fp32_fp16.py \
-  --weights runs/training/yolo26m_cls__asl_ldam_simam_dcfr__seed42/weights/best.pt \
+  --weights runs/training/<verified-run>/weights/best.pt \
   --out-dir export --imgsz 224
 ```
 
-The export script never trains. See [EXPORT_LITERT.md](EXPORT_LITERT.md).
+Export only after binding the source checkpoint hash and verifying architecture,
+class order, and clean metrics. The currently tracked TFLite files do not pass
+the official-proposed source-binding gate; see [EXPORT_LITERT.md](EXPORT_LITERT.md).
 
-## 7. Package reviewer artifacts
-
-```bash
-python scripts/07_package_review_artifacts.py
-```
-
-## Smoke tests
+## Local QA
 
 ```bash
-bash scripts/run_smoke_tests.sh
-# or
-PYTHONPATH=src python -m pytest tests -q
+python -m pytest tests -q
+python -m compileall -q src scripts
+python scripts/check_readme_links.py
+git lfs fsck
+git diff --check
 ```
 
-## Expected outputs
-
-- `runs/training/*/weights/best.pt`
-- `artifacts/evaluation/clean/clean_test_metrics.json`
-- `artifacts/evaluation/noise/top5_noise_by_severity.csv`
-- `export/yolo26m_asl_ldam_simam_dcfr_fp32.tflite`
-- `export/yolo26m_asl_ldam_simam_dcfr_fp16.tflite`
-- `export/tflite_sanity_check.json`
-
-## Notes
-
-- Full training was **not** rerun for this refactor; use the provided TFLite
-  files or train fresh.
-- Results may vary slightly with GPU/library nondeterminism.
-- Legacy `.sh` scripts (`01_make_seed42_split.sh`, `02_run_yolo_baselines.sh`,
-  etc.) remain for back-compatibility but are superseded by the Python scripts.
+Full training is intentionally not part of the lightweight QA suite.

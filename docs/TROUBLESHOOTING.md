@@ -22,8 +22,9 @@ The export script requires a trained `best.pt`. If you do not have one:
 python scripts/03_train_yolo26m_asl_ldam_simam_dcfr.py --device 0 --skip-if-complete
 ```
 
-Full training is not required for the refactor; use the provided TFLite files
-under `export/` if you only need inference.
+The tracked TFLite files are historical/unresolved and are not approved as
+official-proposed deployments. Use them only for format inspection, or train
+and verify a new source checkpoint before export.
 
 ## Dataset root not found
 
