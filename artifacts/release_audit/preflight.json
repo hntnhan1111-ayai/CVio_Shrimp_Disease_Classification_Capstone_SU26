@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-05T22:31:15.3136382+07:00",
+  "repository_root": "D:/CVio/New folder/CVio_Shrimp_Disease_Classification_Capstone_SU26",
+  "worktree_path": "D:/CVio/New folder/CVio_Shrimp_Disease_Classification_Capstone_SU26",
+  "current_branch": "paper/asl-ldam-simam-dcfr-yolo-noisy-shrimp",
+  "head": "137f54f97e2a76c361b7dcedd6279090b2eec131",
+  "upstream": "origin/paper/asl-ldam-simam-dcfr-yolo-noisy-shrimp",
+  "remotes": {
+    "origin_fetch": "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26.git",
+    "origin_push": "https://github.com/hntnhan1111-ayai/CVio_Shrimp_Disease_Classification_Capstone_SU26.git"
+  },
+  "preserved_work": {
+    "branch": "wip/pre-classification-audit-20260805_222946",
+    "commit": "669cef5fd0e0a915f1bac057f92e877637a1dc9a",
+    "pushed": false
+  },
+  "git_version": "git version 2.53.0.windows.3",
+  "git_lfs_version": "git-lfs/3.7.1 (GitHub; windows amd64; go 1.25.1; git b84b3384)",
+  "lfs_authentication": "none",
+  "notes": [
+    "Pre-existing main-branch changes were preserved in a local WIP commit before switching branches.",
+    "Local Playwright output and readme-preview.html are retained on disk and excluded through .git/info/exclude; they are not release inputs."
+  ]
+}
