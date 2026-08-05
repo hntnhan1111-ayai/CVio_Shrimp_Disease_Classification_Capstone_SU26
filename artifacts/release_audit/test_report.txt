@@ -1,0 +1,40 @@
+CVio release audit QA report
+Date: 2026-08-05 (Asia/Saigon)
+
+FORMAT
+PASS  uvx ruff format --check on all changed Python files
+
+LINT
+PASS  uvx ruff check on all changed Python files
+NOTE  Repository has no Makefile, pyproject.toml, mypy.ini, or configured type checker.
+
+UNIT TESTS
+PASS  PYTHONPATH=src python -m pytest tests -q
+      14 passed, 1 skipped in 2.38s
+      Skip: no ai-edge-litert/TensorFlow interpreter in the audit environment.
+
+SMOKE TESTS
+PASS  Git Bash scripts/run_smoke_tests.sh
+      environment report completed
+      14 passed, 1 skipped
+      export script contains no .train( call
+
+STATIC/IMPORT CHECKS
+PASS  python -m compileall -q src scripts tests
+PASS  import cvio_asl_ldam, ASLLDAMLoss, SimAMDCFR
+
+CHECKPOINT LOAD/SHAPE CHECKS
+PASS  EXT-3 CE 055e22...c8ea: trusted load, output [1,3], no SimAM-DCFR
+PASS  EXT-3 proposed ce0352...fb36: trusted load, output [1,3], SimAM-DCFR present
+
+FIGURES
+PASS  4 PNG result charts, 4 SVG diagrams, and 1 qualitative XAI panel exist and parse
+PASS  two consecutive generator runs produced identical hashes for all 8 generated figures
+
+MANIFEST/LFS
+PASS  scripts/verify_release_manifest.py
+PASS  git lfs fsck
+
+DOCUMENTATION
+PASS  scripts/check_readme_links.py
+PASS  git diff --check

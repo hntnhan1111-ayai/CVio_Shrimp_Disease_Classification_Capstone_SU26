@@ -17,11 +17,11 @@ from pathlib import Path
 PROJECT_ROOT = Path.cwd()
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cvio_asl_ldam.evaluation.metrics import classification_metrics
 from cvio_asl_ldam.evaluation.confusion_matrix import (
     save_confusion_matrix,
     save_normalized_confusion_matrix,
 )
+from cvio_asl_ldam.evaluation.metrics import classification_metrics
 from cvio_asl_ldam.utils.io import write_json
 
 CLASS_NAMES = ("Healthy", "BG", "WSSV", "WSSV_BG")
@@ -37,6 +37,7 @@ def _sha256(path: Path) -> str:
 
 def _test_rows(manifest: Path) -> list[dict[str, str]]:
     import csv
+
     with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
         return [row for row in csv.DictReader(handle) if row["split"] == "test"]
 
@@ -44,8 +45,12 @@ def _test_rows(manifest: Path) -> list[dict[str, str]]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weights", required=True, help="Path to best.pt")
-    parser.add_argument("--manifest", default="artifacts/manifests/split_manifest_seed42.csv")
-    parser.add_argument("--dataset-config", default="configs/dataset/shrimpdiseasebd_seed42.yaml")
+    parser.add_argument(
+        "--manifest", default="artifacts/manifests/split_manifest_seed42.csv"
+    )
+    parser.add_argument(
+        "--dataset-config", default="configs/dataset/shrimpdiseasebd_seed42.yaml"
+    )
     parser.add_argument("--data-dir", help="Raw dataset root (to resolve image paths).")
     parser.add_argument("--output-dir", default="artifacts/evaluation/clean")
     parser.add_argument("--device", default="auto")
@@ -88,7 +93,9 @@ def main() -> None:
         return str(candidate)
 
     paths = [_resolve_path(row) for row in rows]
-    predictions = model.predict(source=paths, imgsz=args.imgsz, device=device, verbose=False)
+    predictions = model.predict(
+        source=paths, imgsz=args.imgsz, device=device, verbose=False
+    )
     y_true = [int(row["label"]) for row in rows]
     y_pred = [int(result.probs.top1) for result in predictions]
 
@@ -96,14 +103,22 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     write_json(output_dir / "clean_test_metrics.json", metrics)
-    save_confusion_matrix(metrics["confusion_matrix"], output_dir / "clean_test_confusion_matrix")
+    save_confusion_matrix(
+        metrics["confusion_matrix"], output_dir / "clean_test_confusion_matrix"
+    )
     save_normalized_confusion_matrix(
-        metrics["confusion_matrix"], output_dir / "clean_test_confusion_matrix_normalized"
+        metrics["confusion_matrix"],
+        output_dir / "clean_test_confusion_matrix_normalized",
     )
 
     import csv
-    with (output_dir / "clean_test_predictions.csv").open("w", encoding="utf-8", newline="") as h:
-        writer = csv.DictWriter(h, fieldnames=["rel_path", "class_name", "label", "prediction"])
+
+    with (output_dir / "clean_test_predictions.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as h:
+        writer = csv.DictWriter(
+            h, fieldnames=["rel_path", "class_name", "label", "prediction"]
+        )
         writer.writeheader()
         for row, pred in zip(rows, y_pred, strict=True):
             writer.writerow(
@@ -137,7 +152,9 @@ def main() -> None:
             "image_size": args.imgsz,
         },
     )
-    print(f"Clean test accuracy={metrics['accuracy']:.4f} macro_f1={metrics['macro_f1']:.4f}")
+    print(
+        f"Clean test accuracy={metrics['accuracy']:.4f} macro_f1={metrics['macro_f1']:.4f}"
+    )
     print(f"Wrote metrics to {output_dir}")
 
 

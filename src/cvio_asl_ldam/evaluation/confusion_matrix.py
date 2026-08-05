@@ -62,7 +62,9 @@ def save_normalized_confusion_matrix(
     png_path = prefix.with_suffix(".png")
     counts = np.asarray(matrix, dtype=float)
     row_totals = counts.sum(axis=1, keepdims=True)
-    values = np.divide(counts, row_totals, out=np.zeros_like(counts), where=row_totals != 0)
+    values = np.divide(
+        counts, row_totals, out=np.zeros_like(counts), where=row_totals != 0
+    )
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["true/pred", *class_names])

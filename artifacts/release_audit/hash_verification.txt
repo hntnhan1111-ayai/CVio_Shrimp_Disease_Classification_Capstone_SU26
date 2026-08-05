@@ -1,0 +1,20 @@
+CVio verified release hash receipt
+
+PASS weights/ext3_original/yolo26m_cls_ce_seed42_best.pt
+SHA256 055e22edd699bea623a4b1b8c34ad7a395b56658036a4495e5b54159b786c8ea
+LFS OID sha256:055e22edd699bea623a4b1b8c34ad7a395b56658036a4495e5b54159b786c8ea
+
+PASS weights/ext3_original/yolo26m_cls_asl_ldam_simam_dcfr_seed42_best.pt
+SHA256 ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36
+LFS OID sha256:ce0352be3fc20d2429605072fde4e01acce86216f4bdbaaec92895d1de98fb36
+
+PASS manifest entries: 6 total, 2 verified release entries
+PASS class order for both released binaries: Healthy, BG, WSSV
+PASS test size for both released binaries: 47
+PASS git lfs fsck
+
+NOT RELEASED
+4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1 HISTORICAL_NONFINAL
+44141c8e8ecc400b4b696adbfe736fe12aa07da42b53c6e2e99cb600268cb235 HISTORICAL_NONFINAL_EXPORT
+9834ecbaeee14878da2fd53a811005cfa2ed8192b94f9d8a7f5b732b19d1689d HISTORICAL_NONFINAL_EXPORT
+c8d1f744871c32f79e495ee950c7a6fc53de114aaefab757e4da3ff83f1275d7 UNRESOLVED_EXPORT

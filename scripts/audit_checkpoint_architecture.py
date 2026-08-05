@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
@@ -84,7 +83,9 @@ def main() -> int:
     wrappers = []
     for name, module in model.named_modules():
         module_type = f"{module.__class__.__module__}.{module.__class__.__name__}"
-        parameter_count = sum(parameter.numel() for parameter in module.parameters(recurse=False))
+        parameter_count = sum(
+            parameter.numel() for parameter in module.parameters(recurse=False)
+        )
         module_rows.append(
             {
                 "name": name,
@@ -96,12 +97,15 @@ def main() -> int:
             classify_modules.append((name, module))
         if isinstance(module, SimAMDCFR):
             simam_modules.append((name, module))
-        if AttentionBeforeClassify is not None and isinstance(module, AttentionBeforeClassify):
+        if AttentionBeforeClassify is not None and isinstance(
+            module, AttentionBeforeClassify
+        ):
             wrappers.append((name, module))
 
     captured: dict[str, list[int]] = {}
     handles = []
     for name, module in classify_modules:
+
         def hook(_module, inputs, module_name=name):
             value = inputs[0]
             if isinstance(value, (list, tuple)):
@@ -119,8 +123,16 @@ def main() -> int:
 
     simam_structures: list[dict[str, Any]] = []
     for name, module in simam_modules:
-        texture_convs = [child for child in module.texture.modules() if isinstance(child, torch.nn.Conv2d)]
-        gate_convs = [child for child in module.gate.modules() if isinstance(child, torch.nn.Conv2d)]
+        texture_convs = [
+            child
+            for child in module.texture.modules()
+            if isinstance(child, torch.nn.Conv2d)
+        ]
+        gate_convs = [
+            child
+            for child in module.gate.modules()
+            if isinstance(child, torch.nn.Conv2d)
+        ]
         channels = texture_convs[0].in_channels if texture_convs else None
         simam_structures.append(
             {
@@ -128,9 +140,12 @@ def main() -> int:
                 "channels": channels,
                 "e_lambda": module.e_lambda,
                 "has_global_average_pool": any(
-                    isinstance(child, torch.nn.AdaptiveAvgPool2d) for child in module.gate.modules()
+                    isinstance(child, torch.nn.AdaptiveAvgPool2d)
+                    for child in module.gate.modules()
                 ),
-                "gate_pointwise_1x1": any(conv.kernel_size == (1, 1) for conv in gate_convs),
+                "gate_pointwise_1x1": any(
+                    conv.kernel_size == (1, 1) for conv in gate_convs
+                ),
                 "texture_depthwise_3x3": any(
                     conv.kernel_size == (3, 3)
                     and conv.groups == conv.in_channels
@@ -141,7 +156,8 @@ def main() -> int:
                     conv.kernel_size == (1, 1) for conv in texture_convs
                 ),
                 "has_sigmoid_texture_mask": any(
-                    isinstance(child, torch.nn.Sigmoid) for child in module.texture.modules()
+                    isinstance(child, torch.nn.Sigmoid)
+                    for child in module.texture.modules()
                 ),
             }
         )
@@ -154,7 +170,9 @@ def main() -> int:
     intended_path_present = bool(simam_modules and wrappers and wrapper_order_valid)
     names = json_safe(getattr(model, "names", getattr(loaded, "names", None)))
     checkpoint = getattr(loaded, "ckpt", None)
-    train_args = checkpoint.get("train_args", {}) if isinstance(checkpoint, dict) else {}
+    train_args = (
+        checkpoint.get("train_args", {}) if isinstance(checkpoint, dict) else {}
+    )
 
     report = {
         "candidate": {
@@ -180,8 +198,12 @@ def main() -> int:
         },
         "checkpoint_metadata": {
             "task": getattr(loaded, "task", None),
-            "checkpoint_version": checkpoint.get("version") if isinstance(checkpoint, dict) else None,
-            "checkpoint_date": checkpoint.get("date") if isinstance(checkpoint, dict) else None,
+            "checkpoint_version": checkpoint.get("version")
+            if isinstance(checkpoint, dict)
+            else None,
+            "checkpoint_date": checkpoint.get("date")
+            if isinstance(checkpoint, dict)
+            else None,
             "names": names,
             "class_count": len(names) if isinstance(names, dict) else None,
             "train_args": json_safe(train_args),
@@ -190,9 +212,13 @@ def main() -> int:
             ),
         },
         "architecture": {
-            "parameter_count": sum(parameter.numel() for parameter in model.parameters()),
+            "parameter_count": sum(
+                parameter.numel() for parameter in model.parameters()
+            ),
             "trainable_parameter_count": sum(
-                parameter.numel() for parameter in model.parameters() if parameter.requires_grad
+                parameter.numel()
+                for parameter in model.parameters()
+                if parameter.requires_grad
             ),
             "module_count": len(module_rows),
             "module_tree": module_rows,
@@ -210,14 +236,25 @@ def main() -> int:
         },
         "checks": {
             "expected_class_count": args.expected_classes,
-            "class_count_matches": isinstance(names, dict) and len(names) == args.expected_classes,
+            "class_count_matches": isinstance(names, dict)
+            and len(names) == args.expected_classes,
             "output_shape_expected": [1, args.expected_classes],
             "output_shape_matches": list(output.shape) == [1, args.expected_classes],
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(json.dumps({"sha256": expected_hash, "output": str(args.output), "intended_path": intended_path_present}))
+    args.output.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "sha256": expected_hash,
+                "output": str(args.output),
+                "intended_path": intended_path_present,
+            }
+        )
+    )
     return 0
 
 

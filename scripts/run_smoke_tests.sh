@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Lightweight smoke tests that do not require the full dataset or GPU.
 set -euo pipefail
-export PYTHONPATH="D:\ASL-LDAM A Class-Imbalance-Aware Loss for Robust Shrimp Disease Image Classification Under Noisy Imaging Conditions/src"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+export PYTHONPATH="$PROJECT_ROOT/src"
 
 echo "[1/3] Env report"
 python scripts/00_check_env.py

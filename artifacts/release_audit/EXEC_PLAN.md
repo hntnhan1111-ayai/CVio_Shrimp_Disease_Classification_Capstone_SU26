@@ -17,13 +17,13 @@ boundaries.
 
 - [x] Preserve pre-existing work on a local WIP branch and enter the paper branch.
 - [x] Record Git, worktree, remote, LFS, and WIP provenance.
-- [ ] Inventory checkpoint binaries, archive members, Git/LFS objects, and textual references.
-- [ ] Quarantine and inspect every candidate with trusted-load controls.
-- [ ] Verify or reject the SDI-4 candidate architecture and fixed-test metrics.
-- [ ] Find and verify the SDI-4 CE and both exact-hash EXT-3 checkpoints.
-- [ ] Publish metadata and only verified binaries through an approved storage path.
-- [ ] Rebuild the README, supporting explanations, and deterministic figures.
-- [ ] Run repository, checkpoint, hash, link, and documentation QA.
+- [x] Inventory checkpoint binaries, archive members, Git/LFS objects, and textual references.
+- [x] Quarantine and inspect every candidate with trusted-load controls.
+- [x] Verify or reject the SDI-4 candidate architecture and fixed-test metrics.
+- [x] Find and verify the SDI-4 CE and both exact-hash EXT-3 checkpoints.
+- [x] Publish metadata and only verified binaries through an approved storage path.
+- [x] Rebuild the README, supporting explanations, and deterministic figures.
+- [x] Run repository, checkpoint, hash, link, and documentation QA.
 - [ ] Create coherent commits and perform the non-force push gate.
 
 ## Progress
@@ -32,6 +32,16 @@ boundaries.
   `669cef5fd0e0a915f1bac057f92e877637a1dc9a`.
 - 2026-08-05: Switched to the target paper branch at `137f54f` and recorded
   `preflight.json`.
+- 2026-08-05: Inventoried 293 candidate paths and inspected 10 in-scope unique
+  checkpoint/export hashes.
+- 2026-08-05: Rejected `4305e491...38c1` as a historical CE architecture after
+  exact 173-image evaluation with two Ultralytics runtimes.
+- 2026-08-05: Verified and staged only the two exact-hash EXT-3 checkpoints
+  through Git LFS; no SDI-4 weight was published.
+- 2026-08-05: Rebuilt the academic README, method documentation, figures,
+  checkpoint registry, model card, and evidence-scoped result narrative.
+- 2026-08-05: Completed formatting, lint, tests, smoke, import, checkpoint,
+  figure, link, hash, LFS, and whitespace QA.
 
 ## Surprises and discoveries
 
@@ -39,6 +49,11 @@ boundaries.
   branch. Those cache files remain on disk and are locally excluded from status.
 - LFS is installed, but the current endpoint reports `auth=none`; this is deferred
   to the final publication gate.
+- The proposed-named SDI-4 candidate contains no late attention path and scores
+  below both official targets; runtime pinning does not change its predictions.
+- Neither exact official-final SDI-4 binary exists in the audited sources.
+- The combined-regime selected artifact was historically mislabeled as proposed,
+  but its retained source metadata and architecture identify CE.
 
 ## Decision log
 
@@ -50,7 +65,15 @@ boundaries.
   evidence.
 - Keep deployment exports conceptually separate from training checkpoints and
   do not label an export as verified until its source checkpoint is verified.
+- Publish the two verified EXT-3 binaries via Git LFS because the repository has
+  LFS support; retain unresolved SDI-4 slots as metadata-only entries.
+- Treat corruption and XAI evidence tied to the historical 0.905448 package as
+  qualitative/controlled secondary evidence, never as official-final evidence.
 
 ## Outcomes and retrospective
 
-Pending.
+The scientific release gate worked as intended: a convincing filename was
+rejected by architecture and metric evidence, while exact-hash EXT-3 binaries
+were separated from their results ZIP and safely published. Remaining work is
+the remote authentication/LFS push gate; local audit, documentation, artifacts,
+and tests are complete.

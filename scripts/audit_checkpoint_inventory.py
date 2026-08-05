@@ -15,9 +15,9 @@ import re
 import subprocess
 import tarfile
 import zipfile
+from collections.abc import Iterable
 from pathlib import Path
-from typing import BinaryIO, Iterable
-
+from typing import BinaryIO
 
 CHECKPOINT_SUFFIXES = {".pt", ".pth", ".ckpt", ".safetensors"}
 EXPORT_SUFFIXES = {".onnx", ".tflite"}
@@ -64,9 +64,7 @@ SKIP_DIRS = {
 REFERENCE_PATTERN = re.compile(
     r"(?i)(?:best\.pt|last\.pt|\S+\.pth\b|\S+\.pt\b|"
     r"(?:^|[^a-z0-9])(?:asl|ldam|simam|dcfr|external3|ext[-_ ]?3)(?:[^a-z0-9]|$)|"
-    r"yolo26m|"
-    + "|".join(KNOWN_HASHES)
-    + r")"
+    r"yolo26m|" + "|".join(KNOWN_HASHES) + r")"
 )
 SENSITIVE_PATTERN = re.compile(
     r"(?i)(?:api[_-]?key|access[_-]?token|auth[_-]?token|password|passwd|"
@@ -150,7 +148,9 @@ def git_objects(repo: Path) -> list[tuple[str, str]]:
 
 def git_blob_sha256(repo: Path, oid: str) -> tuple[int, str]:
     size = int(
-        subprocess.check_output(["git", "cat-file", "-s", oid], cwd=repo, text=True).strip()
+        subprocess.check_output(
+            ["git", "cat-file", "-s", oid], cwd=repo, text=True
+        ).strip()
     )
     process = subprocess.Popen(
         ["git", "cat-file", "blob", oid], cwd=repo, stdout=subprocess.PIPE
@@ -187,7 +187,9 @@ def main() -> int:
     hash_rows: list[list[object]] = []
     archive_rows: list[list[object]] = []
     reference_rows: list[list[object]] = []
-    archives: dict[str, Path] = {os.path.normcase(str(path)): path for path in explicit_archives}
+    archives: dict[str, Path] = {
+        os.path.normcase(str(path)): path for path in explicit_archives
+    }
 
     for path in iter_files(roots):
         reason = candidate_reason(str(path))
@@ -196,10 +198,19 @@ def main() -> int:
                 stat = path.stat()
                 digest = sha256_file(path)
             except (OSError, PermissionError) as exc:
-                path_rows.append(["filesystem_error", str(path), "", "", reason, repr(exc)])
+                path_rows.append(
+                    ["filesystem_error", str(path), "", "", reason, repr(exc)]
+                )
                 continue
             path_rows.append(
-                ["filesystem", str(path), stat.st_size, iso_mtime(stat.st_mtime), reason, ""]
+                [
+                    "filesystem",
+                    str(path),
+                    stat.st_size,
+                    iso_mtime(stat.st_mtime),
+                    reason,
+                    "",
+                ]
             )
             hash_rows.append(["filesystem", str(path), stat.st_size, digest])
 
@@ -208,9 +219,14 @@ def main() -> int:
 
         try:
             stat = path.stat()
-            if path.suffix.lower() in TEXT_SUFFIXES and stat.st_size <= 10 * 1024 * 1024:
+            if (
+                path.suffix.lower() in TEXT_SUFFIXES
+                and stat.st_size <= 10 * 1024 * 1024
+            ):
                 text = path.read_text(encoding="utf-8", errors="replace")
-                append_reference_hits(reference_rows, "filesystem_text", str(path), text)
+                append_reference_hits(
+                    reference_rows, "filesystem_text", str(path), text
+                )
         except (OSError, PermissionError):
             pass
 
@@ -227,10 +243,20 @@ def main() -> int:
                             with handle.open(info) as stream:
                                 digest = sha256_stream(stream)
                             archive_rows.append(
-                                [str(archive), info.filename, info.file_size, digest, reason, "ok"]
+                                [
+                                    str(archive),
+                                    info.filename,
+                                    info.file_size,
+                                    digest,
+                                    reason,
+                                    "ok",
+                                ]
                             )
                         suffix = Path(info.filename).suffix.lower()
-                        if suffix in TEXT_SUFFIXES and info.file_size <= 10 * 1024 * 1024:
+                        if (
+                            suffix in TEXT_SUFFIXES
+                            and info.file_size <= 10 * 1024 * 1024
+                        ):
                             with handle.open(info) as stream:
                                 text = stream.read().decode("utf-8", errors="replace")
                             append_reference_hits(
@@ -249,7 +275,9 @@ def main() -> int:
                             continue
                         reason = candidate_reason(info.name)
                         suffix = Path(info.name).suffix.lower()
-                        if reason or (suffix in TEXT_SUFFIXES and info.size <= 10 * 1024 * 1024):
+                        if reason or (
+                            suffix in TEXT_SUFFIXES and info.size <= 10 * 1024 * 1024
+                        ):
                             stream = handle.extractfile(info)
                             if stream is None:
                                 continue
@@ -265,7 +293,10 @@ def main() -> int:
                                         "ok",
                                     ]
                                 )
-                            if suffix in TEXT_SUFFIXES and info.size <= 10 * 1024 * 1024:
+                            if (
+                                suffix in TEXT_SUFFIXES
+                                and info.size <= 10 * 1024 * 1024
+                            ):
                                 append_reference_hits(
                                     reference_rows,
                                     "archive_text",
@@ -296,13 +327,27 @@ def main() -> int:
                 continue
             source = str(path)
             path_rows.append(
-                ["lfs_object", source, stat.st_size, iso_mtime(stat.st_mtime), "lfs_object", ""]
+                [
+                    "lfs_object",
+                    source,
+                    stat.st_size,
+                    iso_mtime(stat.st_mtime),
+                    "lfs_object",
+                    "",
+                ]
             )
             hash_rows.append(["lfs_object", source, stat.st_size, digest])
 
     tables = {
         "all_checkpoint_paths.tsv": (
-            ["source_type", "path", "size_bytes", "mtime_utc", "candidate_reason", "error"],
+            [
+                "source_type",
+                "path",
+                "size_bytes",
+                "mtime_utc",
+                "candidate_reason",
+                "error",
+            ],
             path_rows,
         ),
         "all_checkpoint_hashes.tsv": (
@@ -322,7 +367,10 @@ def main() -> int:
         with (args.output / filename).open("w", encoding="utf-8", newline="") as stream:
             writer = csv.writer(stream, delimiter="\t", lineterminator="\n")
             writer.writerow(header)
-            writer.writerows(rows)
+            writer.writerows(
+                ["NA" if str(cell) == "" else str(cell).rstrip() for cell in row]
+                for row in rows
+            )
 
     print(f"filesystem_and_git_candidates={len(path_rows)}")
     print(f"archive_checkpoint_hits={sum(row[-1] == 'ok' for row in archive_rows)}")
