@@ -7,17 +7,32 @@ Does not train. Outputs metrics JSON + CSV predictions + confusion matrix.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import platform
+import shlex
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path.cwd()
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cvio_asl_ldam.evaluation.metrics import classification_metrics
-from cvio_asl_ldam.evaluation.confusion_matrix import save_confusion_matrix
+from cvio_asl_ldam.evaluation.confusion_matrix import (
+    save_confusion_matrix,
+    save_normalized_confusion_matrix,
+)
 from cvio_asl_ldam.utils.io import write_json
 
 CLASS_NAMES = ("Healthy", "BG", "WSSV", "WSSV_BG")
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _test_rows(manifest: Path) -> list[dict[str, str]]:
@@ -82,6 +97,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_json(output_dir / "clean_test_metrics.json", metrics)
     save_confusion_matrix(metrics["confusion_matrix"], output_dir / "clean_test_confusion_matrix")
+    save_normalized_confusion_matrix(
+        metrics["confusion_matrix"], output_dir / "clean_test_confusion_matrix_normalized"
+    )
 
     import csv
     with (output_dir / "clean_test_predictions.csv").open("w", encoding="utf-8", newline="") as h:
@@ -96,6 +114,29 @@ def main() -> None:
                     "prediction": pred,
                 }
             )
+    import torch
+    import ultralytics
+
+    weights_path = Path(args.weights).resolve()
+    write_json(
+        output_dir / "evaluation_provenance.json",
+        {
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "command": shlex.join([sys.executable, *sys.argv]),
+            "python": sys.version,
+            "platform": platform.platform(),
+            "torch": torch.__version__,
+            "ultralytics": ultralytics.__version__,
+            "device": device,
+            "checkpoint_path": str(weights_path),
+            "checkpoint_sha256": _sha256(weights_path),
+            "manifest": str(Path(args.manifest).resolve()),
+            "dataset_root": str(dataset_root.resolve()),
+            "test_size": len(rows),
+            "class_order": list(CLASS_NAMES),
+            "image_size": args.imgsz,
+        },
+    )
     print(f"Clean test accuracy={metrics['accuracy']:.4f} macro_f1={metrics['macro_f1']:.4f}")
     print(f"Wrote metrics to {output_dir}")
 

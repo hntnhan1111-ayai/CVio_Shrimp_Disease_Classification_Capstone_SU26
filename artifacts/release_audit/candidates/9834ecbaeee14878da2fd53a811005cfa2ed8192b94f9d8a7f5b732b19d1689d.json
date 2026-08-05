@@ -1,0 +1,23 @@
+{
+  "candidate": {
+    "source": "D:/CVio/New folder/cvio_yolo26m_asl_ldam_simam_dcfr_litert_fp32_export.zip!yolo26m_asl_ldam_simam_dcfr_fp32.tflite",
+    "sha256": "9834ecbaeee14878da2fd53a811005cfa2ed8192b94f9d8a7f5b732b19d1689d",
+    "size_bytes": 41443690,
+    "format": "LiteRT/TFLite FP32",
+    "task": "classification",
+    "class_order": ["Healthy", "BG", "WSSV", "WSSV_BG"],
+    "input_shape": [1, 224, 224, 3],
+    "input_dtype": "float32",
+    "output_shape": [1, 4],
+    "output_dtype": "float32"
+  },
+  "provenance": {
+    "source_checkpoint_sha256": "4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1",
+    "interpreter_sanity_evidence": "tflite_sanity_check_py312.json reports status ok."
+  },
+  "verification": {
+    "status": "HISTORICAL_NONFINAL_EXPORT",
+    "reason": "Shape validation passed, but the source checkpoint failed SDI-4 proposed architecture and metric verification.",
+    "publish_as_official": false
+  }
+}

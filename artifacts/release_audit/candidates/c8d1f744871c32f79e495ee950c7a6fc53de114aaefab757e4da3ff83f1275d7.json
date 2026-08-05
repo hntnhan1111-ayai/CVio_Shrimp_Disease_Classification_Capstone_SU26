@@ -1,0 +1,23 @@
+{
+  "candidate": {
+    "source": "export/yolo26m_asl_ldam_simam_dcfr_fp16.tflite",
+    "sha256": "c8d1f744871c32f79e495ee950c7a6fc53de114aaefab757e4da3ff83f1275d7",
+    "size_bytes": 20767070,
+    "format": "LiteRT/TFLite FP16 weights",
+    "task": "classification",
+    "class_order": ["Healthy", "BG", "WSSV", "WSSV_BG"],
+    "input_shape": [1, 224, 224, 3],
+    "input_dtype": "float32",
+    "output_shape": [1, 4],
+    "output_dtype": "float32"
+  },
+  "provenance": {
+    "source_checkpoint_sha256": null,
+    "evidence": "Repository export metadata records a prior successful shape check but does not bind this FP16 binary to a verified source checkpoint hash."
+  },
+  "verification": {
+    "status": "UNRESOLVED_EXPORT",
+    "reason": "No verified source-checkpoint binding is retained; the same-named FP32 family traces to a historical nonfinal checkpoint.",
+    "publish_as_official": false
+  }
+}

@@ -1,0 +1,1130 @@
+{
+  "candidate": {
+    "source": "D:\\CVio\\CVio_YOLO26m_TestAug_vs_TTA_seed42_RESULTS.zip!training/YOLO26m-cls_CE/best.pt",
+    "quarantine_path": "D:\\CVio\\New folder\\release_quarantine_20260805_2240\\sdi4_historical_testaug\\training\\YOLO26m-cls_CE\\best.pt",
+    "sha256": "4acb5924b7d1d845a775fdcd623edf61834821ca8cb13f5f3b7a10c9cc2a409d",
+    "size_bytes": 20883606,
+    "mtime_utc": "2026-08-04T05:50:42+00:00",
+    "dataset_regime_claim": "SDI-4"
+  },
+  "trusted_load": {
+    "project_safe_globals_registered": true,
+    "pickle_source_trusted": true
+  },
+  "environment": {
+    "python": "3.12.12 (main, Dec 17 2025, 21:10:14) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.10.0+cpu",
+    "ultralytics": "8.4.103",
+    "device": "cpu"
+  },
+  "checkpoint_metadata": {
+    "task": "classify",
+    "checkpoint_version": "8.4.75",
+    "checkpoint_date": "2026-08-04T12:43:38.535794",
+    "names": {
+      "0": "00_Healthy",
+      "1": "01_BG",
+      "2": "02_WSSV",
+      "3": "03_WSSV_BG"
+    },
+    "class_count": 4,
+    "train_args": {
+      "task": "classify",
+      "mode": "train",
+      "model": "yolo26m-cls.pt",
+      "data": "/kaggle/working/cvio_testaug_vs_tta_seed42/runs/prepared_seed42",
+      "epochs": 30,
+      "time": null,
+      "patience": 15,
+      "batch": 32,
+      "imgsz": 224,
+      "save": true,
+      "save_period": -1,
+      "cache": false,
+      "device": "0,1",
+      "workers": 4,
+      "project": "/kaggle/working/cvio_testaug_vs_tta_seed42/runs/training",
+      "name": "yolo26m_cls__baseline_ce__seed42",
+      "exist_ok": true,
+      "pretrained": true,
+      "optimizer": "AdamW",
+      "verbose": true,
+      "seed": 42,
+      "deterministic": true,
+      "single_cls": false,
+      "rect": false,
+      "cos_lr": true,
+      "close_mosaic": 10,
+      "resume": false,
+      "amp": true,
+      "fraction": 1.0,
+      "profile": false,
+      "freeze": null,
+      "multi_scale": 0.0,
+      "compile": false,
+      "overlap_mask": true,
+      "mask_ratio": 4,
+      "dropout": 0.0,
+      "val": true,
+      "split": "val",
+      "save_json": false,
+      "conf": null,
+      "iou": 0.7,
+      "max_det": 300,
+      "half": false,
+      "dnn": false,
+      "plots": false,
+      "end2end": null,
+      "source": null,
+      "vid_stride": 1,
+      "stream_buffer": false,
+      "visualize": false,
+      "augment": false,
+      "agnostic_nms": false,
+      "classes": null,
+      "retina_masks": false,
+      "embed": null,
+      "show": false,
+      "save_frames": false,
+      "save_txt": false,
+      "save_conf": false,
+      "save_crop": false,
+      "show_labels": true,
+      "show_conf": true,
+      "show_boxes": true,
+      "line_width": null,
+      "format": "torchscript",
+      "keras": false,
+      "optimize": false,
+      "int8": false,
+      "dynamic": false,
+      "simplify": true,
+      "opset": null,
+      "workspace": null,
+      "nms": false,
+      "lr0": 0.00125,
+      "lrf": 0.01,
+      "momentum": 0.937,
+      "weight_decay": 0.0005,
+      "warmup_epochs": 3.0,
+      "warmup_momentum": 0.8,
+      "warmup_bias_lr": 0.1,
+      "box": 7.5,
+      "cls": 0.5,
+      "cls_pw": 0.0,
+      "dfl": 1.5,
+      "pose": 12.0,
+      "kobj": 1.0,
+      "rle": 1.0,
+      "angle": 1.0,
+      "nbs": 64,
+      "hsv_h": 0.015,
+      "hsv_s": 0.7,
+      "hsv_v": 0.4,
+      "degrees": 0.0,
+      "translate": 0.1,
+      "scale": 0.5,
+      "shear": 0.0,
+      "perspective": 0.0,
+      "flipud": 0.0,
+      "fliplr": 0.5,
+      "bgr": 0.0,
+      "mosaic": 1.0,
+      "mixup": 0.0,
+      "cutmix": 0.0,
+      "copy_paste": 0.0,
+      "copy_paste_mode": "flip",
+      "auto_augment": "randaugment",
+      "erasing": 0.4,
+      "cfg": null,
+      "tracker": "botsort.yaml"
+    },
+    "stored_attention_module_audit": null
+  },
+  "architecture": {
+    "parameter_count": 10358340,
+    "trainable_parameter_count": 0,
+    "module_count": 187,
+    "module_tree": [
+      {
+        "name": "",
+        "type": "ultralytics.nn.tasks.ClassificationModel",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.0",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.0.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 1728
+      },
+      {
+        "name": "model.0.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.0.act",
+        "type": "torch.nn.modules.activation.SiLU",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 73728
+      },
+      {
+        "name": "model.1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.2",
+        "type": "ultralytics.nn.modules.block.C3k2",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 16384
+      },
+      {
+        "name": "model.2.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.2.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 49152
+      },
+      {
+        "name": "model.2.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.2.m",
+        "type": "torch.nn.modules.container.ModuleList",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0",
+        "type": "ultralytics.nn.modules.block.C3k",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 2048
+      },
+      {
+        "name": "model.2.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.2.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 2048
+      },
+      {
+        "name": "model.2.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.2.m.0.cv3",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.cv3.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 4096
+      },
+      {
+        "name": "model.2.m.0.cv3.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.2.m.0.m",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.0",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 9216
+      },
+      {
+        "name": "model.2.m.0.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.2.m.0.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 9216
+      },
+      {
+        "name": "model.2.m.0.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.2.m.0.m.1",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.1.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.1.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 9216
+      },
+      {
+        "name": "model.2.m.0.m.1.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.2.m.0.m.1.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.2.m.0.m.1.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 9216
+      },
+      {
+        "name": "model.2.m.0.m.1.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 64
+      },
+      {
+        "name": "model.3",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.3.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 589824
+      },
+      {
+        "name": "model.3.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.4",
+        "type": "ultralytics.nn.modules.block.C3k2",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 65536
+      },
+      {
+        "name": "model.4.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.4.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 196608
+      },
+      {
+        "name": "model.4.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.4.m",
+        "type": "torch.nn.modules.container.ModuleList",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0",
+        "type": "ultralytics.nn.modules.block.C3k",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 8192
+      },
+      {
+        "name": "model.4.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.4.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 8192
+      },
+      {
+        "name": "model.4.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.4.m.0.cv3",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.cv3.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 16384
+      },
+      {
+        "name": "model.4.m.0.cv3.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.4.m.0.m",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.0",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 36864
+      },
+      {
+        "name": "model.4.m.0.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.4.m.0.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 36864
+      },
+      {
+        "name": "model.4.m.0.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.4.m.0.m.1",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.1.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.1.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 36864
+      },
+      {
+        "name": "model.4.m.0.m.1.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.4.m.0.m.1.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.4.m.0.m.1.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 36864
+      },
+      {
+        "name": "model.4.m.0.m.1.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 128
+      },
+      {
+        "name": "model.5",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.5.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 2359296
+      },
+      {
+        "name": "model.5.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.6",
+        "type": "ultralytics.nn.modules.block.C3k2",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 262144
+      },
+      {
+        "name": "model.6.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.6.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 393216
+      },
+      {
+        "name": "model.6.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.6.m",
+        "type": "torch.nn.modules.container.ModuleList",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0",
+        "type": "ultralytics.nn.modules.block.C3k",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 32768
+      },
+      {
+        "name": "model.6.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.6.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 32768
+      },
+      {
+        "name": "model.6.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.6.m.0.cv3",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.cv3.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 65536
+      },
+      {
+        "name": "model.6.m.0.cv3.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.6.m.0.m",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.0",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.6.m.0.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.6.m.0.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.6.m.0.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.6.m.0.m.1",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.1.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.1.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.6.m.0.m.1.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.6.m.0.m.1.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.6.m.0.m.1.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.6.m.0.m.1.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.7",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.7.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 2359296
+      },
+      {
+        "name": "model.7.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.8",
+        "type": "ultralytics.nn.modules.block.C3k2",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 262144
+      },
+      {
+        "name": "model.8.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.8.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 393216
+      },
+      {
+        "name": "model.8.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.8.m",
+        "type": "torch.nn.modules.container.ModuleList",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0",
+        "type": "ultralytics.nn.modules.block.C3k",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 32768
+      },
+      {
+        "name": "model.8.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.8.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 32768
+      },
+      {
+        "name": "model.8.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.8.m.0.cv3",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.cv3.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 65536
+      },
+      {
+        "name": "model.8.m.0.cv3.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.8.m.0.m",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.0",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.0.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.0.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.8.m.0.m.0.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.8.m.0.m.0.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.0.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.8.m.0.m.0.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.8.m.0.m.1",
+        "type": "ultralytics.nn.modules.block.Bottleneck",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.1.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.1.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.8.m.0.m.1.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.8.m.0.m.1.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.8.m.0.m.1.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 147456
+      },
+      {
+        "name": "model.8.m.0.m.1.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 256
+      },
+      {
+        "name": "model.9",
+        "type": "ultralytics.nn.modules.block.C2PSA",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.cv1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.cv1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 262144
+      },
+      {
+        "name": "model.9.cv1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.9.cv2",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.cv2.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 262144
+      },
+      {
+        "name": "model.9.cv2.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.9.m",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0",
+        "type": "ultralytics.nn.modules.block.PSABlock",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn",
+        "type": "ultralytics.nn.modules.block.Attention",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.qkv",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.qkv.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 131072
+      },
+      {
+        "name": "model.9.m.0.attn.qkv.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.9.m.0.attn.qkv.act",
+        "type": "torch.nn.modules.linear.Identity",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.proj",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.proj.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 65536
+      },
+      {
+        "name": "model.9.m.0.attn.proj.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.9.m.0.attn.proj.act",
+        "type": "torch.nn.modules.linear.Identity",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.pe",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.attn.pe.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 2304
+      },
+      {
+        "name": "model.9.m.0.attn.pe.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.9.m.0.attn.pe.act",
+        "type": "torch.nn.modules.linear.Identity",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.ffn",
+        "type": "torch.nn.modules.container.Sequential",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.ffn.0",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.ffn.0.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 131072
+      },
+      {
+        "name": "model.9.m.0.ffn.0.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 1024
+      },
+      {
+        "name": "model.9.m.0.ffn.1",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.9.m.0.ffn.1.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 131072
+      },
+      {
+        "name": "model.9.m.0.ffn.1.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 512
+      },
+      {
+        "name": "model.9.m.0.ffn.1.act",
+        "type": "torch.nn.modules.linear.Identity",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.10",
+        "type": "ultralytics.nn.modules.head.Classify",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.10.conv",
+        "type": "ultralytics.nn.modules.conv.Conv",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.10.conv.conv",
+        "type": "torch.nn.modules.conv.Conv2d",
+        "direct_parameters": 655360
+      },
+      {
+        "name": "model.10.conv.bn",
+        "type": "torch.nn.modules.batchnorm.BatchNorm2d",
+        "direct_parameters": 2560
+      },
+      {
+        "name": "model.10.pool",
+        "type": "torch.nn.modules.pooling.AdaptiveAvgPool2d",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.10.drop",
+        "type": "torch.nn.modules.dropout.Dropout",
+        "direct_parameters": 0
+      },
+      {
+        "name": "model.10.linear",
+        "type": "torch.nn.modules.linear.Linear",
+        "direct_parameters": 5124
+      }
+    ],
+    "classify_modules": [
+      "model.10"
+    ],
+    "head_input_shapes": {
+      "model.10": [
+        1,
+        512,
+        7,
+        7
+      ]
+    },
+    "output_shape": [
+      1,
+      4
+    ],
+    "attention_wrappers": [],
+    "simam_dcfr_modules": [],
+    "wrapper_order_valid": true,
+    "intended_late_feature_recalibration_path_present": false,
+    "indistinguishable_from_ce_baseline_architecture": true,
+    "simam_dcfr_forward_source_sha256": "76f47af8898974ae3892558f240e3c7c1495f84f06bae29de80df08e07d5e966"
+  },
+  "checks": {
+    "expected_class_count": 4,
+    "class_count_matches": true,
+    "output_shape_expected": [
+      1,
+      4
+    ],
+    "output_shape_matches": true
+  },
+  "verification": {
+    "status": "HISTORICAL_NONFINAL",
+    "role": "SDI-4 CE historical rerun",
+    "test_size": 173,
+    "class_order": ["Healthy", "BG", "WSSV", "WSSV_BG"],
+    "package_clean_metrics": {
+      "accuracy": 0.884393063583815,
+      "macro_f1": 0.8748719847834777,
+      "cohen_kappa": 0.8420740335022137
+    },
+    "decision_basis": "The audited package result does not match official SDI-4 CE metrics within absolute tolerance 1e-6.",
+    "publish_as_official": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "candidate": {
+    "source": "D:/CVio/New folder/cvio_yolo26m_asl_ldam_simam_dcfr_litert_fp32_export.zip!best_yolo26m_asl_ldam_simam_dcfr.onnx",
+    "sha256": "44141c8e8ecc400b4b696adbfe736fe12aa07da42b53c6e2e99cb600268cb235",
+    "size_bytes": 41435180,
+    "format": "ONNX",
+    "task": "classification",
+    "class_order": ["Healthy", "BG", "WSSV", "WSSV_BG"],
+    "input_shape": [1, 3, 224, 224],
+    "output_shape": [1, 4]
+  },
+  "provenance": {
+    "source_checkpoint_sha256": "4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1",
+    "evidence": "The retained export log names the source .pt and records the ONNX output shape."
+  },
+  "verification": {
+    "status": "HISTORICAL_NONFINAL_EXPORT",
+    "reason": "The source checkpoint failed SDI-4 proposed architecture and metric verification.",
+    "publish_as_official": false
+  }
+}

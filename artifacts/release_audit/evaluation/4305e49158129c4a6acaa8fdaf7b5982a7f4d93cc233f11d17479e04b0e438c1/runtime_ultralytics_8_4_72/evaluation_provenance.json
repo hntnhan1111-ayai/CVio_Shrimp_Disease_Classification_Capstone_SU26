@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-08-05T15:56:40.886154+00:00",
+  "command": "'D:\\CVio\\legacy\\CVio_ShrimpDB_Combined_Research_Repo\\studies\\shrimpdb_combined_multisource\\.venv\\Scripts\\python.exe' scripts/04_eval_clean.py --weights 'D:\\CVio\\New folder\\release_quarantine_20260805_2240\\sdi4_export\\best_yolo26m_asl_ldam_simam_dcfr.pt' --manifest artifacts/manifests/split_manifest_seed42.csv --dataset-config configs/dataset/shrimpdiseasebd_seed42.yaml --data-dir 'C:\\Users\\nhant\\.cache\\kagglehub\\datasets\\uynnhy\\processed-images\\versions\\1\\processed_images' --output-dir artifacts/release_audit/evaluation/4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1/runtime_ultralytics_8_4_72 --device cpu --imgsz 224",
+  "python": "3.12.12 (main, Dec 17 2025, 21:10:14) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "torch": "2.10.0+cpu",
+  "ultralytics": "8.4.72",
+  "device": "cpu",
+  "checkpoint_path": "D:\\CVio\\New folder\\release_quarantine_20260805_2240\\sdi4_export\\best_yolo26m_asl_ldam_simam_dcfr.pt",
+  "checkpoint_sha256": "4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1",
+  "manifest": "D:\\CVio\\New folder\\CVio_Shrimp_Disease_Classification_Capstone_SU26\\artifacts\\manifests\\split_manifest_seed42.csv",
+  "dataset_root": "C:\\Users\\nhant\\.cache\\kagglehub\\datasets\\uynnhy\\processed-images\\versions\\1\\processed_images",
+  "test_size": 173,
+  "class_order": [
+    "Healthy",
+    "BG",
+    "WSSV",
+    "WSSV_BG"
+  ],
+  "image_size": 224
+}
