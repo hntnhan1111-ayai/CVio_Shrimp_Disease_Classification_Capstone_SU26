@@ -65,3 +65,7 @@ export/export_log.txt
 Thumbs.db
 .vscode/
 .idea/
+
+# Audited release registry. Binary files below this directory must be Git LFS.
+!/weights/
+!/weights/**
