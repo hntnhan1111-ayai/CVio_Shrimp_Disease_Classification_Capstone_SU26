@@ -161,3 +161,11 @@ Detailed receipts:
 
 These gaps block only the affected scientific labels and artifacts; they do not
 invalidate the two exact-hash EXT-3 checkpoint releases.
+
+## Remote publication
+
+The final gate confirmed the local branch was 11 commits ahead and 0 behind its
+upstream, found redacted credentials through Git Credential Manager, uploaded
+both Git LFS objects (43 MB total), and advanced the remote paper branch from
+`137f54f` through the audited release series without force. The local WIP branch
+and its preservation commit were not pushed.

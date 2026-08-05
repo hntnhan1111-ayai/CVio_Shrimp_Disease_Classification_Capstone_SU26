@@ -24,7 +24,7 @@ boundaries.
 - [x] Publish metadata and only verified binaries through an approved storage path.
 - [x] Rebuild the README, supporting explanations, and deterministic figures.
 - [x] Run repository, checkpoint, hash, link, and documentation QA.
-- [ ] Create coherent commits and perform the non-force push gate.
+- [x] Create coherent commits and perform the non-force push gate.
 
 ## Progress
 
@@ -42,6 +42,8 @@ boundaries.
   checkpoint registry, model card, and evidence-scoped result narrative.
 - 2026-08-05: Completed formatting, lint, tests, smoke, import, checkpoint,
   figure, link, hash, LFS, and whitespace QA.
+- 2026-08-05: Passed the final upstream-divergence and credential gates, uploaded
+  both verified LFS objects (43 MB), and pushed the paper branch without force.
 
 ## Surprises and discoveries
 
@@ -74,6 +76,6 @@ boundaries.
 
 The scientific release gate worked as intended: a convincing filename was
 rejected by architecture and metric evidence, while exact-hash EXT-3 binaries
-were separated from their results ZIP and safely published. Remaining work is
-the remote authentication/LFS push gate; local audit, documentation, artifacts,
-and tests are complete.
+were separated from their results ZIP and safely published. The local audit,
+documentation, artifacts, tests, LFS upload, and non-force branch push are
+complete.
