@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+  <rect width="1200" height="420" fill="#ffffff"/>
+  <style>text{font-family:Arial,sans-serif;fill:#111827;font-size:20px}.title{font-size:26px;font-weight:700;fill:#1f2937}.header{font-size:18px;font-weight:700;fill:#fff}.model{font-weight:500}.best{font-weight:700}.grid{stroke:#b7b7b7;stroke-width:1}</style>
+  <text class="title" x="20" y="34">CA → SimAM — Strong augmentation</text>
+  <rect x="20" y="52" width="1160" height="48" fill="#4472C4"/>
+  <g class="grid" fill="none"><rect x="20" y="52" width="1160" height="336"/><path d="M300 52V388 M520 52V388 M740 52V388 M960 52V388"/><path d="M20 100H1180 M20 148H1180 M20 196H1180 M20 244H1180 M20 292H1180 M20 340H1180"/></g>
+  <g class="header" text-anchor="middle"><text x="160" y="83">Attention position</text><text x="410" y="83">Full-test mAP50</text><text x="630" y="83">Labeled mAP50</text><text x="850" y="83">Labeled mAP50–95</text><text x="1070" y="83">Full-test recall</text></g>
+  <g dominant-baseline="middle">
+    <text class="model" x="34" y="124">Neck concat</text><text x="500" y="124" text-anchor="end">40.90</text><text x="720" y="124" text-anchor="end">43.30</text><text x="940" y="124" text-anchor="end">14.20</text><text x="1160" y="124" text-anchor="end">46.50</text>
+    <text class="model" x="34" y="172">Head P3</text><text x="500" y="172" text-anchor="end">40.90</text><text x="720" y="172" text-anchor="end">43.40</text><text x="940" y="172" text-anchor="end">14.60</text><text x="1160" y="172" text-anchor="end">41.50</text>
+    <text class="model best" x="34" y="220">Head P4</text><text class="best" x="500" y="220" text-anchor="end">47.70</text><text class="best" x="720" y="220" text-anchor="end">50.50</text><text x="940" y="220" text-anchor="end">16.80</text><text class="best" x="1160" y="220" text-anchor="end">47.40</text>
+    <text class="model" x="34" y="268">After C2PSA</text><text x="500" y="268" text-anchor="end">43.80</text><text x="720" y="268" text-anchor="end">45.80</text><text class="best" x="940" y="268" text-anchor="end">16.90</text><text x="1160" y="268" text-anchor="end">45.60</text>
+    <text class="model" x="34" y="316">Backbone P3</text><text x="500" y="316" text-anchor="end">38.50</text><text x="720" y="316" text-anchor="end">40.90</text><text x="940" y="316" text-anchor="end">13.60</text><text x="1160" y="316" text-anchor="end">43.60</text>
+    <text class="model" x="34" y="364">Neck P3/P4</text><text x="500" y="364" text-anchor="end">44.30</text><text x="720" y="364" text-anchor="end">47.30</text><text x="940" y="364" text-anchor="end">15.90</text><text x="1160" y="364" text-anchor="end">43.60</text>
+  </g>
+  <text x="20" y="410" font-size="15" fill="#4b5563">Values are percentages; bold indicates the best result in each metric.</text>
+</svg>
