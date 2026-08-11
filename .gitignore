@@ -69,3 +69,18 @@ Thumbs.db
 # Audited release registry. Binary files below this directory must be Git LFS.
 !/weights/
 !/weights/**
+
+# Final Report worktree
+reports/final_report_xelatex/_handoff/
+reports/final_report_xelatex/artifacts/
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+*.bbl
+*.blg
+*.bcf
+*.run.xml

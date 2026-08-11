@@ -1,0 +1,23 @@
+% Section 6.13 — Segmentation Robustness / Failure Analysis
+% Robustness analysis for segmentation.
+
+\section{Segmentation Robustness and Failure Analysis}
+\label{sec:segmentation-robustness}
+
+Segmentation robustness analysis documents known failure modes and limitations of the segmentation models. These experiments were conducted by Nguyen Van Phong, and the findings are reproduced from the accepted evidence.
+
+\subsection{Known Failure Modes}
+\label{sec:segmentation-failures}
+
+The following failure modes have been documented in the retained segmentation evidence:
+
+\begin{itemize}
+    \item False-positive disease masks on Healthy images, where the segmentation model produces spurious BG or WSSV polygons despite the absence of disease.
+    \item Under-segmentation of WSSV lesions on specimens with mild or early-stage infection.
+    \item Boundary ambiguity between BG and WSSV regions in co-infection cases.
+\end{itemize}
+
+\subsection{Operational Implications}
+\label{sec:segmentation-operational}
+
+The false-positive failure mode on Healthy images motivates the classification-gated cascade architecture described in Section~\ref{sec:segmentation-leakage}. However, the cascade also introduces a failure mode of its own: a diseased image that is misclassified as Healthy by the classifier will suppress segmentation entirely, potentially missing a detectable disease. End-to-end validation of the cascade is therefore necessary before any operational deployment.

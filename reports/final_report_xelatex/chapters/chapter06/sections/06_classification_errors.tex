@@ -1,0 +1,25 @@
+% Section 6.6 — Classification Error Analysis
+% Error analysis and confusion patterns.
+
+\section{Classification Error Analysis}
+\label{sec:classification-errors}
+
+This section analyses the classification errors made by both the proposed method and the CE baseline on the SDI-4 test partition.
+
+\subsection{Confusion Pattern}
+\label{sec:confusion-pattern}
+
+The primary sources of confusion are expected to occur between classes that share visual characteristics. Specific patterns include:
+
+\begin{itemize}
+    \item \textbf{WSSV vs.~WSSV\_BG}: Images exhibiting co-infection may be mistaken for single-infection WSSV when the black gill symptoms are subtle or absent.
+    \item \textbf{Healthy vs.~disease classes}: False positives on Healthy images (predicting a disease class for a healthy specimen) and false negatives (missing a diseased specimen) carry different operational implications.
+    \item \textbf{BG vs.~WSSV\_BG}: The presence of black gill symptoms in both classes creates a natural boundary ambiguity.
+\end{itemize}
+
+Detailed confusion matrices are available from the retained experiment logs and will be reported in the final thesis.
+
+\subsection{Error Reduction}
+\label{sec:error-reduction}
+
+The overall accuracy improvement from 89.02\% (CE baseline) to 91.33\% (proposed) corresponds to approximately 4 fewer misclassified images out of the 173-image test set. The component-level contribution to error reduction will be analysed when the individual component logs are extracted.

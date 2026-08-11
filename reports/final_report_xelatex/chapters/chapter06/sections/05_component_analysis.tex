@@ -1,0 +1,52 @@
+% Section 6.5 — Classification Component Analysis
+% Ablation/component analysis of ASL-LDAM and SimAM-DCFR.
+
+\section{Classification Component Analysis}
+\label{sec:component-analysis}
+
+The proposed method combines two components: the ASL-LDAM loss function and the SimAM-DCFR attention module. This section examines the contribution of each component through controlled comparisons on the SDI-4 test partition.
+
+\subsection{Architecture Details}
+\label{sec:simam-dcfr-architecture}
+
+The SimAM-DCFR module is inserted immediately before the original classification head of YOLO26m-cls. It consists of three branches:
+
+\begin{itemize}
+    \item \textbf{SimAM (attention) branch}: A parameter-free simple attention mechanism that computes a 3D attention map from the energy of each neuron. The operation is defined as:
+    \[
+    \mathbf{M}_{\text{SimAM}} = \text{sigmoid}\left(\frac{1}{\hat{\sigma}^2 + \lambda}\right) \odot \mathbf{F},
+    \]
+    where $\hat{\sigma}^2$ is the variance across spatial positions, $\lambda = 10^{-4}$ is the energy regularisation parameter, and $\mathbf{F}$ is the input feature map.
+    \item \textbf{Texture branch}: A trainable branch that captures local texture patterns through learnable filters. The output is $\mathbf{F}_{\text{texture}}$.
+    \item \textbf{Channel gate}: A learned gating vector $\mathbf{G}$ that modulates the relative contribution of the attention and texture branches.
+\end{itemize}
+
+The fusion operation is:
+\[
+\mathbf{F}' = \mathbf{F} + 0.5 \cdot \mathbf{G} \odot (\mathbf{F}_{\text{SimAM}} + \mathbf{F}_{\text{texture}}).
+\]
+
+The SimAM branch is parameter-free, while the texture branch and channel gate introduce trainable parameters. The complete SimAM-DCFR block is therefore not entirely parameter-free; only the SimAM attention computation within the block is parameter-free.
+
+\subsection{Component Ablation}
+\label{sec:component-ablation}
+
+Table~\ref{tab:component-ablation} presents the ablation results for the SDI-4 test partition.
+
+\begin{table}[htbp]
+\centering
+\caption{Component ablation on SDI-4 test (seed 42).}
+\label{tab:component-ablation}
+\begin{tabular}{l C{2.2cm} C{2.2cm} C{2.2cm}}
+\toprule
+\textbf{Configuration} & \textbf{Macro-F1 (\%)} & \textbf{Accuracy (\%)} & \textbf{Kappa} \\
+\midrule
+CE baseline (YOLO26m-cls)              & 89.02 & 89.02 & 0.8505 \\
++ ASL-LDAM (no SimAM-DCFR)            & ---   & ---   & ---    \\
++ SimAM-DCFR (CE loss)                 & ---   & ---   & ---    \\
++ ASL-LDAM + SimAM-DCFR (full proposed) & 91.01 & 91.33 & 0.8816 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The individual component results will be populated from the retained attention-benchmark logs when the corresponding evidence archive is fully extracted. The attention-benchmark experiments were conducted on an RTX 4090 and are available in the archived evidence: \path{CVio_SDI4_ASL_LDAM_Attention_Benchmark_RTX4090.zip}.

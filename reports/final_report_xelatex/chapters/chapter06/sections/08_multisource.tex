@@ -1,0 +1,76 @@
+﻿% Section 6.8 â€” Additional-Source / Integrated Evaluation
+% Presents EXT-3-Original and integrated SDI-4 + EXT-3-Original results.
+
+\section{Additional-Source and Integrated Evaluation}
+\label{sec:multisource}
+
+This section evaluates the proposed classifier on the EXT-3-Original dataset (three classes, external source) and the integrated SDI-4 + EXT-3-Original benchmark. The integrated evaluation exposes the classifier to domain shift and class-composition changes, providing a more challenging generalisation test.
+
+\subsection{EXT-3-Original Performance}
+\label{sec:ext3-performance}
+
+The EXT-3-Original dataset contains 315 images across three classes (Healthy, BG, WSSV) with a fixed partition of 221/47/47. Results are reported in Table~\ref{tab:ext3-results}.
+
+\begin{table}[htbp]
+\centering
+\caption{EXT-3-Original classification results (seed 42).}
+\label{tab:ext3-results}
+\begin{tabular}{l C{2.2cm} C{2.2cm}}
+\toprule
+\textbf{Method} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} \\
+\midrule
+CE Baseline     & 70.21 & 72.30 \\
+Proposed        & 91.49 & 91.29 \\
+\midrule
+$\Delta$ & +21.28 & +18.99 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The proposed method achieves a substantial improvement over the CE baseline on the EXT-3-Original dataset, with a Macro-F1 of 91.29\% compared to 72.30\%. This improvement is larger than the improvement observed on SDI-4, suggesting that the ASL-LDAM + SimAM-DCFR components are particularly beneficial when the class distribution shifts or the acquisition conditions differ from the primary training source.
+
+\subsection{Integrated SDI-4 + EXT-3-Original Performance}
+\label{sec:integrated-performance}
+
+The integrated dataset combines SDI-4 and EXT-3-Original at the partition level, yielding 1,025 training, 219 validation, and 220 test images. The test partition contains images from both sources, with the WSSV\_BG class appearing only in the SDI-4 subset. Results are reported in Table~\ref{tab:integrated-results}.
+
+\begin{table}[htbp]
+\centering
+\caption{Integrated SDI-4 + EXT-3-Original classification results (seed 42).}
+\label{tab:integrated-results}
+\begin{tabular}{l C{2.2cm} C{2.2cm}}
+\toprule
+\textbf{Method} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} \\
+\midrule
+CE Baseline     & 87.73 & 86.51 \\
+Proposed        & 83.18 & 82.18 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussion of the Negative Integrated Result}
+\label{sec:integrated-discussion-negative}
+
+The integrated evaluation reveals a notable negative result: the proposed method (82.18\% Macro-F1) underperforms the CE baseline (86.51\% Macro-F1) on the combined dataset. This result is a genuine observation under the recorded protocol and must be clearly acknowledged.
+
+The source-stratified integrated accuracy provides additional insight:
+
+\begin{itemize}
+    \item Proposed EXT subset accuracy: 85.11\%
+    \item Proposed SDI subset accuracy: 82.66\%
+    \item CE EXT subset accuracy: 91.49\%
+    \item CE SDI subset accuracy: 86.71\%
+\end{itemize}
+
+Both methods degrade on the SDI subset relative to the SDI-4-only evaluation, indicating that the domain shift introduced by EXT-3-Original affects the four-class decision boundary. The degradation is more pronounced for the proposed method, which achieved 91.01\% Macro-F1 on SDI-4 alone but only 82.66\% on the SDI subset of the integrated test.
+
+Several hypotheses may explain this degradation, but they remain hypotheses rather than established causal explanations:
+
+\begin{itemize}
+    \item \textbf{Source interaction}: The combined training set introduces images from different acquisition conditions, potentially shifting the feature distribution learned by the backbone.
+    \item \textbf{WSSV vs.~WSSV\_BG boundary}: The integrated evaluation includes only SDI-4 images for WSSV\_BG, while the WSSV class receives additional samples from EXT-3-Original. This asymmetry may alter the LDAM margin computation.
+    \item \textbf{Loss dynamics}: The ASL-LDAM loss, which is sensitive to class priors, may behave differently when the prior distribution changes through the addition of EXT-3 samples.
+    \item \textbf{Heterogeneous texture}: The SimAM-DCFR texture branch may overfit to source-specific textures when the training distribution becomes more heterogeneous.
+\end{itemize}
+
+This negative result does not invalidate the primary SDI-4 findings but establishes a clear limitation: the proposed method's multi-source generalisation capability is condition-dependent and requires further investigation. The CE baseline, while weaker on the individual SDI-4 and EXT-3 benchmarks, shows greater robustness to the integrated training condition.

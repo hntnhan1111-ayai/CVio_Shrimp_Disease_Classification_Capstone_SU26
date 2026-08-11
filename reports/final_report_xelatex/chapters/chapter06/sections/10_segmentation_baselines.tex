@@ -1,0 +1,22 @@
+% Section 6.10 — Segmentation Baselines
+% Segmentation baseline results (credit: Nguyen Van Phong).
+
+\section{Segmentation Baselines and Leakage Analysis}
+\label{sec:segmentation-baselines}
+
+Segmentation experiments were conducted by team member Nguyen Van Phong. This section reproduces the baseline segmentation results from the accepted evidence. The classification agent does not modify the underlying segmentation claims.
+
+\subsection{Baseline YOLO11n-Seg}
+\label{sec:yolo11n-seg}
+
+The baseline segmentation model uses YOLO11n-seg trained on the shrimp disease segmentation dataset. The dataset includes polygon annotations for two positive classes: BG (black gill) and WSSV (white spot). Healthy images from the original ShrimpDiseaseImageBD source are retained in the segmentation training set as negative samples (empty-label images). These images contribute zero-valued mask loss during optimisation but do not introduce positive mask supervision for the Healthy class.
+
+\subsection{Leakage Consideration}
+\label{sec:segmentation-leakage}
+
+An important semantic distinction is that Healthy is not a positive segmentation mask class. However, residual false-positive disease masks on Healthy images motivate the use of classification-gated segmentation as an additional operational safeguard. The cascade risk is that a diseased image misclassified as Healthy by the classifier may suppress segmentation, so end-to-end cascade sensitivity remains a required validation boundary for any integrated deployment.
+
+\subsection{Baseline Results}
+\label{sec:segmentation-baseline-results}
+
+Detailed baseline segmentation metrics (mAP@50, mAP@50:95, and per-class results) are reported in the retained segmentation experiment logs. The classification agent reproduces these results from the accepted baseline without modification.

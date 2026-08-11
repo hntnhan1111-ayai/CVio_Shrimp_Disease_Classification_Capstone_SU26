@@ -1,0 +1,33 @@
+% Section 6.16 — Threats to Validity
+% Acknowledges limitations and threats to validity.
+
+\section{Threats to Validity}
+\label{sec:threats}
+
+This section identifies threats to the validity of the experimental findings and the boundaries within which the claims are supported.
+
+\subsection{Internal Validity}
+\label{sec:internal-validity}
+
+\begin{itemize}
+    \item \textbf{Single-seed evaluation}: All experiments were conducted under a single fixed seed (42). The observed improvements may not generalise across random seeds.
+    \item \textbf{Hyperparameter dependence}: The ASL-LDAM and SimAM-DCFR hyperparameters were tuned on the SDI-4 validation set. The reported performance may be optimistic relative to an unbiased estimate.
+    \item \textbf{Component interaction}: The individual contributions of ASL-LDAM and SimAM-DCFR have not been fully isolated in the current analysis. The component ablation table will be populated when the corresponding evidence is fully extracted.
+\end{itemize}
+
+\subsection{External Validity}
+\label{sec:external-validity}
+
+\begin{itemize}
+    \item \textbf{Dataset scope}: The SDI-4 dataset contains 1,149 images from a single primary source. The EXT-3-Original dataset adds 315 images from an external source. The combined dataset size is modest by deep learning standards.
+    \item \textbf{Acquisition conditions}: The images were captured under controlled laboratory or known acquisition conditions. Generalisation to uncontrolled field conditions has not been established.
+    \item \textbf{Mobile deployment}: Mobile inference evidence is preliminary and does not establish real-time or clinical deployment readiness.
+\end{itemize}
+
+\subsection{Construct Validity}
+\label{sec:construct-validity}
+
+\begin{itemize}
+    \item \textbf{Metric choice}: Macro-F1 is the primary metric, treating all classes equally. In an operational setting, different misclassification costs may apply (e.g.~missing WSSV is more costly than false-alarming Healthy).
+    \item \textbf{Bounding claims}: Claims are bounded by the recorded protocol and the available evidence. The study does not establish universal robustness, causal attribution, or clinical diagnostic capability.
+\end{itemize}

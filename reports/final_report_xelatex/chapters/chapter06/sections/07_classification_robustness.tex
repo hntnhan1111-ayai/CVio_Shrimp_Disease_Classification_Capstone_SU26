@@ -1,0 +1,17 @@
+% Section 6.7 — Classification Robustness
+% Robustness analysis for the classification model.
+
+\section{Classification Robustness}
+\label{sec:classification-robustness}
+
+This section examines the robustness of the proposed classifier under controlled variations. The analysis is based on the recorded test protocol and does not claim universal robustness beyond the evaluated conditions.
+
+\subsection{Data Augmentation Sensitivity}
+\label{sec:augmentation-sensitivity}
+
+Both the proposed method and the CE baseline were trained with RandAugment and random erasing (probability 0.4). The impact of individual augmentation strategies was not isolated in the current protocol; the observed performance reflects the combined augmentation pipeline.
+
+\subsection{Inference Robustness}
+\label{sec:inference-robustness}
+
+The proposed classifier was evaluated under the SDI-4 test partition without additional inference-time augmentation. The reported results (Macro-F1 91.01\%, accuracy 91.33\%) therefore represent the expected performance under standard evaluation conditions. Extended robustness testing, including test-time augmentation (TTA) and input perturbation, is a direction for future work.

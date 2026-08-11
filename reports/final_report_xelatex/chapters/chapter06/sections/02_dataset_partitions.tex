@@ -1,0 +1,103 @@
+% Section 6.2 — Dataset Composition and Evaluation Partitions
+% Documents the SDI-4, EXT-3-Original, and integrated dataset composition.
+
+\section{Dataset Composition and Evaluation Partitions}
+\label{sec:dataset-partitions}
+
+This section describes the composition of the datasets used in the classification and segmentation experiments and the corresponding evaluation partitions.
+
+\subsection{SDI-4 Classification Dataset}
+\label{sec:sdi4-dataset}
+
+The SDI-4 dataset is the primary evaluation benchmark for the classification task. It contains 1,149 RGB images of shrimp, sourced from the ShrimpDiseaseImageBD repository and augmented by the project team. The dataset is organised into four classes:
+
+\begin{itemize}
+    \item \textbf{Healthy} (403 images): Shrimp specimens with no visible signs of disease.
+    \item \textbf{BG} (198 images): Shrimp specimens exhibiting black gill disease.
+    \item \textbf{WSSV} (328 images): Shrimp specimens infected with White Spot Syndrome Virus.
+    \item \textbf{WSSV\_BG} (220 images): Shrimp specimens exhibiting both WSSV and BG co-infection.
+\end{itemize}
+
+All images were resized to a uniform resolution of \(224 \times 224\) pixels, consistent with the input requirements of the YOLO-cls architecture.
+
+\subsubsection{Partitioning Strategy}
+\label{sec:sdi4-partition}
+
+The dataset was partitioned using a fixed random seed of 42 to ensure reproducibility. The split was conducted at the image level using a stratified strategy that preserves the class distribution across partitions. The resulting partition sizes are:
+
+\[
+\text{Train} = 804 \quad (70\%), \qquad
+\text{Validation} = 172 \quad (15\%), \qquad
+\text{Test} = 173 \quad (15\%).
+\]
+
+The class-level distribution within each partition is reported in Table~\ref{tab:sdi4-partition}.
+
+\begin{table}[htbp]
+\centering
+\caption{Class distribution across SDI-4 partitions (seed 42).}
+\label{tab:sdi4-partition}
+\begin{tabular}{l C{2.5cm} C{2.5cm} C{2.5cm} C{2.5cm}}
+\toprule
+\textbf{Class} & \textbf{Train} & \textbf{Validation} & \textbf{Test} & \textbf{Total} \\
+\midrule
+Healthy  & 282 & 60 & 61 & 403 \\
+BG       & 139 & 30 & 29 & 198 \\
+WSSV     & 229 & 49 & 50 & 328 \\
+WSSV\_BG & 154 & 33 & 33 & 220 \\
+\midrule
+Total    & 804 & 172 & 173 & 1,149 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{EXT-3-Original Dataset}
+\label{sec:ext3-dataset}
+
+The EXT-3-Original dataset consists of 315 RGB images sourced from an external collection, covering three classes: Healthy, BG, and WSSV. This dataset does not include the WSSV\_BG co-infection class. The images were captured under different environmental conditions and resolutions from the SDI-4 dataset, providing a domain-shift evaluation scenario.
+
+The partition was fixed at:
+
+\[
+\text{Train} = 221, \qquad
+\text{Validation} = 47, \qquad
+\text{Test} = 47.
+\]
+
+\subsection{Integrated SDI-4 + EXT-3-Original Dataset}
+\label{sec:integrated-dataset}
+
+To evaluate cross-source generalisation, the SDI-4 and EXT-3-Original datasets were merged at the partition level: each dataset was split independently using the same seed 42, and the corresponding partitions (train, validation, test) were concatenated. The resulting integrated dataset has:
+
+\[
+\text{Train} = 1,025, \qquad
+\text{Validation} = 219, \qquad
+\text{Test} = 220.
+\]
+
+The integrated test partition comprises images from both sources, with the WSSV\_BG class appearing only in the SDI-4 subset. The test composition is reported in Table~\ref{tab:integrated-test}.
+
+\begin{table}[htbp]
+\centering
+\caption{Integrated test partition composition (SDI-4 + EXT-3-Original).}
+\label{tab:integrated-test}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Class} & \textbf{SDI-4 subset} & \textbf{EXT-3 subset} \\
+\midrule
+Healthy  & 61 &  11 \\
+BG       & 29 &  16 \\
+WSSV     & 50 &  20 \\
+WSSV\_BG & 33 &  -- \\
+\midrule
+Total    & 173 & 47 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Segmentation Dataset}
+\label{sec:segmentation-dataset}
+
+The segmentation dataset is derived from the same ShrimpDiseaseImageBD source. It contains images with pixel-level polygon annotations for two positive classes: BG and WSSV. Healthy images from the original source are retained in the segmentation training set as negative samples (i.e., images with no positive mask polygons). These images participate in the optimisation process by contributing zero-valued loss for the mask head, but they do not introduce positive mask supervision for the Healthy class.
+
+The segmentation partition sizes and class distribution are documented in the segmentation experimental records (Section~\ref{sec:segmentation-baselines}).

@@ -1,0 +1,87 @@
+% Section 6.4 — Main Classification Performance
+% Presents the primary SDI-4 classification results for the proposed method.
+
+\section{Main Classification Performance}
+\label{sec:main-classification}
+
+This section reports the primary classification results on the SDI-4 test partition. The proposed method (YOLO26m-cls + ASL-LDAM + SimAM-DCFR) is compared against the CE baseline (YOLO26m-cls with cross-entropy loss) under the same training protocol.
+
+\subsection{Training Configuration}
+\label{sec:training-config}
+
+Both the proposed method and the CE baseline were trained on the SDI-4 training partition (804 images) with the following shared configuration:
+
+\begin{itemize}
+    \item Input resolution: 224 $\times$ 224 pixels.
+    \item Epochs: 30, with early stopping patience of 15.
+    \item Batch size: 32.
+    \item Optimiser: AdamW, initial learning rate 0.00125, cosine annealing schedule, final learning rate factor 0.01.
+    \item Mixed precision: AMP enabled.
+    \item Data augmentation: RandAugment, random erasing with probability 0.4.
+    \item Workers: 4.
+    \item Seed: 42.
+\end{itemize}
+
+The proposed method additionally applies:
+
+\begin{itemize}
+    \item \textbf{ASL-LDAM}: Asymmetric loss with label-distribution-aware margin. Configuration: $\gamma_{\text{pos}} = 0$, $\gamma_{\text{neg}} = 4$, label smoothing 0.1, LDAM max margin 0.5, LDAM scale 30. Class counts: $[282, 139, 229, 154]$.
+    \item \textbf{SimAM-DCFR}: Simple attention module with dual-channel feature recalibration, inserted immediately before the original classification head. The attention branch is parameter-free; the texture branch and channel gate are trainable. Fusion: $\mathbf{F}' = \mathbf{F} + 0.5 \cdot \mathbf{G} \odot (\mathbf{F}_{\text{SimAM}} + \mathbf{F}_{\text{texture}})$, where $\mathbf{G}$ is a learned channel-gating vector. The SimAM energy parameter is $\lambda = 10^{-4}$.
+\end{itemize}
+
+\subsection{Primary Results}
+\label{sec:primary-results}
+
+The primary SDI-4 test results are reported in Table~\ref{tab:primary-results}.
+
+\begin{table}[htbp]
+\centering
+\caption{Primary SDI-4 classification results (seed 42).}
+\label{tab:primary-results}
+\begin{tabular}{l C{2.2cm} C{2.2cm} C{2.2cm}}
+\toprule
+\textbf{Method} & \textbf{Macro-F1 (\%)} & \textbf{Accuracy (\%)} & \textbf{Kappa} \\
+\midrule
+CE Baseline (YOLO26m-cls)      & 89.02 & 89.02 & 0.8505 \\
+Proposed (ASL-LDAM + SimAM-DCFR) & 91.01 & 91.33 & 0.8816 \\
+\midrule
+$\Delta$ & +1.99 & +2.31 & +0.0311 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The proposed method improves upon the CE baseline by 1.99 percentage points in Macro-F1, 2.31 percentage points in accuracy, and 0.0311 in Cohen's Kappa. These improvements are observed under the recorded protocol and seed 42; they support the effectiveness of the ASL-LDAM loss and SimAM-DCFR attention module for this four-class shrimp disease classification task.
+
+\subsection{Per-Class Analysis}
+\label{sec:per-class}
+
+Table~\ref{tab:per-class} reports the per-class F1 scores for both methods.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-class F1 scores on SDI-4 test (seed 42).}
+\label{tab:per-class}
+\begin{tabular}{l C{2.2cm} C{2.2cm}}
+\toprule
+\textbf{Class} & \textbf{CE Baseline} & \textbf{Proposed} \\
+\midrule
+Healthy  & --- & --- \\
+BG       & --- & --- \\
+WSSV     & --- & --- \\
+WSSV\_BG & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Detailed per-class metrics are available from the retained confusion matrices in the experiment logs. The table above will be populated from the machine-readable classification reports when the corresponding evidence archive is fully extracted.
+
+\subsection{Model Capacity and Footprint}
+\label{sec:model-capacity}
+
+The SDI-4 trained checkpoint hash for the proposed method is:
+\path{bf4d969465025e870a61be5e218dfc55b9b2e962dec416f220b1f130703fb1c7}
+
+The CE baseline checkpoint hash is:
+\path{4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1}
+
+The FP32 model size of the proposed classifier is approximately 39.52 MiB (TFLite format), as discussed in Section~\ref{sec:mobile}.

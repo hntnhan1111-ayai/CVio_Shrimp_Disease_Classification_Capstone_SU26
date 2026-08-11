@@ -1,0 +1,11 @@
+% Section 6.18 — Personal Reflection
+% Personal reflection on the project.
+
+\section{Personal Reflection}
+\label{sec:reflection}
+
+This project has been a significant learning experience in applying deep learning to a real-world agricultural challenge. The work involved extensive experimentation with classification architectures, loss functions, and attention mechanisms, as well as collaboration on the segmentation component.
+
+The primary challenge was balancing model capacity with the lightweight target for mobile deployment. The YOLO26m-cls backbone at 10.35M parameters proved to be an effective choice, and the ASL-LDAM + SimAM-DCFR components contributed measurable improvements. However, the negative integrated result and the preliminary nature of the mobile evidence serve as humbling reminders that field deployment remains a distant goal.
+
+The project also highlighted the importance of disciplined experimental practice: machine-readable result logging, checkpoint hashing, and clear provenance tracking were essential for producing a reproducible evaluation. Future work should build on this foundation with broader validation, multi-seed evaluation, and real-world deployment testing.

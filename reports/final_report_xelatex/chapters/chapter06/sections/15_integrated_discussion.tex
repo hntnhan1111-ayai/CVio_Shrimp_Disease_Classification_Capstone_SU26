@@ -1,0 +1,22 @@
+% Section 6.15 — Integrated Discussion
+% Synthesises classification and segmentation findings.
+
+\section{Integrated Discussion}
+\label{sec:integrated-discussion}
+
+This section synthesises the classification and segmentation findings presented in this chapter.
+
+\subsection{Classification Summary}
+\label{sec:discussion-classification}
+
+The proposed ASL-LDAM + SimAM-DCFR method achieves a Macro-F1 of 91.01\% on the SDI-4 test partition, representing an observed improvement of 1.99 percentage points over the CE baseline. The improvement is consistent across the primary four-class benchmark. However, the integrated evaluation reveals a condition-dependent degradation (82.18\% vs.~86.51\% Macro-F1), indicating that multi-source generalisation capability is not guaranteed.
+
+\subsection{Segmentation Summary}
+\label{sec:discussion-segmentation}
+
+Segmentation experiments, conducted by Nguyen Van Phong, demonstrate the feasibility of BG and WSSV mask prediction. The Healthy class is not a positive segmentation label, but Healthy images are retained as negative training samples. Residual false-positive disease masks on Healthy images motivate classification-gated segmentation as an operational safeguard.
+
+\subsection{Toward an Integrated System}
+\label{sec:discussion-system}
+
+An integrated shrimp disease detection system would combine the proposed classifier with a segmentation model in a cascade: the classifier provides a coarse disease decision, and the segmentation model refines the localisation when a disease is detected. The cascade introduces a failure mode---a diseased image misclassified as Healthy may suppress segmentation---so end-to-end validation remains a required boundary for any deployment.

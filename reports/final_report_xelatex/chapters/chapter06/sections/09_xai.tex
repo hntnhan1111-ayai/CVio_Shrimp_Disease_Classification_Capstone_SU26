@@ -1,0 +1,25 @@
+% Section 6.9 — Explainability Analysis
+% XAI analysis for the classification model.
+
+\section{Explainability Analysis}
+\label{sec:xai}
+
+Explainability analysis aims to provide visual evidence that the classifier attends to disease-relevant regions rather than background artefacts. The retained evidence includes attention maps and feature visualisations from the SimAM-DCFR module.
+
+\subsection{Attention Visualisation}
+\label{sec:attention-vis}
+
+The parameter-free SimAM branch produces a 3D attention map that highlights salient spatial locations. The attention weights are computed from the energy distribution of each neuron, with higher energy indicating greater informational relevance. Preliminary visualisations suggest that the attention maps activate around shrimp body regions for disease-positive samples, but a systematic quantitative XAI evaluation (e.g.~Grad-CAM, occlusion sensitivity) remains as future work.
+
+\subsection{Limitations}
+\label{sec:xai-limitations}
+
+The current XAI analysis is qualitative. The following limitations apply:
+
+\begin{itemize}
+    \item No ground-truth attribution masks are available for the shrimp disease domain.
+    \item Attention maps from the SimAM module do not necessarily correspond to causal decision regions.
+    \item A systematic comparison of XAI methods (e.g.~Grad-CAM, Integrated Gradients, LIME) has not been conducted.
+\end{itemize}
+
+The explainability discussion is therefore confined to observations from the available attention maps and does not claim causal interpretation.

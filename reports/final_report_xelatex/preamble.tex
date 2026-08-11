@@ -1,0 +1,67 @@
+% CVio Final Report — Shared preamble fragment
+% Loaded via \input after \documentclass in the main file.
+% FPT A4 single-column thesis, IEEE-quality math/typesetting
+
+%% --- Fonts ---
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+
+%% --- AMS math (load before unicode-math to avoid \eth conflict) ---
+\usepackage{amsmath,amssymb}
+
+%% --- Unicode math ---
+\usepackage{unicode-math}
+\setmathfont{STIXTwoMath-Regular.otf}
+
+%% --- Geometry (calibrate against FPT template) ---
+\usepackage[top=2.5cm, bottom=2.5cm, left=3.5cm, right=2.0cm]{geometry}
+
+%% --- Spacing ---
+\usepackage{setspace}
+\setstretch{1.18}
+\raggedbottom
+
+%% --- Graphics ---
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{caption,subcaption}
+\usepackage{float}
+
+%% --- Tables ---
+\usepackage{booktabs,array,longtable,tabularx}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+
+%% --- URLs and filename literals ---
+\usepackage{xurl}
+\urlstyle{same}
+% Make \path use the same text font as \url to avoid monospace
+\renewcommand{\path}[1]{\nolinkurl{#1}}
+
+%% --- Hyperlinks ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=black
+}
+
+%% --- Floats ---
+\usepackage{placeins}
+\usepackage{needspace}
+
+%% --- Microtype ---
+\usepackage{microtype}
+
+%% --- Math configuration ---
+\numberwithin{equation}{chapter}
+
+%% --- Bibliography ---
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{IEEEtran}
+
+%% --- Custom commands ---
+\newcommand{\macro}[1]{\text{#1}}
+\newcommand{\dataset}[1]{\text{#1}}
+\newcommand{\method}[1]{\text{#1}}

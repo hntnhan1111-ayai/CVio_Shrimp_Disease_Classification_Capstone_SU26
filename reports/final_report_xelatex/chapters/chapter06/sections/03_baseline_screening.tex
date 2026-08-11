@@ -1,0 +1,88 @@
+% Section 6.3 — Classification Baseline Screening
+% Presents the YOLO-cls and TIMM baseline screening experiments.
+
+\section{Classification Baseline Screening}
+\label{sec:baseline-screening}
+
+The baseline screening stage evaluated candidate classification architectures under a uniform cross-entropy (CE) training protocol on the SDI-4 dataset. The goal was to identify promising backbones for the proposed method while establishing a reproducible reference point for measuring improvement.
+
+\subsection{YOLO-Cls Baseline}
+\label{sec:yolo-baseline}
+
+Fifteen YOLO-cls variants from the YOLOv8, YOLO11, and YOLO26 model families were evaluated at scales ranging from nano (approximately 1.5M parameters) to extra-large (approximately 56M parameters). All models were trained using the same CE protocol with identical data partitions (seed 42) and training configuration. The complete results are summarised in Table~\ref{tab:yolo-baseline}.
+
+\begin{table}[htbp]
+\centering
+\caption{YOLO-cls baseline screening results on SDI-4 test (seed 42).}
+\label{tab:yolo-baseline}
+\begin{tabular}{l C{1.5cm} C{1.8cm} C{1.8cm} C{1.5cm}}
+\toprule
+\textbf{Model} & \textbf{Params (M)} & \textbf{Macro-F1 (\%)} & \textbf{Accuracy (\%)} & \textbf{Kappa} \\
+\midrule
+YOLO26m-cls & 10.35 & 89.02 & 89.02 & 0.8505 \\
+YOLO26x-cls & 28.34 & 88.13 & 89.02 & 0.8501 \\
+YOLOv8m-cls & 15.77 & 87.18 & 87.86 & 0.8342 \\
+YOLOv8s-cls & 5.08  & 87.10 & 87.86 & 0.8343 \\
+YOLO11m-cls & 10.35 & 86.75 & 87.28 & 0.8263 \\
+YOLOv8x-cls & 56.13 & 86.22 & 86.71 & 0.8192 \\
+YOLOv8l-cls & 36.19 & 85.86 & 86.71 & 0.8184 \\
+YOLO26l-cls & 12.82 & 85.76 & 86.13 & 0.8109 \\
+YOLO26n-cls & 1.53  & 84.20 & 85.55 & 0.8014 \\
+YOLO11x-cls & 28.34 & 83.74 & 84.97 & 0.7944 \\
+YOLO11s-cls & 5.44  & 83.17 & 83.82 & 0.7787 \\
+YOLO11n-cls & 1.53  & 82.83 & 83.82 & 0.7775 \\
+YOLOv8n-cls & 1.44  & 82.71 & 84.39 & 0.7858 \\
+YOLO26s-cls & 5.44  & 82.15 & 83.24 & 0.7713 \\
+YOLO11l-cls & 12.82 & 81.23 & 82.08 & 0.7560 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The YOLO26m-cls variant was selected as the reference backbone for the proposed method based on the following considerations:
+
+\begin{itemize}
+    \item \textbf{Best Macro-F1}: YOLO26m-cls achieved the highest Macro-F1 (89.02\%) among all screened variants under the CE protocol.
+    \item \textbf{Parameter efficiency}: At 10.35M parameters, YOLO26m-cls offers a favourable trade-off between capacity and computational cost relative to the larger YOLO26x (28.34M) and YOLOv8x (56.13M) variants. The improvement over YOLO26m-cls is marginal, while the parameter count more than doubles.
+    \item \textbf{Engineering preference}: The final mobile-oriented target is approximately 15M parameters or fewer. YOLO26m-cls at 10.35M (approximately 19.92 MiB as FP32) leaves room for the additional ASL-LDAM and SimAM-DCFR components while remaining within the lightweight target.
+\end{itemize}
+
+\subsection{TIMM Baseline}
+\label{sec:timm-baseline}
+
+Seventeen additional architectures from the TIMM library were evaluated under the same seed-42 partition and CE protocol. The results are reported in Table~\ref{tab:timm-baseline}.
+
+\begin{table}[htbp]
+\centering
+\caption{TIMM baseline screening results on SDI-4 test (seed 42).}
+\label{tab:timm-baseline}
+\begin{tabular}{l C{1.5cm} C{1.8cm} C{1.8cm}}
+\toprule
+\textbf{Model} & \textbf{Params (M)} & \textbf{Macro-F1 (\%)} & \textbf{Accuracy (\%)} \\
+\midrule
+ConvNeXt-Tiny (IN22K) & 27.82 & 84.16 & 85.22 \\
+MobileNetV3-Large     & 4.21  & 80.10 & 82.61 \\
+EfficientNet-B0       & 4.01  & 77.01 & 79.13 \\
+RepVGG-A0             & 7.83  & 76.88 & 77.39 \\
+EfficientNetV2-S      & 20.18 & 76.78 & 77.39 \\
+ShuffleNetV2-x1.0     & 1.26  & 71.85 & 74.78 \\
+FastViT-T8            & 3.26  & 71.03 & 73.91 \\
+EdgeNeXt-XX-Small     & 1.16  & 70.63 & 72.17 \\
+MobileOne-S0          & 4.27  & 69.69 & 71.30 \\
+MobileViT-S           & 4.94  & 69.18 & 73.91 \\
+MobileNetV4-Conv-Small & 2.50 & 66.26 & 67.83 \\
+MNASNet-1.0           & 3.11  & 62.48 & 66.96 \\
+GhostNetV2-1.0        & 4.88  & 61.01 & 61.74 \\
+ReXNet-1.0            & 3.52  & 58.55 & 61.74 \\
+SqueezeNet1.1         & 0.72  & 55.04 & 59.13 \\
+MobileNetV4-Hybrid-Medium & 9.80 & 53.83 & 60.87 \\
+EfficientViT-M1       & 2.79  & 52.83 & 57.39 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The TIMM baseline confirms that ConvNeXt-Tiny (IN22K) achieves the highest Macro-F1 among screened TIMM architectures (84.16\%), but at 27.82M parameters it exceeds the lightweight target. The YOLO26m-cls CE baseline at 89.02\% Macro-F1 outperforms all TIMM variants under the same protocol, supporting the selection of YOLO26m-cls as the retained backbone.
+
+\subsection{Baseline Selection Summary}
+\label{sec:baseline-selection}
+
+The YOLO26m-cls CE baseline (89.02\% Macro-F1, 89.02\% accuracy, 0.8505 Kappa) is the reference point for all subsequent proposed-method comparisons. The screening ceiling of approximately 30M parameters was considered during candidate inclusion, but the final engineering preference favours the 10.35M-parameter YOLO26m-cls for its favourable balance of performance and efficiency.

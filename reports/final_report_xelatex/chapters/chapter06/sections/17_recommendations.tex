@@ -1,0 +1,33 @@
+% Section 6.17 — Recommendations
+% Recommendations for future work.
+
+\section{Recommendations}
+\label{sec:recommendations}
+
+Based on the findings presented in this chapter, the following recommendations are made for future work:
+
+\subsection{Methodological Extensions}
+\label{sec:rec-method}
+
+\begin{itemize}
+    \item \textbf{Multi-seed evaluation}: The current single-seed results should be confirmed with additional random seeds to establish statistical significance.
+    \item \textbf{Component ablation}: The individual contributions of ASL-LDAM and SimAM-DCFR should be isolated and reported with full attention-benchmark logs.
+    \item \textbf{Multi-source training strategies}: The observed degradation in the integrated condition suggests that domain-aware training strategies (e.g.~domain adversarial training, mixup across sources, or source-weighted loss) should be investigated.
+\end{itemize}
+
+\subsection{Coverage Expansion}
+\label{sec:rec-coverage}
+
+\begin{itemize}
+    \item \textbf{Field data collection}: The current dataset does not capture the full diversity of real-world shrimp farming conditions. Collaboration with aquaculture facilities to collect field data is a priority.
+    \item \textbf{Mobile deployment validation}: On-device inference on representative mobile hardware (Android, iOS) is necessary to validate the TFLite deployment path.
+    \item \textbf{Real-time testing}: End-to-end latency and throughput measurements on target hardware should be conducted under realistic conditions.
+\end{itemize}
+
+\subsection{Validation}
+\label{sec:rec-validation}
+
+\begin{itemize}
+    \item \textbf{End-to-end cascade validation}: The classification-gated segmentation cascade should be validated as a complete system, with particular attention to the failure mode where a diseased image is misclassified as Healthy.
+    \item \textbf{XAI verification}: Systematic XAI evaluation (Grad-CAM, occlusion) should be conducted to verify that the classifier attends to disease-relevant regions.
+\end{itemize}

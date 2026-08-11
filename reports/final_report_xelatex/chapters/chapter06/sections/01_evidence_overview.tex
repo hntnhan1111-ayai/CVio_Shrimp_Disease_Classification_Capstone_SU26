@@ -1,0 +1,61 @@
+% Section 6.1 — Experimental Evidence Overview
+% Provides a structured overview of the experimental evidence underpinning Chapter VI.
+
+\section{Experimental Evidence Overview}
+\label{sec:evidence-overview}
+
+This section describes the experimental evidence that supports the analyses presented in this chapter. The evidence is organised into three categories: classification experiments, segmentation experiments, and mobile-deployment benchmarks. Each category is further subdivided into primary retained results and supplementary supporting evidence.
+
+\subsection{Classification Evidence}
+\label{sec:evidence-classification}
+
+The primary classification evidence consists of machine-readable result files, configuration logs, and trained checkpoints produced under a fixed seed 42. The SDI-4 dataset, comprising 1,149 images across four classes (Healthy, BG, WSSV, WSSV\_BG), was partitioned into training, validation, and test sets at an approximate 70:15:15 ratio (804/172/173). The final proposed classifier---YOLO26m-cls augmented with ASL-LDAM and SimAM-DCFR---achieved a Macro-F1 of 91.01\%, accuracy of 91.33\%, and Cohen's Kappa of 0.8816 on the SDI-4 test partition. The cross-entropy (CE) baseline, which shares the same YOLO26m-cls backbone and training protocol without the custom attention and loss modifications, attained 89.02\% Macro-F1 and 89.02\% accuracy.
+
+Supplementary classification evidence includes:
+
+\begin{itemize}
+    \item \textbf{YOLO baseline screening}: A controlled comparison of 15 YOLO-cls variants (YOLOv8, YOLO11, YOLO26) at the nano, small, medium, large, and extra-large scales under the CE baseline protocol. The retained machine-readable CSV (%
+\path{yolo_baseline_comparison_seed42.csv}) reports Macro-F1, accuracy, Cohen's Kappa, parameter count, and model size for each variant.
+    \item \textbf{TIMM baseline screening}: A separate benchmark of 17 classification architectures from the TIMM library (including ConvNeXt, MobileNet, EfficientNet, and lightweight variants) under the same SDI-4 partition and CE protocol. Results are recorded in \path{timm_baseline_comparison_seed42.csv}.
+    \item \textbf{Component analysis}: Attention-benchmark logs from an RTX 4090 comparing the ASL-LDAM, SimAM-DCFR, and combined configurations against the CE baseline. These are available under the archived evidence: \path{CVio_SDI4_ASL_LDAM_Attention_Benchmark_RTX4090.zip} and the CE counterpart.
+    \item \textbf{Additional-source evaluation}: The EXT-3-Original dataset (315 images, three classes) and the integrated SDI-4 + EXT-3-Original experiment, with partition-wise merged training, validation, and test splits. Retained results include class-level confusion matrices and source-stratified accuracy.
+    \item \textbf{Kaggle T4 inference}: GPU-accelerated inference benchmarks recorded in \path{CVio_Final_Proposed_T4_Seed42_FINAL.zip} and \path{CVio_Classification_Kaggle_T4x2_Evidence_2026-08-11.zip}.
+\end{itemize}
+
+\subsection{Segmentation Evidence}
+\label{sec:evidence-segmentation}
+
+Segmentation experiments were conducted by team member Nguyen Van Phong. The primary retained evidence for the segmentation analysis includes:
+
+\begin{itemize}
+    \item Baseline YOLO11n-seg results on the shrimp disease segmentation dataset, with masks for BG and WSSV classes (Healthy images are included as negative samples with no positive mask polygons).
+    \item Attention-based segmentation variants and Fourier-domain segmentation experiments, evaluated under the same held-out test partition.
+    \item Supplementary robustness and failure-mode analyses documenting known failure cases.
+\end{itemize}
+
+Detailed segmentation results are presented in Sections~\ref{sec:segmentation-baselines} through~\ref{sec:segmentation-robustness}. The classification agent does not modify segmentation claims; it reproduces them from the accepted baseline evidence.
+
+\subsection{Mobile-Deployment Evidence}
+\label{sec:evidence-mobile}
+
+Mobile deployment evidence is preliminary and comprises TFLite conversion artifacts (FP32 and FP16 variants) and latency measurements obtained under controlled conditions. The retained artifacts include:
+
+\begin{itemize}
+    \item \path{CVio_SDI4_Mobile20_seed42_2026-08-10.zip}: TFLite delegates and inference logs.
+    \item \path{yolo26m_asl_ldam_simam_dcfr_fp32.tflite}: FP32 TFLite model (approximately 39.52 MiB).
+    \item \path{yolo26m_asl_ldam_simam_dcfr_fp16.tflite}: FP16 TFLite model (approximately 19.81 MiB).
+\end{itemize}
+
+Mobile evidence is discussed in Section~\ref{sec:mobile}. The TFLite results are treated as prototype evidence; they do not constitute clinical or real-time deployment guarantees.
+
+\subsection{Evidence Provenance and Limitations}
+\label{sec:evidence-provenance}
+
+All primary numerical claims in this chapter are traceable to machine-readable CSV files, configuration logs, or trained checkpoint hashes. The following hash values are recorded for the core SDI-4 checkpoints:
+
+\begin{itemize}
+    \item Proposed SDI-4 checkpoint SHA-256: \path{bf4d969465025e870a61be5e218dfc55b9b2e962dec416f220b1f130703fb1c7}
+    \item CE baseline SDI-4 checkpoint SHA-256: \path{4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1}
+\end{itemize}
+
+Where evidence is incomplete or where a numerical claim must be inferred from a visual source rather than a machine-readable record, the limitation is stated explicitly. No numerical claim in this chapter is fabricated or inferred from a plot when a machine-readable counterpart should exist.

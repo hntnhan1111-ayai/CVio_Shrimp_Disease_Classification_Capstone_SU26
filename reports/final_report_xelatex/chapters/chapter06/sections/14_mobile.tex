@@ -1,0 +1,39 @@
+% Section 6.14 — Mobile Deployment
+% Mobile deployment evidence and limitations.
+
+\section{Mobile Deployment}
+\label{sec:mobile}
+
+Mobile deployment experiments provide preliminary evidence of the proposed classifier's feasibility on mobile devices. The results are treated as prototype evidence; they do not constitute clinical or real-time deployment guarantees.
+
+\subsection{TFLite Conversion}
+\label{sec:tflite-conversion}
+
+The trained YOLO26m-cls + ASL-LDAM + SimAM-DCFR model was converted to TFLite format in two variants:
+
+\begin{itemize}
+    \item \textbf{FP32}: Approximately 39.52 MiB. File: \path{yolo26m_asl_ldam_simam_dcfr_fp32.tflite}.
+    \item \textbf{FP16}: Approximately 19.81 MiB. File: \path{yolo26m_asl_ldam_simam_dcfr_fp16.tflite}.
+\end{itemize}
+
+The FP16 variant uses reduced precision for storage and computation. It is not referred to as `quantized'' in the protocol sense of integer quantization. The FP32 variant is full-precision floating point and is not quantized.
+
+\subsection{GPU Inference (Kaggle T4)}
+\label{sec:t4-inference}
+
+GPU-accelerated inference benchmarks were conducted on a Kaggle T4 GPU. The retained evidence includes latency measurements and throughput results. These measurements are recorded under controlled conditions and do not reflect mobile-device inference performance.
+
+\subsection{Limitations}
+\label{sec:mobile-limitations}
+
+The following limitations apply to the mobile deployment evidence:
+
+\begin{itemize}
+    \item No on-device mobile inference measurements (e.g.~Android, iOS) are currently available.
+    \item T4 GPU FPS cannot be used as mobile FPS.
+    \item The TFLite delegates have not been validated on target mobile hardware.
+    \item Real-time performance has not been established.
+    \item The prototype is not clinically ready.
+\end{itemize}
+
+Mobile deployment remains a direction for future work, as discussed in Section~\ref{sec:recommendations}.

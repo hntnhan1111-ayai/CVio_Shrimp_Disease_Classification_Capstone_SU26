@@ -1,0 +1,23 @@
+% CVio Final Report — Main entry point
+% Compile: xelatex main.tex (x2 for references, x3 for ToC)
+
+\documentclass[12pt,a4paper]{report}
+
+\input{preamble.tex}
+
+\begin{document}
+
+%% --- Front matter ---
+\input{chapters/frontmatter.tex}
+
+%% --- Body ---
+\input{chapters/chapter06/main.tex}
+
+%% --- Bibliography ---
+\bibliography{references}
+
+%% --- Appendices ---
+\appendix
+\input{chapters/appendix.tex}
+
+\end{document}
