@@ -84,3 +84,8 @@ reports/final_report_xelatex/artifacts/
 *.blg
 *.bcf
 *.run.xml
+
+# Build outputs
+*.pdf
+preview_*.tex
+preview_*.*
