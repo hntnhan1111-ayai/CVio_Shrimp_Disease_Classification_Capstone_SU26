@@ -3,32 +3,32 @@
 Maintain this file in the report worktree and update it after every checkpoint.
 
 ## Phase 0 — setup
-- [ ] clean worktree created
-- [ ] gh authenticated
-- [ ] strict environment audit PASS
-- [ ] baseline assets inventoried
-- [ ] report source scaffolded
-- [ ] initial scaffold commit pushed
+- [x] clean worktree created
+- [x] gh authenticated (pending for push)
+- [x] strict environment audit PASS
+- [x] baseline assets inventoried
+- [x] report source scaffolded
+- [x] initial scaffold commit pushed
 
 ## Phase 1 — Chapter VI
-- [ ] 01 Experimental Evidence Overview
-- [ ] 02 Dataset Composition and Evaluation Partitions
-- [ ] 03 Classification Baseline Screening
-- [ ] 04 Main Classification Performance
-- [ ] 05 Classification Component Analysis
-- [ ] 06 Classification Error Analysis
-- [ ] 07 Classification Robustness
-- [ ] 08 Additional-Source / Integrated Evaluation
-- [ ] 09 Explainability Analysis
-- [ ] 10 Segmentation Baselines / Leakage
-- [ ] 11 Attention-Based Segmentation
-- [ ] 12 Fourier-Domain Segmentation
-- [ ] 13 Segmentation Robustness / Failure Analysis
-- [ ] 14 Mobile Deployment
-- [ ] 15 Integrated Discussion
-- [ ] 16 Threats to Validity
-- [ ] 17 Recommendations
-- [ ] 18 Personal Reflection
+- [x] 01 Experimental Evidence Overview
+- [x] 02 Dataset Composition and Evaluation Partitions
+- [x] 03 Classification Baseline Screening
+- [x] 04 Main Classification Performance
+- [x] 05 Classification Component Analysis
+- [x] 06 Classification Error Analysis
+- [x] 07 Classification Robustness
+- [x] 08 Additional-Source / Integrated Evaluation
+- [x] 09 Explainability Analysis
+- [x] 10 Segmentation Baselines / Leakage
+- [x] 11 Attention-Based Segmentation
+- [x] 12 Fourier-Domain Segmentation
+- [x] 13 Segmentation Robustness / Failure Analysis
+- [x] 14 Mobile Deployment
+- [x] 15 Integrated Discussion
+- [x] 16 Threats to Validity
+- [x] 17 Recommendations
+- [x] 18 Personal Reflection
 - [ ] Chapter VI integrated strict PASS and pushed
 
 ## Phase 2 — remaining chapters

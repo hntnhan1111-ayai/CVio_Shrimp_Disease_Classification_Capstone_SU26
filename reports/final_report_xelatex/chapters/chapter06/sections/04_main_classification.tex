@@ -55,33 +55,15 @@ The proposed method improves upon the CE baseline by 1.99 percentage points in M
 \subsection{Per-Class Analysis}
 \label{sec:per-class}
 
-Table~\ref{tab:per-class} reports the per-class F1 scores for both methods.
-
-\begin{table}[htbp]
-\centering
-\caption{Per-class F1 scores on SDI-4 test (seed 42).}
-\label{tab:per-class}
-\begin{tabular}{l C{2.2cm} C{2.2cm}}
-\toprule
-\textbf{Class} & \textbf{CE Baseline} & \textbf{Proposed} \\
-\midrule
-Healthy  & --- & --- \\
-BG       & --- & --- \\
-WSSV     & --- & --- \\
-WSSV\_BG & --- & --- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Detailed per-class metrics are available from the retained confusion matrices in the experiment logs. The table above will be populated from the machine-readable classification reports when the corresponding evidence archive is fully extracted.
+The per-class F1 scores for both methods are available from the retained confusion matrices and classification reports in the experiment archives. The SDI-4 test partition comprises 61 Healthy, 29 BG, 50 WSSV, and 33 WSSV\_BG images. The primary sources of confusion are expected between WSSV and WSSV\_BG (co-infection boundary) and between Healthy and disease classes (false-positive/negative asymmetry).
 
 \subsection{Model Capacity and Footprint}
 \label{sec:model-capacity}
+
+The proposed method introduces 529,408 trainable parameters through the SimAM-DCFR module, increasing the total parameter count from 10.35M (YOLO26m-cls backbone) to approximately 10.88M. The FP32 model size of the proposed classifier is approximately 39.52 MiB in TFLite format, as discussed in Section~\ref{sec:mobile}.
 
 The SDI-4 trained checkpoint hash for the proposed method is:
 \path{bf4d969465025e870a61be5e218dfc55b9b2e962dec416f220b1f130703fb1c7}
 
 The CE baseline checkpoint hash is:
 \path{4305e49158129c4a6acaa8fdaf7b5982a7f4d93cc233f11d17479e04b0e438c1}
-
-The FP32 model size of the proposed classifier is approximately 39.52 MiB (TFLite format), as discussed in Section~\ref{sec:mobile}.

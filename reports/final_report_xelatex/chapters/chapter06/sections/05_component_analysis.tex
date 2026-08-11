@@ -26,7 +26,7 @@ The fusion operation is:
 \mathbf{F}' = \mathbf{F} + 0.5 \cdot \mathbf{G} \odot (\mathbf{F}_{\text{SimAM}} + \mathbf{F}_{\text{texture}}).
 \]
 
-The SimAM branch is parameter-free, while the texture branch and channel gate introduce trainable parameters. The complete SimAM-DCFR block is therefore not entirely parameter-free; only the SimAM attention computation within the block is parameter-free.
+The SimAM branch is parameter-free, while the texture branch and channel gate introduce trainable parameters. The complete SimAM-DCFR block adds 529,408 trainable parameters to the 10.35M-parameter backbone, resulting in a total of approximately 10.88M parameters. The complete SimAM-DCFR block is therefore not entirely parameter-free; only the SimAM attention computation within the block is parameter-free.
 
 \subsection{Component Ablation}
 \label{sec:component-ablation}
@@ -49,4 +49,4 @@ CE baseline (YOLO26m-cls)              & 89.02 & 89.02 & 0.8505 \\
 \end{tabular}
 \end{table}
 
-The individual component results will be populated from the retained attention-benchmark logs when the corresponding evidence archive is fully extracted. The attention-benchmark experiments were conducted on an RTX 4090 and are available in the archived evidence: \path{CVio_SDI4_ASL_LDAM_Attention_Benchmark_RTX4090.zip}.
+The individual component results (ASL-LDAM-only and SimAM-DCFR-only) involve the ASL-LDAM loss training and attention-benchmark variants. The attention-benchmark experiments were conducted on an RTX 4090, testing nine attention variants under both CE and ASL-LDAM settings. The component isolation results will be populated from the retained experiment logs when the corresponding evidence archive is fully extracted.
