@@ -1,0 +1,456 @@
+{
+  "baseline": "Report7.pdf",
+  "baseline_page_count": 155,
+  "minimum_full_thesis_pages": 120,
+  "page_size": "A4",
+  "figures": [
+    {
+      "id": "1.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "1.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.7",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.8",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.9",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.10",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.7",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.8",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.9",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.10",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.11",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.12",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.13",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.14",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.15",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.16",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.17",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.18",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.19",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.20",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.21",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.21(a)",
+      "min_occurrences": 1
+    },
+    {
+      "id": "6.21(b)",
+      "min_occurrences": 1
+    },
+    {
+      "id": "6.21(c)",
+      "min_occurrences": 1
+    }
+  ],
+  "tables": [
+    {
+      "id": "1.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "1.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "1.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "1.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.7",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.8",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.9",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.10",
+      "min_occurrences": 2
+    },
+    {
+      "id": "2.11",
+      "min_occurrences": 2
+    },
+    {
+      "id": "3.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "3.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "3.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "3.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "3.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.7",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.8",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.9",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.10",
+      "min_occurrences": 2
+    },
+    {
+      "id": "4.11",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.2",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "5.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.1",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.2A",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.2B",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.3",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.4",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.5",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.6",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.7",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.8",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.9",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.10",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.11",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.12",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.13",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.14",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.15",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.16",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.17",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.18",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.19",
+      "min_occurrences": 2
+    },
+    {
+      "id": "6.20",
+      "min_occurrences": 2
+    }
+  ],
+  "high_risk_figures": [
+    "6.11",
+    "6.16",
+    "6.17",
+    "6.18",
+    "6.19",
+    "6.20",
+    "6.21(a)",
+    "6.21(b)",
+    "6.21(c)"
+  ],
+  "high_risk_tables": [
+    "1.4",
+    "2.1",
+    "2.5",
+    "4.2",
+    "4.7",
+    "6.11",
+    "6.19",
+    "6.20"
+  ],
+  "required_literal_text": [
+    "804",
+    "172",
+    "173",
+    "70/15/15",
+    "Figure 6.21(a)",
+    "Figure 6.21(b)",
+    "Figure 6.21(c)"
+  ]
+}

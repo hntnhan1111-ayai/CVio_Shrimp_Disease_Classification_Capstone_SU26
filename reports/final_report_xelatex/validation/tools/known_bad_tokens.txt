@@ -1,0 +1,32 @@
+predictionlevel
+173image
+primarytest
+MacroF1
+SDI4
+EXT3Original
+crossentropy
+trainingonly
+testpartition
+modelfamily
+classspecific
+additionalsource
+mixedsource
+outofsource
+finalmodel
+featurerecalibration
+runtorun
+errortransition
+unseenspecimen
+shrimpbody
+methoddependent
+WSSVrecall
+singledisease
+datasetspecific
+decom posed
+con figuration
+re peated
+anal ysis
+outof source
+97974
+98985
+99996

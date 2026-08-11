@@ -1,0 +1,68 @@
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+PBHRPK+Arimo-Bold                    CID TrueType      Identity-H       yes yes yes     12  0
+YMWQMH+Arimo                         CID TrueType      Identity-H       yes yes yes     15  0
+PZADDC+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes     20  0
+AGROMA+Tinos                         CID TrueType      Identity-H       yes yes yes     23  0
+QNKROJ+Tinos                         CID TrueType      Identity-H       yes yes yes     26  0
+BISPWB+Arimo-Bold                    CID TrueType      Identity-H       yes yes yes     37  0
+ZFZNST+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes     40  0
+GTFWUP+Tinos                         CID TrueType      Identity-H       yes yes yes     43  0
+UKGRFE+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes     47  0
+ZZFNOI+Tinos                         CID TrueType      Identity-H       yes yes yes     50  0
+FROUYC+Times-Bold                    Type 1C           WinAnsi          yes yes no      56  0
+AOUJUE+Times-Roman                   Type 1C           WinAnsi          yes yes no      61  0
+PIREEO+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes     67  0
+EBRGET+Tinos                         CID TrueType      Identity-H       yes yes yes     70  0
+HSNYBL+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    108  0
+CXHWAN+Tinos                         CID TrueType      Identity-H       yes yes yes    111  0
+PWXLRO+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    131  0
+MUCMOY+Tinos                         CID TrueType      Identity-H       yes yes yes    134  0
+JKWOGP+LatinModernMath-Regular       CID Type 0C       Identity-H       yes yes yes    137  0
+XDTYXU+Tinos                         CID TrueType      Identity-H       yes yes yes    146  0
+EACWWT+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    149  0
+ONBEKZ+CMMI10                        Type 1C           Custom           yes yes yes    152  0
+FJNMGA+CMSY10                        Type 1C           Custom           yes yes yes    154  0
+UOHZVR+MSBM10                        Type 1C           WinAnsi          yes yes yes    156  0
+CIFWNZ+CMMI8                         Type 1C           WinAnsi          yes yes yes    158  0
+VVDHPF+CMSY8                         Type 1C           Custom           yes yes yes    160  0
+CPMNUI+CMR8                          Type 1C           WinAnsi          yes yes yes    162  0
+CFDRSB+LMMono12-Regular              CID Type 0C       Identity-H       yes yes yes    174  0
+IHZVVE+CMR10                         Type 1C           WinAnsi          yes yes yes    177  0
+JACWIM+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    180  0
+ESMCXU+Tinos                         CID TrueType      Identity-H       yes yes yes    183  0
+MOZHTJ+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    203  0
+AZOATJ+Tinos                         CID TrueType      Identity-H       yes yes yes    206  0
+UGSLZW+CMSY10                        Type 1C           Custom           yes yes yes    212  0
+NQQXOW+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    241  0
+GPWMJX+Tinos                         CID TrueType      Identity-H       yes yes yes    244  0
+SIJFJX+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    252  0
+HMVFLE+Tinos                         CID TrueType      Identity-H       yes yes yes    255  0
+ZRFNKW+LatinModernMath-Regular       CID Type 0C       Identity-H       yes yes yes    258  0
+EFAOBY+Tinos                         CID TrueType      Identity-H       yes yes yes    263  0
+NKVGAV+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    272  0
+HBOJTB+Tinos-Italic                  CID TrueType      Identity-H       yes yes yes    301  0
+NGUVOH+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    309  0
+WBBCCY+Tinos                         CID TrueType      Identity-H       yes yes yes    320  0
+RCOMJW+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    324  0
+STHKDY+Tinos                         CID TrueType      Identity-H       yes yes yes    338  0
+BDLFYF+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    345  0
+TITWAH+CMSY9                         Type 1C           Custom           yes yes yes    348  0
+OBEUZQ+CMR9                          Type 1C           Custom           yes yes yes    350  0
+HILCDK+CMMI9                         Type 1C           Custom           yes yes yes    353  0
+HJRCBV+CMSY6                         Type 1C           Custom           yes yes yes    355  0
+AEITEB+CMR6                          Type 1C           WinAnsi          yes yes yes    357  0
+UOHZVR+MSBM10                        Type 1C           WinAnsi          yes yes yes    359  0
+HSXERX+CMMI6                         Type 1C           WinAnsi          yes yes yes    360  0
+AVQDFB+CMSY8                         Type 1C           Custom           yes yes yes    364  0
+JKFGMR+CMMI10                        Type 1C           Custom           yes yes yes    367  0
+ENAFFN+CMR10                         Type 1C           Custom           yes yes yes    369  0
+JELOAU+CMMI8                         Type 1C           WinAnsi          yes yes yes    371  0
+GOVQQW+CMEX10                        Type 1C           Custom           yes yes yes    373  0
+WMYEGB+CMR8                          Type 1C           WinAnsi          yes yes yes    375  0
+EGQAGQ+CMSY10                        Type 1C           Custom           yes yes yes    378  0
+LKTVVZ+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    383  0
+UBQCAY+Tinos                         CID TrueType      Identity-H       yes yes yes    386  0
+UFZQLB+Tinos-Bold                    CID TrueType      Identity-H       yes yes yes    393  0
+ZKUVGK+Tinos                         CID TrueType      Identity-H       yes yes yes    396  0
+MYOKYV+LMMono12-Regular              CID Type 0C       Identity-H       yes yes yes    399  0
