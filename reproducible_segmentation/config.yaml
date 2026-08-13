@@ -1,0 +1,163 @@
+schema_version: 1
+experiment:
+  id: lightweight_segmentation_under_15m_v1
+  task: instance_segmentation
+  objective: reproduce_fix_leakage_yolo11n_seg_baseline_and_compare_models_under_15m
+  reference_model: yolo11n_seg
+  parameter_limit_millions: 15.0
+  output_root: artifacts/runs/lightweight_under_15m
+
+reproducibility:
+  seed: 42
+  additional_report_seeds: [43, 44]
+  deterministic: true
+  pretrained: true
+  split_policy: grouped_by_shrimp_disease_stratified
+  train_ratio: 0.80
+  val_ratio: 0.10
+  test_ratio: 0.10
+  freeze_split_manifest: true
+  compare_on_same_split_only: true
+
+dataset:
+  format: ultralytics_yolo_instance_segmentation
+  data_yaml_env: CVIO_MRTU_DATA_YAML
+  classes: [BG, WSSV]
+  healthy_negative_rule: empty_label_file
+  semantic_mask_root_env: CVIO_SEMANTIC_MASK_ROOT
+  notes: >-
+    Primary comparison uses YOLO polygon instance labels. Semantic models require
+    deterministic conversion to single-channel class-index masks and belong to a
+    separately reported semantic track.
+
+runtime_profiles:
+  ultralytics_baseline:
+    python: 3.12.13
+    platform_reference: Kaggle
+    gpu_reference: Tesla T4
+    packages:
+      ultralytics: 8.4.61
+      torch: 2.10.0+cu128
+      torchvision: 0.25.0+cu128
+      numpy: 2.0.2
+      opencv-python: 4.11.0.86
+      pillow: 11.3.0
+      PyYAML: 6.0.2
+      pandas: 2.2.3
+    source: >-
+      yolov11n_attention/yolov11n_grouped_attention/
+      aip491-01-yolo-seg-11n-clean-baseline-fix-leakage.ipynb
+    source_sha256: 18D561CA3BC013378FA9339FE7908197787CBC92F8AADA30468ACFCB7BF7A455
+  openmmlab_rtmdet:
+    status: separate_environment_required
+    reason: MMDetection/MMCV must not be mixed into the pinned Ultralytics baseline environment.
+    packages:
+      mmdet: 3.3.0
+      mmengine: 0.10.7
+      mmcv: 2.1.0
+    verification_required_before_training: true
+  semantic_models:
+    status: separate_environment_and_label_adapter_required
+
+training:
+  unspecified_args_policy: ultralytics_8.4.61_defaults
+  imgsz: 640
+  epochs: 100
+  batch: 16
+  patience: 30
+
+augmentation:
+  auto_augment: null
+  erasing: 0.0
+  mosaic: 0.0
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  fliplr: 0.5
+  flipud: 0.0
+  hsv_h: 0.01
+  hsv_s: 0.35
+  hsv_v: 0.20
+  degrees: 0.0
+  translate: 0.05
+  scale: 0.20
+  shear: 0.0
+  perspective: 0.0
+  multi_scale: 0.0
+  bgr: 0.0
+
+evaluation:
+  checkpoint: best.pt
+  checkpoint_selection_metric: validation_mask_map50
+  prediction_confidence: 0.25
+  evaluate_splits: [val, test]
+  test_once_after_model_selection: true
+  metrics:
+    - full_mask_map50
+    - disease_mask_map50
+    - disease_mask_map50_95
+    - mask_count_mae
+    - disease_mask_miss_rate
+    - healthy_mask_fp_rate
+    - healthy_aware
+  healthy_aware_weights:
+    mask_count_mae: 0.05
+    disease_box_miss_rate: 0.15
+    healthy_mask_fp_rate: 0.10
+
+models:
+  primary_instance_track:
+    - id: yolo11n_seg
+      framework: ultralytics
+      checkpoint: yolo11n-seg.pt
+      expected_params_millions: 2.9
+      role: baseline
+      runnable: true
+    - id: yolo26n_seg
+      framework: ultralytics
+      checkpoint: yolo26n-seg.pt
+      expected_params_millions: 2.7
+      role: candidate
+      runnable: true
+    - id: yolo26s_seg
+      framework: ultralytics
+      checkpoint: yolo26s-seg.pt
+      expected_params_millions: 10.4
+      role: candidate
+      runnable: true
+    - id: rtmdet_ins_tiny
+      framework: mmdetection
+      expected_params_millions: 5.6
+      role: candidate
+      runnable: true
+      notebook: notebooks/rtmdet_ins_tiny_fix_leakage_coco.ipynb
+      dataset_export: coco-segmentation
+    - id: rtmdet_ins_s
+      framework: mmdetection
+      expected_params_millions: 10.18
+      role: candidate
+      runnable: true
+      notebook: notebooks/rtmdet_ins_s_fix_leakage_coco.ipynb
+      dataset_export: coco-segmentation
+  secondary_semantic_track:
+    comparison_scope: separate_from_instance_results
+    models:
+      - {id: lraspp_mobilenet_v3_large, expected_params_millions: 3.22}
+      - {id: deeplabv3_mobilenet_v3_large, expected_params_millions: 11.03}
+      - {id: segformer_b0, expected_params_millions: 3.75}
+      - {id: segformer_b1, expected_params_millions: 13.7}
+      - {id: topformer_t, expected_params_millions: 1.4}
+      - {id: topformer_s, expected_params_millions: 3.1}
+      - {id: topformer_b, expected_params_millions: 5.1}
+      - {id: pp_mobileseg_tiny, expected_params_millions: 1.61}
+      - {id: pp_mobileseg_base, expected_params_millions: 5.62}
+
+run_gates:
+  - exact_environment_recorded
+  - frozen_split_manifest_exists
+  - no_group_or_near_duplicate_leakage
+  - model_parameter_count_verified_at_runtime
+  - first_epoch_prediction_masks_exported
+  - same_hyperparameters_as_reference
+  - baseline_source_sha256_unchanged
+

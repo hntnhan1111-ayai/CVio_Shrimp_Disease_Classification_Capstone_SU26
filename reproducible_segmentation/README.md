@@ -35,5 +35,48 @@ python -m unittest discover -s tests -v
 python scripts/02_create_run_manifest.py --dataset mrtu_v1 --candidate simam_ca_strong --seed 42
 ```
 
+## Benchmark model segmentation dưới 15M params
+
+`config.yaml` là nguồn cấu hình duy nhất cho benchmark mới. File này khóa protocol
+theo notebook `aip491-01-yolo-seg-11n-clean-baseline-fix-leakage.ipynb`: split
+grouped-stratified chống leakage, seed,
+image size, optimizer, augmentation, checkpoint selection, confidence threshold và
+healthy-aware metrics. Danh sách model từ tài liệu gợi ý được tách thành hai track:
+
+- Primary instance track: YOLO11n/YOLO26n/YOLO26s và RTMDet-Ins tiny/s.
+- Secondary semantic track: LR-ASPP, DeepLabV3-MNV3, SegFormer, TopFormer và
+  PP-MobileSeg; track này cần class-index masks và không được trộn metric với primary.
+
+Kiểm tra lệnh trước khi train:
+
+```powershell
+$env:CVIO_MRTU_DATA_YAML = 'D:\path\to\data.yaml'
+python scripts/04_run_ultralytics_benchmark.py --model yolo11n_seg --dry-run
+python scripts/04_run_ultralytics_benchmark.py --model yolo11n_seg --smoke
+```
+
+Sau smoke test, chạy full baseline rồi mới chạy candidate với cùng split:
+
+```powershell
+python scripts/04_run_ultralytics_benchmark.py --model yolo11n_seg
+python scripts/04_run_ultralytics_benchmark.py --model yolo26n_seg
+python scripts/04_run_ultralytics_benchmark.py --model yolo26s_seg
+```
+
+Mỗi lần chạy ghi environment JSON và kiểm tra số params thực tế trước khi train.
+Không dùng `--allow-environment-mismatch` cho kết quả đưa vào report.
+
+RTMDet dùng cùng Roboflow project/version nhưng tải `coco-segmentation`. Hai
+notebook `rtmdet_ins_*_fix_leakage_coco.ipynb` tự gom lại toàn bộ export, tái tạo
+split grouped-stratified seed 42, kiểm tra đúng 905/115/129 ảnh rồi train bằng
+MMDetection. Dùng Kaggle Secret `ROBOFLOW_API_KEY`; không ghi API key vào notebook.
+
+Notebook baseline gốc là read-only về mặt quy trình. SHA-256 của file được khóa
+trong `config.yaml`. Chạy `scripts/05_generate_derived_notebooks.py` để sinh notebook
+riêng cho từng model; script sẽ dừng nếu baseline đã thay đổi.
+
+RTMDet-Ins dùng adapter COCO và notebook riêng. Xem `docs/RTMDET.md`; sinh lại
+notebook bằng `python scripts/07_generate_rtmdet_notebooks.py`.
+
 Lệnh cuối chỉ tạo manifest dưới `artifacts/generated/`; không khởi chạy train.
 Xem [docs/REPRODUCE.md](docs/REPRODUCE.md) trước khi kết nối runner YOLO.
