@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cvio_shrimp_seg.candidates import TOP_FIVE, candidate_by_id
+from cvio_shrimp_seg.candidates import BASELINE, TOP_FIVE, candidate_by_id
 from cvio_shrimp_seg.datasets import DATASETS, dataset_by_id
 
 
@@ -23,6 +23,15 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(candidate_by_id("dpca_strong").display_name, "DPCA strong")
         self.assertEqual(dataset_by_id("mrtu_v1").image_count, 1452)
         self.assertEqual(len(DATASETS), 2)
+
+    def test_new_dataset_notebook_directories_use_current_names(self) -> None:
+        notebooks = [path for candidate in (BASELINE, *TOP_FIVE) for path in candidate.new_dataset_notebooks]
+        self.assertTrue(notebooks)
+        allowed_roots = {
+            "yolov11n_attention/expanded_grouped_data",
+            "yolov11n_attention/mrtu_grouped_data",
+        }
+        self.assertTrue(all("/".join(path.split("/")[:2]) in allowed_roots for path in notebooks))
 
 
 if __name__ == "__main__":

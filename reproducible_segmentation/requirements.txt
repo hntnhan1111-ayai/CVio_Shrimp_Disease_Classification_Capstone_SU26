@@ -1,2 +1,10 @@
-# Runtime for the reproducibility layer. Install the experiment runner separately.
-PyYAML>=6.0
+# Pinned environment for the reproducibility layer and Ultralytics benchmark runner.
+# Install a CUDA-compatible torch wheel from the matching PyTorch index first.
+ultralytics==8.4.61
+torch==2.10.0
+torchvision==0.25.0
+numpy==2.0.2
+opencv-python==4.11.0.86
+pillow==11.3.0
+PyYAML==6.0.2
+pandas==2.2.3

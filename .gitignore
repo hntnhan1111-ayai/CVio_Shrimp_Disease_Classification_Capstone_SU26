@@ -36,6 +36,8 @@ tflite_work_simam_ca/
 # Reproducibility layer generated outputs (curated CSV/Markdown artifacts stay tracked)
 /reproducible_segmentation/artifacts/generated/
 /reproducible_segmentation/.env
+/reproducible_segmentation/tests/
+/reproducible_segmentation/docs/
 
 # Local datasets, raw output packages and temporary tooling
 # The compact, reviewable results for Git live in reproducible_segmentation/artifacts/.

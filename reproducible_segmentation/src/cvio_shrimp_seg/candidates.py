@@ -36,8 +36,8 @@ BASELINE = Candidate(
     },
     legacy_sources=(),
     new_dataset_notebooks=(
-        "yolov11n_attention/new_combined_data/yolo11n_seg_baseline_strong_mrtu_grouped_near_duplicate_split.ipynb",
-        "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_baseline_strong_new_data_leakage_safe.ipynb",
+        "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_baseline_strong_mrtu_grouped_near_duplicate_split.ipynb",
+        "yolov11n_attention/expanded_grouped_data/yolo11n_seg_baseline_strong_new_data_leakage_safe.ipynb",
     ),
     port_status="catalog_only",
 )
@@ -61,8 +61,8 @@ TOP_FIVE: tuple[Candidate, ...] = (
             "yolov11n_attention/yolov11n_simam_NhomA/augmentation/yolo11n_simam_augmentation_run_all_results_20260615_080026/reports/summary_all_models.csv",
         ),
         new_dataset_notebooks=(
-            "yolov11n_attention/new_combined_data/yolo11n_seg_simam_ca_mrtu_grouped_near_duplicate_split.ipynb",
-            "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_simam_ca_new_data_mixed_split.ipynb",
+            "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_simam_ca_mrtu_grouped_near_duplicate_split.ipynb",
+            "yolov11n_attention/expanded_grouped_data/yolo11n_seg_simam_ca_new_data_mixed_split.ipynb",
         ),
         port_status="not_ported",
     ),
@@ -83,8 +83,8 @@ TOP_FIVE: tuple[Candidate, ...] = (
             "yolov11n_attention/yolov11n_simam_NhomC/group_c_vs_baseline_comparison.csv",
         ),
         new_dataset_notebooks=(
-            "yolov11n_attention/new_combined_data/yolo11n_seg_lka_simam_head_strong_mrtu_grouped_near_duplicate_split.ipynb",
-            "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_lka_simam_head_strong_new_data_leakage_safe.ipynb",
+            "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_lka_simam_head_strong_mrtu_grouped_near_duplicate_split.ipynb",
+            "yolov11n_attention/expanded_grouped_data/yolo11n_seg_lka_simam_head_strong_new_data_leakage_safe.ipynb",
         ),
         port_status="not_ported",
     ),
@@ -105,10 +105,10 @@ TOP_FIVE: tuple[Candidate, ...] = (
             "yolov11n_attention/new_research_attention/result/dpca-dual-polarity-contrast.ipynb",
         ),
         new_dataset_notebooks=(
-            "yolov11n_attention/new_combined_data/yolo11n_seg_dpca_p4_strong_mrtu_grouped_near_duplicate_split.ipynb",
-            "yolov11n_attention/new_combined_data/yolo11n_seg_dpca_p3p4p5_strong_mrtu_grouped_near_duplicate_split.ipynb",
-            "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_dpca_p4_strong_new_data_leakage_safe.ipynb",
-            "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_dpca_p3p4p5_strong_new_data_leakage_safe.ipynb",
+            "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_dpca_p4_strong_mrtu_grouped_near_duplicate_split.ipynb",
+            "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_dpca_p3p4p5_strong_mrtu_grouped_near_duplicate_split.ipynb",
+            "yolov11n_attention/expanded_grouped_data/yolo11n_seg_dpca_p4_strong_new_data_leakage_safe.ipynb",
+            "yolov11n_attention/expanded_grouped_data/yolo11n_seg_dpca_p3p4p5_strong_new_data_leakage_safe.ipynb",
         ),
         port_status="not_ported",
     ),
@@ -129,8 +129,8 @@ TOP_FIVE: tuple[Candidate, ...] = (
             "yolov11n_attention/custom_attention_research_modules/cote_bl_gate/generated_yamls/cote_bl_p4_strong.yaml",
         ),
         new_dataset_notebooks=(
-            "yolov11n_attention/new_combined_data/yolo11n_seg_cote_boundarylite_p4_strong_mrtu_grouped_near_duplicate_split.ipynb",
-            "yolov11n_attention/new_data_leakage_safe_modules/yolo11n_seg_cote_boundarylite_p4_strong_new_data_leakage_safe.ipynb",
+            "yolov11n_attention/mrtu_grouped_data/yolo11n_seg_cote_boundarylite_p4_strong_mrtu_grouped_near_duplicate_split.ipynb",
+            "yolov11n_attention/expanded_grouped_data/yolo11n_seg_cote_boundarylite_p4_strong_new_data_leakage_safe.ipynb",
         ),
         port_status="not_ported",
     ),

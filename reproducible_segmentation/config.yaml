@@ -44,9 +44,7 @@ runtime_profiles:
       pillow: 11.3.0
       PyYAML: 6.0.2
       pandas: 2.2.3
-    source: >-
-      yolov11n_attention/yolov11n_grouped_attention/
-      aip491-01-yolo-seg-11n-clean-baseline-fix-leakage.ipynb
+    source: yolov11n_attention/yolov11n_grouped_attention/aip491-01-yolo-seg-11n-clean-baseline-fix-leakage.ipynb
     source_sha256: 18D561CA3BC013378FA9339FE7908197787CBC92F8AADA30468ACFCB7BF7A455
   openmmlab_rtmdet:
     status: separate_environment_required

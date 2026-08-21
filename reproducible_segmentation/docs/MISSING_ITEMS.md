@@ -4,8 +4,9 @@
    preprocessing details and dataset location for the 129-image test protocol.
 2. **Expanded-dataset final split:** one versioned grouped near-duplicate split manifest,
    including how ambiguous/cross-label duplicate groups were resolved.
-3. **Runner parity:** extract each selected custom layer from its notebook into
-   a Python module and prove a matching forward pass/model YAML build.
+3. **Custom-candidate runner parity:** the config-locked runner now covers the
+   YOLO11n/YOLO26 baselines, but each selected custom layer still needs to be
+   extracted from its notebook and tested against a matching model YAML build.
 4. **WIoU v3 on the expanded dataset:** no WIoU-v3 notebook exists in either current expanded-dataset
    notebook track; it is the only top-five candidate not yet ported there.
 5. **Matched expanded-dataset outputs:** the current output does not contain a baseline
@@ -17,6 +18,6 @@
 7. **Multi-seed evidence:** all report-selected values are single-run results;
    run seeds 42, 43 and 44 (or another pre-registered set) for the baseline and
    each candidate.
-8. **Config runtime dependency:** install PyYAML from requirements.txt in the
-   training environment before a YAML-driven runner is added; the current
-   Python environment does not include it.
+8. **Separate framework workflows:** RTMDet-Ins and semantic candidates still
+   need their own pinned environments, dataset adapters, runners and metric
+   parity tests. They must not be mixed into the instance-track table yet.

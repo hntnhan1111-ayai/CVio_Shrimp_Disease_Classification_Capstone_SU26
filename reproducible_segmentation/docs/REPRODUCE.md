@@ -11,10 +11,11 @@
    helper.
 6. Repeat seeds 42, 43 and 44 before reporting mean ± std.
 
-The current scripts intentionally do not invoke `YOLO.train()`. The custom
-layers are still implemented in notebooks and vendored Ultralytics code. A
-runner may be added only after each selected candidate is ported with a
-regression test proving parity with its source notebook.
+`scripts/04_run_ultralytics_benchmark.py` invokes `YOLO.train()` only for the
+three stock Ultralytics models declared runnable in `config.yaml`. Run it first
+with `--dry-run`, then `--smoke`. The report-selected custom layers remain
+notebook implementations and are blocked until each has a parity regression
+test and a versioned model YAML.
 
 ## Importing completed expanded-dataset runs
 

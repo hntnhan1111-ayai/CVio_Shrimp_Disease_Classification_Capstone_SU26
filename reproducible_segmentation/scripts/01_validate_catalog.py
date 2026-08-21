@@ -16,7 +16,7 @@ from cvio_shrimp_seg.datasets import DATASETS  # noqa: E402
 def main() -> None:
     failed: list[str] = []
     for candidate in (BASELINE, *TOP_FIVE):
-        for source in candidate.legacy_sources:
+        for source in (*candidate.legacy_sources, *candidate.new_dataset_notebooks):
             if not (REPO_ROOT / source).is_file():
                 failed.append(source)
         print(f"{candidate.identifier}: {candidate.port_status}")

@@ -21,8 +21,8 @@ and the export ZIP remain outside this new layer.
 
 The two current notebook tracks are preserved in place:
 
-- `yolov11n_attention/new_combined_data/`: grouped near-duplicate split.
-- `yolov11n_attention/new_data_leakage_safe_modules/`: leakage-safe module notebooks.
+- `yolov11n_attention/expanded_grouped_data/`: expanded/combined dataset notebooks using the grouped near-duplicate split.
+- `yolov11n_attention/mrtu_grouped_data/`: MrTu dataset leakage-safe module notebooks.
 
 Use the configs in `../configs/datasets/` as the catalog. Before training,
 provide an external YOLO `data.yaml`; do not commit the raw dataset.
