@@ -1,0 +1,29 @@
+{
+  "template_zip": "C:\\Users\\Admin\\workspace\\CVio_Shrimp_Disease_Classification_Capstone_SU26\\CVio_Codex_Final_Report_Handoff_2026-08-11\\FINAL_CVio_AIP491_DOCX_LOCKED_LATEX_TEMPLATE.zip",
+  "template_zip_sha256": "7f418f76466023595e64aebdb06ee18c84f1b971ddfb116e0d016b819e8e6373",
+  "source_reports": {
+    "Report 1.pdf": {
+      "sha256": "7976989def67dbe77c5a7c447ac9298ba18f1d3a9640c4a3208e9477c208db54",
+      "bytes": 2878452
+    },
+    "Report 2.pdf": {
+      "sha256": "c923020a65ea225cbe417210f9e5622218e05a4599fa0227b1b9323fdfae93fa",
+      "bytes": 3273375
+    }
+  },
+  "locked_template_files": {
+    "cvio-aip491-template.sty": "3d53237e9fecf0ed9347a0ac40fec0bb9948ed25c3409dada812b07cb92427df",
+    "cvio-lncs.sty": "f004e9f552030273766b6a6534c18270204e64a1f68d6c5ae180b75176f8ec10",
+    "llncs.cls": "f1be281bc631f07c4405566d64b294ec8df018e75e6d6c6c643cbdd5806677a5",
+    "splncs04.bst": "a370ad563909f7264038e3388d59036306c3ecd53c6de26279ba921f3a9979df",
+    "TEMPLATE_LOCK_SPEC.md": "335f89253e51977b758ea6448d7d4001c2f2cd432d7f49b5213a72d33b2f8fa9",
+    "TEMPLATE_PROVENANCE.json": "90bfc16e23b300bc5efc5428dffb36b62895e7d9004aed39f72b8c3d6c633614"
+  },
+  "content_adaptation": {
+    "native_latex": true,
+    "pdf_pages_imported": false,
+    "revision_highlighting": "text-bound via \\rev",
+    "compatibility_rewrite": "\\rowcolor{cvioPeach} -> \\CVioPeachHeader",
+    "figure_asset_count": 8
+  }
+}

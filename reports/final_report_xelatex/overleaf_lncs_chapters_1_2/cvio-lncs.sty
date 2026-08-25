@@ -1,0 +1,127 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{cvio-lncs}[2026/08/13 CVio LNCS hybrid report style]
+
+\RequirePackage{iftex}
+\RequirePackage{graphicx}
+\RequirePackage[table]{xcolor}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{array,tabularx,longtable}
+\RequirePackage{soul}
+\RequirePackage{xurl}
+\RequirePackage{ragged2e}
+\RequirePackage{etoolbox}
+
+% ---------- Font layer ----------
+% Exact Times New Roman is used when available. Overleaf normally does not
+% ship Microsoft's proprietary font, so TeX Gyre Termes is the safe Times-compatible fallback.
+\ifXeTeX
+  \RequirePackage{fontspec}
+  \IfFontExistsTF{Times New Roman}{%
+    \setmainfont{Times New Roman}%
+  }{%
+    % Tinos is metrically compatible with Times New Roman and is redistributable.
+    \setmainfont{Tinos}%
+  }
+\fi
+
+% ---------- Project colors ----------
+\definecolor{cvioChapterRed}{HTML}{C00000}
+\definecolor{cvioPeach}{HTML}{F6DDCE}
+\definecolor{cvioRevisionYellow}{HTML}{FFF200}
+\definecolor{cvioRuleBlack}{HTML}{000000}
+\sethlcolor{cvioRevisionYellow}
+
+% Make soul usable around common report commands.
+\soulregister\texttt7
+\soulregister\mbox7
+\soulregister\_0
+\soulregister\cite7
+\soulregister\ref7
+\soulregister\path7
+
+% ---------- Fragment behavior ----------
+\pagestyle{empty}
+\makeatletter
+\let\ps@plain\ps@empty
+\makeatother
+\setcounter{secnumdepth}{3}
+
+% ---------- Stable vertical rhythm ----------
+% Keep LNCS body density, but make display/float spacing explicit and uniform.
+\setlength{\parskip}{0pt}
+\setlength{\abovedisplayskip}{8pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{8pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{6pt plus 2pt minus 1pt}
+\setlength{\belowdisplayshortskip}{6pt plus 2pt minus 1pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\emergencystretch}{2em}
+
+% ---------- Chapter identity ----------
+\newcommand{\cvioChapterNumber}{0}
+\newcommand{\CVioSetChapterNumber}[1]{%
+  \renewcommand{\cvioChapterNumber}{#1}%
+  \setcounter{section}{0}%
+  \setcounter{subsection}{0}%
+  \setcounter{subsubsection}{0}%
+  \setcounter{equation}{0}%
+  \setcounter{figure}{0}%
+  \setcounter{table}{0}%
+}
+\renewcommand{\theequation}{\cvioChapterNumber.\arabic{equation}}
+\renewcommand{\thefigure}{\cvioChapterNumber.\arabic{figure}}
+\renewcommand{\thetable}{\cvioChapterNumber.\arabic{table}}
+
+% Crucial: \noindent removes the first-line paragraph indent that shifted the title right.
+\newcommand{\CVioChapterTitle}[1]{%
+  \par\noindent{\fontsize{17}{20}\selectfont\bfseries\color{cvioChapterRed}#1\par}%
+  \vspace{0.65\baselineskip}%
+}
+\newcommand{\CVioBeginChapter}[2]{%
+  \CVioSetChapterNumber{#1}%
+  \CVioChapterTitle{#2}%
+}
+
+% ---------- Revision highlighting ----------
+% Text-tight highlight for prose and table cells. Never use row/cell yellow fill
+% for revision marking unless the user explicitly asks for it.
+\newcommand{\rev}[1]{{\sloppy\hl{#1}}}
+\newcommand{\revcell}[1]{\begingroup\centering\arraybackslash\hl{#1}\endgroup}
+
+% ---------- Table system ----------
+% Preferred centered table columns.
+\newcolumntype{Z}{>{\Centering\arraybackslash}X}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+% Consistent table typography. Apply locally inside a table.
+\newcommand{\CVioTableSetup}{%
+  \small
+  \renewcommand{\arraystretch}{1.18}%
+  \setlength{\tabcolsep}{5pt}%
+}
+\newcommand{\CVioHeaderCell}[1]{\textbf{#1}}
+\newcommand{\CVioPeachHeader}{\rowcolor{cvioPeach}}
+
+% Special caption helper for non-standard labels such as Table 4.4A / 4.4B.
+\newcommand{\CVioSpecialTableCaption}[2]{%
+  \par\smallskip
+  \noindent\begin{center}\small\textbf{Table #1. #2}\end{center}%
+  \vspace{-0.35em}%
+}
+
+% ---------- Figure system ----------
+\newcommand{\CVioFigure}[3][]{%
+  \begin{figure}[tbp]
+    \centering
+    \includegraphics[width=\linewidth,keepaspectratio,#1]{#2}
+    \caption{#3}
+  \end{figure}%
+}
+
+% ---------- Long identifiers ----------
+\newcommand{\modelpath}[1]{\path{#1}}
+
+% ---------- Utility ----------
+\newcommand{\CVioNoPageNumbers}{\pagestyle{empty}}

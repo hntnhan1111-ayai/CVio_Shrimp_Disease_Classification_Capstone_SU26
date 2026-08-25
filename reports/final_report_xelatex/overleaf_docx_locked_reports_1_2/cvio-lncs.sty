@@ -1,0 +1,222 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{cvio-lncs}[2026/08/14 CVio AIP491 DOCX-locked hybrid template]
+
+% This package intentionally uses llncs.cls only as a stable LaTeX base.
+% Page geometry, typography, headings and table appearance are overridden
+% to match Template_AIP491_CP_StudentsGuide.docx rather than stock LNCS.
+
+\RequirePackage{iftex}
+\RequirePackage[a4paper,top=72pt,bottom=72pt,left=72pt,right=70.8pt]{geometry}
+\RequirePackage{graphicx}
+\RequirePackage[table]{xcolor}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{array,tabularx,longtable}
+\RequirePackage{soul}
+\RequirePackage{xurl}
+\RequirePackage{ragged2e}
+\RequirePackage{etoolbox}
+\RequirePackage{caption}
+\RequirePackage{fancyhdr}
+
+% ------------------------------------------------------------------
+% TYPOGRAPHY LOCK
+% The DOCX renders its normal text as Calibri-compatible Carlito 11 pt
+% and its major headings as a serif face in the reference renderer.
+% These TeX-Live fonts are distributable and available on Overleaf;
+% no proprietary Microsoft font files are bundled.
+% ------------------------------------------------------------------
+\ifXeTeX
+  \RequirePackage{fontspec}
+  \IfFontExistsTF{Carlito}{
+    \setmainfont{Carlito}
+  }{
+    \setmainfont{TeX Gyre Heros}
+  }
+  \IfFontExistsTF{Noto Serif}{
+    \newfontfamily\CVioHeadingFont{Noto Serif}
+  }{
+    \newfontfamily\CVioHeadingFont{TeX Gyre Pagella}
+  }
+\else
+  \PackageError{cvio-lncs}{This locked template must be compiled with XeLaTeX}{Select XeLaTeX as the Overleaf compiler.}
+\fi
+
+% ------------------------------------------------------------------
+% COLORS DERIVED FROM THE DOCX
+% ------------------------------------------------------------------
+\definecolor{cvioChapterRed}{HTML}{C00000}
+\definecolor{cvioTableHeader}{HTML}{FFE8E1}
+\definecolor{cvioRevisionYellow}{HTML}{FFF200}
+\definecolor{cvioRuleBlack}{HTML}{000000}
+\definecolor{cvioInstructionBlue}{HTML}{0000FF}
+\sethlcolor{cvioRevisionYellow}
+
+\soulregister\texttt7
+\soulregister\mbox7
+\soulregister\_0
+\soulregister\cite7
+\soulregister\ref7
+\soulregister\path7
+
+% ------------------------------------------------------------------
+% BODY LAYOUT LOCK
+% DOCX page: A4, 1-inch margins on all sides.
+% DOCX Normal: 11 pt, approximately 1.08 line spacing, 8 pt after.
+% ------------------------------------------------------------------
+\AtBeginDocument{%
+  \fontsize{11}{11.88}\selectfont
+  \justifying
+  \setlength{\JustifyingParindent}{0pt}%
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{8pt}%
+}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+\setlength{\emergencystretch}{2em}
+\setlength{\abovedisplayskip}{8pt plus 2pt minus 1pt}
+\setlength{\belowdisplayskip}{8pt plus 2pt minus 1pt}
+\setlength{\floatsep}{10pt plus 2pt minus 1pt}
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 1pt}
+
+% ------------------------------------------------------------------
+% PAGE-STYLE CONTRACT
+% Fragment PDFs should contain no baked page number. The master document
+% may enable a single footer number with \CVioPageNumbers.
+% ------------------------------------------------------------------
+\pagestyle{empty}
+\makeatletter
+\let\ps@plain\ps@empty
+\makeatother
+\newcommand{\CVioNoPageNumbers}{\pagestyle{empty}}
+\newcommand{\CVioPageNumbers}{%
+  \pagestyle{fancy}%
+  \fancyhf{}%
+  \fancyfoot[C]{\fontsize{10}{12}\selectfont\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+
+% ------------------------------------------------------------------
+% CHAPTER / SECTION HIERARCHY
+% DOCX Heading 1: 16 pt, bold, #C00000.
+% DOCX Heading 2: 13 pt, bold, black.
+% DOCX Heading 3: 12 pt, bold, black.
+% Period after top-level section number matches the Word template.
+% ------------------------------------------------------------------
+\setcounter{secnumdepth}{3}
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {10pt}%
+  {2pt}%
+  {\CVioHeadingFont\bfseries\fontsize{13}{15.6}\selectfont\color{black}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {8pt}%
+  {2pt}%
+  {\CVioHeadingFont\bfseries\fontsize{12}{14.4}\selectfont\color{black}}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {6pt}%
+  {2pt}%
+  {\CVioHeadingFont\bfseries\fontsize{11}{13.2}\selectfont\color{black}}}
+\renewcommand{\@seccntformat}[1]{%
+  \csname the#1\endcsname%
+  \ifstrequal{#1}{section}{.}{}%
+  \hspace{0.55em}%
+}
+\makeatother
+
+\newcommand{\cvioChapterNumber}{0}
+\newcommand{\CVioSetChapterNumber}[1]{%
+  \renewcommand{\cvioChapterNumber}{#1}%
+  \setcounter{section}{0}%
+  \setcounter{subsection}{0}%
+  \setcounter{subsubsection}{0}%
+  \setcounter{equation}{0}%
+  \setcounter{figure}{0}%
+  \setcounter{table}{0}%
+}
+\renewcommand{\theequation}{\cvioChapterNumber.\arabic{equation}}
+\renewcommand{\thefigure}{\cvioChapterNumber.\arabic{figure}}
+\renewcommand{\thetable}{\cvioChapterNumber.\arabic{table}}
+
+\newcommand{\CVioChapterTitle}[1]{%
+  \par\noindent{\CVioHeadingFont\bfseries\fontsize{16}{19.2}\selectfont\color{cvioChapterRed}#1\par}%
+  \vspace{10pt}%
+}
+\newcommand{\CVioBeginChapter}[2]{%
+  \CVioSetChapterNumber{#1}%
+  \CVioChapterTitle{#2}%
+}
+
+% Optional blue instruction text for template-only guidance.
+\newcommand{\CVioInstruction}[1]{%
+  {\color{cvioInstructionBlue}\itshape #1\par}%
+}
+
+% ------------------------------------------------------------------
+% REVISION MARKING
+% Yellow background is the project revision convention.
+% ------------------------------------------------------------------
+\newcommand{\rev}[1]{{\sloppy\hl{#1}}}
+\newcommand{\revcell}[1]{\begingroup\centering\arraybackslash\hl{#1}\endgroup}
+
+% ------------------------------------------------------------------
+% TABLE LOCK
+% Visible DOCX reference: 11 pt Carlito-compatible text, 0.5 pt grid,
+% vertically centered cells, peach header #FFE8E1, bold centered header.
+% ------------------------------------------------------------------
+\setlength{\arrayrulewidth}{0.5pt}
+\newcolumntype{Z}{>{\Centering\arraybackslash}X}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{J}[1]{>{\justifying\arraybackslash}p{#1}}
+
+\newcommand{\CVioTableSetup}{%
+  \fontsize{11}{13.2}\selectfont
+  \renewcommand{\arraystretch}{1.26}%
+  \setlength{\tabcolsep}{3pt}%
+  \setlength{\arrayrulewidth}{0.5pt}%
+}
+\newcommand{\CVioHeaderCell}[1]{\textbf{#1}}
+\newcommand{\CVioPeachHeader}{\rowcolor{cvioTableHeader}}
+
+% ------------------------------------------------------------------
+% CAPTION LOCK
+% The DOCX template does not contain a scientific figure/table caption
+% example. Therefore caption typography is locked to the already-approved
+% CVio convention: full caption bold, centered, 9 pt; table above, figure below.
+% ------------------------------------------------------------------
+\DeclareCaptionFont{cvioCaptionFont}{\fontsize{9}{10.8}\selectfont\bfseries}
+\captionsetup{font=cvioCaptionFont,labelfont=cvioCaptionFont,textfont=cvioCaptionFont,justification=centering,singlelinecheck=false}
+\captionsetup[table]{position=above,skip=6pt}
+\captionsetup[figure]{position=below,skip=6pt}
+\renewcommand{\figurename}{Fig.}
+\DeclareCaptionLabelSeparator{cvioTableSep}{: }
+\DeclareCaptionLabelSeparator{cvioFigureSep}{. }
+\captionsetup[table]{labelsep=cvioTableSep}
+\captionsetup[figure]{labelsep=cvioFigureSep}
+\setlength{\LTcapwidth}{\textwidth}
+
+% Special helper for labels such as Table 6.2A / 6.9B.
+\newcommand{\CVioSpecialTableCaption}[2]{%
+  \par\smallskip
+  \noindent\begin{center}\fontsize{9}{10.8}\selectfont\bfseries Table #1: #2\end{center}%
+  \vspace{1pt}%
+}
+
+% ------------------------------------------------------------------
+% FIGURE LOCK
+% ------------------------------------------------------------------
+\newcommand{\CVioFigure}[3][]{%
+  \begin{figure}[tbp]
+    \centering
+    \includegraphics[width=\linewidth,keepaspectratio,#1]{#2}
+    \caption{#3}
+  \end{figure}%
+}
+
+% ------------------------------------------------------------------
+% COVER HELPERS DERIVED FROM THE DOCX (optional for full report)
+% ------------------------------------------------------------------
+\newcommand{\CVioCoverLogo}[1][3.2cm]{\includegraphics[width=#1]{assets/fpt_education.png}}
+\newcommand{\modelpath}[1]{\path{#1}}

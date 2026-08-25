@@ -1,0 +1,16 @@
+family,rank,model,seed,variant_key,macro_f1,accuracy,cohen_kappa,params_m,model_size_mb,source
+yolo,1,yolo26m-cls,42,baseline_ce_stage1_reference,0.8902,0.8902,0.8505,10.35,19.92,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,2,yolo26x-cls,42,baseline_ce_stage1_reference,0.8813,0.8902,0.8501,28.34,54.37,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,3,yolov8m-cls,42,baseline_ce_stage1_reference,0.8718,0.8786,0.8342,15.77,30.22,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,4,yolov8s-cls,42,baseline_ce_stage1_reference,0.871,0.8786,0.8343,5.08,9.79,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,5,yolo11m-cls,42,baseline_ce_stage1_reference,0.8675,0.8728,0.8263,10.35,19.92,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,6,yolov8x-cls,42,baseline_ce_stage1_reference,0.8622,0.8671,0.8192,56.13,107.28,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,7,yolov8l-cls,42,baseline_ce_stage1_reference,0.8586,0.8671,0.8184,36.19,69.23,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,8,yolo26l-cls,42,baseline_ce_stage1_reference,0.8576,0.8613,0.8109,12.82,24.74,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,9,yolo26n-cls,42,baseline_ce_stage1_reference,0.842,0.8555,0.8014,1.53,3.05,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,10,yolo11x-cls,42,baseline_ce_stage1_reference,0.8374,0.8497,0.7944,28.34,54.37,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,11,yolo11s-cls,42,baseline_ce_stage1_reference,0.8317,0.8382,0.7787,5.44,10.52,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,12,yolo11n-cls,42,baseline_ce_stage1_reference,0.8283,0.8382,0.7775,1.53,3.05,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,13,yolov8n-cls,42,baseline_ce_stage1_reference,0.8271,0.8439,0.7858,1.44,2.83,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,14,yolo26s-cls,42,baseline_ce_stage1_reference,0.8215,0.8324,0.7713,5.44,10.52,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv
+yolo,15,yolo11l-cls,42,baseline_ce_stage1_reference,0.8123,0.8208,0.756,12.82,24.74,shrimp_results_summary_final_v3.zip::csv/Stage1_YOLO.csv

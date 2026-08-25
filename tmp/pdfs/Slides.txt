@@ -1,0 +1,644 @@
+CAPSTONE PROJECT
+LIGHTWEIGHT DEEP LEARNING
+FOR 
+ROBUST SHRIMP DISEASE
+DETECTION 
+ON 
+MOBILE DEVICES 
+UNDER 
+DIVERSE ENVIRONMENTAL
+CONDITIONS 
+AIP491_01 
+ 1
+\n\nOUR TEAM
+L ê  T h ị  H u ỳ n h  N h ư
+THÀNH VIÊN
+N g u y ê ̃n  V ă n  P h o n g THÀNH VIÊN
+T r â ̀ n  H ữ u  N h â nTR ƯỞ NG NHÓM
+2
+CA182007 CE181655 CE192081\n\nOUR Supervisor
+TS. Nguyễn Đình Vinh
+PhD Electrical and Computer
+Engineering
+Postdoctoral Researcher
+3\n\nTABLE OF contents
+1
+Project Introduction
+2 Project Management Plan
+3
+4
+4
+5
+Results & Evaluation
+metrics
+6
+Demo
+Methodology
+Discussion\n\nP R O J E    T  
+I N T R O D U     T I O N
+5
+Problem Statement
+Objectives
+Project Significance
+Scope & Limitations\n\n6
+1. Project introduction
+Problem Statement
+Disease outbreaks can cause substantial
+production loss and instability.
+Laboratory inspection may be unavailable, delayed, or costly in resource-
+constrained settings.
+Visual disease detection dependent on farmer experience
+may be inaccurate and unstable 
+Disease symptoms can be small, sparse, visually overlapping, affected by
+difficult environmental conditions \n\n7
+1. Project introduction
+Research Gap
+Existing work
+Shrimp disease studies primarily use image classification or bounding-box
+detection.
+Lightweight CNN and YOLO models have been explored.
+Attention, robustness, and XAI have been investigated separately in related vision
+tasks.
+Gaps addressed
+Limited disease-region masks for BG and WSSV.
+Repeated-specimen leakage rarely quantified.
+Healthy negative-image segmentation failures often hidden.
+Limited combined evaluation of classification, segmentation, robustness, Fourier
+processing, and mobile deployment.\n\n8
+1. Project introduction
+Objectives
+develop deep-learning model for shrimp disease detection and localization
+improve resilience against difficult environmental conditions such as lighting, blur,
+noise, etc
+optimize performance for mobile and resource-constraint deployment and inference
+Application-oriented objectives:
+Research-oriented objectives:
+enrich the dataset for shrimp disease segmentation
+ resolve specimen-leakage 
+implement and evaluate attention-based enhancement 
+implement and evaluate Fourier transform-based enhancement \n\n9
+1. Project introduction
+Project significance
+Android mobile app for farmers to quickly screen shrimp disease detection 
+Featuring: Image capture/upload; user-friendly prediction display and visual
+evidence, history tracking
+Lightweight models that are optimized for resource-constrained devices
+Practical Contributions:
+Scientific Contributions:
+Integration of classification + segmentation in shrimp disease detection
+Advances methods with attention mechanisms and Fourier-domain transformations
+Evidence-based model selection (TIMM vs YOLO) under efficiency constraints
+Data enrichment for subsequent studies, evaluate and resolve specimen-leakage \n\nScope Limitation
+Predict Healthy, BG, WSSV, WSSV_BG, ranked by Macro-F1 Limited dataset size and generalization
+Localize BG & WSSV disease regions Single annotator masks/no expert review
+Convert selected models to TFLite for faster inference XAI is qualitative
+Integrate into Android app that supports: image
+capture/upload, inference and prediction display,
+inspection history
+Prototype app not validated with farmers
+Experiments for robustness, explainability, fairness,
+external datasets, attention and Fourier-domain
+enhancements
+Not a replacement for lab diagnosis or veterinary
+assessment
+10
+1. Project introduction
+Scope & Limitations\n\nPLAN
+MANAGEMENT 
+PROJECT 
+11
+TeamworkWork breakdown structure - WBS
+2\n\n2.Project Management plan
+12
+Teamwork
+The project assigns tasks based on
+specialization and required artifacts:
+supervisor provides academic direction
+and milestone evaluation
+project leader connects workstreams.
+responsibility is assigned
+according to the research
+artifact that must be
+produced and reviewed.\n\n2.Project Management plan
+13
+Teamwork
+Technical Ownership Split
+Classification track
+N h a n T H
+Focuses on core backbone selection, custom single-label losses, and
+metric consistency
+Localization track
+N h u L T H
+Attention Segmentation 
+Mobile Lead
+P h o n g N V Dataset Labeling
+Fourier Lead\n\nMember Strategic Role Operational Responsibility
+Nguyen Dinh Vinh Academic Supervisor Weekly task assignment; technical direction; milestone evaluations and academic
+gatekeeping.
+Tran Huu Nhan Project Leader Schedule coordination, pipeline integration, backbone selection (YOLO26m-cls),
+custom ASL-LDAM/SimAM-DCFR design.
+Le Thi Huynh Nhu Mobile & Attention Lead Native Android application development (Kotlin/Java, Jetpack Compose), Firebase
+integration, and attention-based instance segmentation.
+Nguyen Van
+Phong Dataset & Fourier Lead Initial preprocessing, single-annotator mask creation, specimen-grouped splitting,
+leakage analysis, and Fourier experiments.
+2.Project Management plan
+14
+Teamwork
+Responsibility Matrix\n\nItem Participants Frequency Method/Purpose
+Weekly
+alignemnt All Weekly Google Meet: to sync up progress, achieved results and artifacts,
+inspect evidence, discuss blockers, assign next tasks and deadlines
+Technical
+discussion Relevant members As needed Zalo/Google Meet: to resolve data, model, mobile, Firebase,
+conversion, or integration blockers
+Experiment
+review All Weekly/As needed Google Meet, Kaggle, Google Drive: to check split policy, settings,
+checkpoints, metrics, plots, and, interpretation
+Document
+review All Before milestones Google Docs and Google Meet: to review thesis structure, wording,
+tables, figures, citations, and accepted revisions
+2.Project Management plan
+15
+Teamwork
+Project communication plan\n\nItem Participants Frequency Method/Purpose
+Quick
+coordination Relevant members Continuous Zalo: to share status, files, reminders, urgent inquiries
+Repository
+synchronizati
+on
+Technical
+members
+Before review and
+release
+Git and GitHub: to synchronize source code, notebooks,
+configurations, and documentation
+2.Project Management plan
+16
+Teamwork
+Project communication plan\n\n17
+METHODOLOGY
+T echnolo gy Stacks
+Solution w orkflo w
+Da ta collection and pr epr ocessing
+Backbones
+Enhancemen ts\n\n18
+3. methodology
+Technology Stacks\n\n19
+3. methodology
+Solution workflow
+ENTRY POINT\n\n20
+3. methodology
+Data collection and Preprocessing
+Image count: 1149
+specimen count: 416 
+class count:
+Healthy: 403 images
+BG (Black Gill disease): 198 images
+WSSV (White Spot Syndrome Virus): 328 images
+BG_WSSV (co-infection): 220 images 
+Primary dataset: ShrimpDiseaseBD\n\n21
+3. methodology
+Data collection and Preprocessing
+Image count: 80  
+class count:
+Healthy: 0 images
+BG (Black Gill disease): 39 images
+WSSV (White Spot Syndrome Virus): 41 images
+Secondary Dataset: TigerShrimp\n\n22
+3. methodology
+Data collection and Preprocessing
+Image count: 223
+class count:
+Healthy: 0 images
+BG (Black Gill disease): 110 images
+WSSV (White Spot Syndrome Virus): 113 images
+Third Dataset: Field-Data
+data is collected on-field and labeled with assistance of
+expert in field.\n\n23
+3. methodology
+Data collection and Preprocessing
+Classification track
+ Nhan - \n\n24
+3. methodology
+Data collection and Preprocessing
+Segmentation track
+ Phong - \n\n25
+3. methodology
+Data collection and Preprocessing
+Segmentation track
+The original dataset contains 1,149 images from 416 shrimp specimens, with each
+specimen photographed 1–3 times. Therefore, splitting must be done at the
+specimen level to avoid leakage of the same shrimp across different sets. This
+approach ensures a fairer evaluation method.
+The impact of allowing a shrimp specimen to appear in multiple sets.
+ Phong - \n\n26
+3. methodology
+Backbones
+After data preparation, backbones for classification and segmentation tracks are selected
+with a heavy influence by model size and model performance since the solution aims for
+resource-constraint inference while still keeping certain extent of robustness
+Segmentation candidatesClassification candidates
+TIMM: convnext_tiny_in22k,
+mobilenet_v3_large, efficientnet_b0,
+repvgg_a0, efficientnet_v2_s,
+shufflenet_v2_x1_0, .... (17 candidates)
+YOLO: yolo26m-cls, yolo26x-cls, yolov8m-
+cls, yolov8s-cls, yolo11m-cls, yolov8x-cls,
+yolov8l-cls, yolo26l-cls, yolo26n-cls,
+yolo11x-cls...(15 candidates)
+YOLO: YOLO11n-seg, YOLO26s-seg,
+YOLOv8n-seg, YOLOv8s-seg, YOLO26n-seg,
+YOLO11s-seg (6 candidates)
+*final chosen candidates for baseline are highlighted in orange
+ Nhan - \n\nConfiguration item Setting
+Model YOLO26m-cls
+Input Background-removed RGB images
+Image size 224 × 224
+Split Fixed train/validation/test manifest
+Seed 42
+Loss Cross-entropy
+Optimizer AdamW
+Epochs 30
+Patience 15
+Batch size 32
+Workers 4
+Augmentation RandAugment for training only
+Batch size 32
+Training augmentation RandAugment
+Ultralytics version 8.4.75
+Configuration item Setting 1
+Model YOLO11n-seg
+Image size 640 × 640
+Split Stratified grouped-specimen split
+Seed 42
+Initialization yolo11n-seg.pt
+Epochs 100 maximum
+Patience 30
+Batch size 16
+Horizontal flip 0.5
+Translation 0.05
+Scale 0.2
+HSV 0.01 / 0.35 / 0.20
+27
+3. methodology
+Backbones
+For each track backbone, we select a baseline set of configurations 
+configurations for classification configurations for segmentation
+ Nhan - \n\n28
+3. methodology
+Proposed - Classification
+ YOLO26m-cls architecture with the proposed SimAM-DCFR feature-
+recalibration module, the original classification head, and the
+training-only ASL-LDAM objective.  Nhan - \n\n29
+3. methodology
+Proposed - Classification
+Module-level computation of SimAM-DCFR, showing the identity
+path, published SimAM branch, project-created texture branch,
+trainable channel gate, and residual fusion.  Nhan - \n\n30
+3. methodology
+Proposed - Classification
+Training-time computation graph of the custom single-label ASL-
+LDAM objective.
+ Nhan - \n\n31
+3. methodology
+Proposed - Segmentation
+Proposed methods for segmentation: Attention-based and Fourier-transform-based
+ YOLO11n-seg architecture with Coordinate Attention followed by SimAM at the
+P3, P4, and P5 feature-pyramid outputs before the original Segment head.
+ Nhu - \n\n32
+3. methodology
+Proposed - Segmentation
+Module-level workflow of Dual-Polarity Contrast Attention, including local
+context extraction, polarity separation, grouped selection, depthwise gating, and
+zero-initialized residual scaling
+Proposed methods for segmentation: Attention-based and Fourier-transform-based
+ Nhu - \n\n33
+3. methodology
+Proposed - Segmentation
+ CoTEGate residual recalibration at P4 and the training-only BoundaryLite
+auxiliary mask-boundary loss
+Proposed methods for segmentation: Attention-based and Fourier-transform-based
+ Nhu - \n\nThe Fourier Transform converts an image from the spatial domain into the frequency domain.
+The spatial domain describes pixels by their position and intensity.
+The frequency domain describes how rapidly image intensity changes across space.
+34
+3. methodology
+Proposed - Segmentation
+What is Fourier transform?
+FFT
+Inverse FFT
+ Phong - \n\n35
+3. methodology
+Proposed - Segmentation
+Fourier processing was selected as a controlled way to enhance or suppress frequency-
+specific image information while preserving segmentation-mask geometry.
+*Fourier changes image intensities but not image geometry, segmentation annotations remain unchanged
+Why was Fourier transform chosen?
+ Phong - \n\nBranch Method Purpose
+Image space High-pass enhancement Strengthen small spots, edges and texture
+Image space High-frequency damping Reduce excessive fine detail or noise
+Image space Band-pass filtering Focus on a selected frequency scale
+Image space Low-frequency flattening Reduce illumination and broad background variation
+Image space Homomorphic filtering Adjust illumination–reflectance components
+Image space Gaussian low-pass Smooth high-frequency content
+Image space W1 high-pass reference Selected controlled transform for further experiments
+Feature space FDDEM-style refinement Learn frequency-band enhancement inside the network
+36
+3. methodology
+Proposed - Segmentation
+The Fourier transformation process:
+Input image → FFT → frequency filtering → inverse FFT → reconstructed image → segmentation model
+Fourier transformation candidates:
+ Phong - \n\nConfiguration item Setting
+Model YOLO11n-seg
+Image size 640 × 640
+Split Stratified grouped-specimen split
+Seed 42
+Initialization yolo11n-seg.pt
+Epochs 100 maximum
+Patience 30
+Batch size 16
+Online YOLO augmentation Disabled
+Hidden Albumentations hook Disabled
+Auto augmentation Disabled
+37
+3. methodology
+Proposed - Segmentation
+Fourier candidates were evaluated
+based on its performance when
+strictly NO augmentation was used 
+The final chosen Fourier transform
+candidate is: 
+Fourier high-pass sigma=50, alpha=0.1
+ Phong - \n\nRESULTS
+EVALUATION
+&
+38
+Evaluation metrics
+Recorded results
+Accepted Paper\n\n4. results & evaluation
+39
+Evaluation metrics - Classification
+ Nhan - \n\n4. results & evaluation
+40
+Evaluation metrics - Classification
+ Nhan - \n\nImpulse Noise
+4. results & evaluation
+41
+Evaluation metrics - Classification
+ Nhan - 
+\n\n4. results & evaluation
+42
+Evaluation metrics - Classification
+ Nhan - \n\n4. results & evaluation
+43
+Evaluation metrics - Classification
+ Nhan - \n\n4. results & evaluation
+44
+Evaluation metrics - Classification
+ Nhan - \n\nSplit Images Specimens Labeled disease imagesHealthy empty-label
+images
+Train 905 331 584 321
+Validation 115 40 74 41
+Test 129 45 88 41
+Total 1,149 416 746 403
+Split images Recognized specimen-group
+images Added unmatched images
+Train 1,147 905 242
+Validation 144 115 29
+Test 161 129 32
+Total 1,452 1,149 303
+4. results & evaluation
+45
+Evaluation metrics - Segmentation
+In segmentation training and evaluation, we use two datasets, ShrimpDiseaseBD and
+Expanded Dataset from ShrimpDiseaseBD + 80 images from TigerShrimpBD and 223
+images from Field-Data
+ Nhu - 
+*the following results are recorded using the original dataset unless stated explicitly otherwise\n\nMetric What it measures Preferred direction
+Labeled mAP50 Average mask-detection performance at IoU (=0.50),
+evaluated only on images containing BG or WSSV masksHigher
+mAP50-95 Average mask AP across IoU thresholds from (0.50) to (0.95)Higher
+Healthy false-positive ratePercentage of Healthy images producing at least one
+retained disease prediction Lower
+Disease missed-image ratePercentage of diseased images producing no retained
+disease prediction Lower
+Healthy-aware score Combined score balancing localization performance and
+diagnostic errors Higher
+4. results & evaluation
+46
+Evaluation metrics - Segmentation
+Segmentation task uses a different set of metrics to evaluate and rank the candidates,
+as well as assessing the performance of the model
+ Nhu - \n\n4. results & evaluation
+47
+Evaluation metrics - Segmentation
+mAP50 is more tolerant of imperfect
+mask boundaries.
+mAP50-95 is stricter because
+predictions must remain accurate at
+progressively higher IoU thresholds.
+ Nhu - \n\n4. results & evaluation
+48
+Evaluation metrics - Segmentation
+Healthy False Positive rate measures how bad the model mistakes the healthy regions
+with disease regions
+Disease miss rate measures how frequently model misses a diseased image
+ Nhu - \n\n4. results & evaluation
+49
+Evaluation metrics - Segmentation
+Healthy aware score is an internal-evaluation metric that balances segmentation
+accuracy and diagnostic safety
+Fourier candidates were not ranked by mAP alone. Selection considered both disease-
+region localization and the risk of false predictions on Healthy shrimp.
+ Nhu - \n\nModel Full-test mAP50Labeled mAP50Labeled mAP50–95 Full-test recall
+YOLO11n-seg
+baseline 44.09 46.64 16.9 41
+CA → SimAM 49.71 55.07 19.64 49.7
+LKA → SimAM 50.03 52.49 18.12 54.4
+DPCA 48.8 52.25 15.8 51.3
+CoTEGate +
+BoundaryLite 49.21 51.74 16.6 49.7
+4. results & evaluation
+50
+Recorded results - Segmentation
+CA → SimAM produced the strongest disease-mask localization, while LKA → SimAM
+detected diseased regions more consistently across the full test set.
+Attention branch
+ Nhu - \n\nModel Healthy FP rateDisease miss rateMask-count MAE HScore
+YOLO11n-seg baseline 36.59% 12.50% 0.354 39.34
+CA → SimAM 34.15% 13.64% 0.333 48.08
+LKA → SimAM 36.59% 7.95% 0.475 45.18
+DPCA 26.83% 13.64% 0.314 45.9
+CoTEGate + BoundaryLite 36.59% 11.36% 0.395 45.4
+4. results & evaluation
+51
+Recorded results - Segmentation
+CA → SimAM achieved the highest HScore and strongest overall balance.
+LKA → SimAM minimized complete disease misses.
+Higher localization performance did not automatically imply safer Healthy-image
+behavior.
+Attention branch
+ Nhu - \n\nEvaluation objective Best configuration
+Labeled-mask localization CA → SimAM
+Full-test mAP50 LKA → SimAM
+Disease detection recall LKA → SimAM
+Lowest Healthy false positivesDPCA
+Highest overall HScore CA → SimAM
+4. results & evaluation
+52
+Recorded results - Segmentation
+CA → SimAM was the strongest overall attention configuration because it led labeled
+localization and HScore. However, LKA → SimAM and DPCA were preferable for
+disease-miss reduction and Healthy false-positive control, respectively.
+Attention branch
+ Nhu - \n\nCorruption Reference labeled
+mAP50 (%)
+Proposed labeled
+mAP50 (%) Improvement (pp)
+Color cast 29.81 54.65 24.84
+Turbidity 25.03 44.97 19.94
+JPEG artifact 36.58 56.39 19.81
+Overexposure 35.21 52.46 17.25
+Gaussian noise 18.13 33.44 15.31
+4. results & evaluation
+53
+Recorded results - Segmentation
+Across all noise conditions, the proposed CA_SimAm consistently outperformed the
+baseline, improving mAP50 by 15.31–24.84 percentage points, with the largest gain
+observed under color cast.
+Attention branch
+ Nhu - \n\n4. results & evaluation
+54
+Recorded results - Segmentation
+Attention branch: noise and samples 
+ Nhu - \n\n4. results & evaluation
+Recorded results - Segmentation
+Fourier branch
+ Phong - 55\n\nTraining regime No Fourier mAP50 Fourier mAP50 Change
+No augmentation, hook off 23.54 34.51 10.97
+No augmentation, hook on 30.61 29.94 −0.67
+Clean-light, hook off 47.34 40.82 −6.52
+Clean-light, hook on 51.2 53.18 1.98
+Strong augmentation, hook
+off 59.51 57.71 −1.80
+4. results & evaluation
+56
+Recorded results - Segmentation
+Fourier branch
+Fourier enhancement was condition-dependent rather than additive to every
+augmentation policy
+ Phong - \n\nAugmentation Better order Result change
+Horizontal flip W1 → augmentation +3.77 pp
+Rotation W1 → augmentation +4.87 pp
+Erasing W1 → augmentation +9.26 pp
+Vertical flip Augmentation → W1 +1.05 pp
+Translation Augmentation → W1 −2.82 pp
+Scale Augmentation → W1 −5.05 pp
+4. results & evaluation
+57
+Recorded results - Segmentation
+Fourier branch
+Fourier preprocessing interacts with augmentation type and operation order; it should
+not be treated as a universally beneficial preprocessing stage.
+ Phong - \n\n4. results & evaluation
+58
+Recorded results - Segmentation
+Fourier branch: types of noise and samples
+ Phong - 
+c o l o r - b l u e - c a s t 4 0
+g a u s s i a n - n o i s e - 2 0
+l o w - c o n t r a s t - 0 . 5
+m o t i o n - b l u r - k 1 1
+s a l t - a n d - p e p p e r - 0 0 3
+s a m p l e 1
+s a m p l e 2
+BG-12-img-2
+BG-12-img-1\n\n4. results & evaluation
+Recorded results - Segmentation
+Fourier branch: noise resillience evaluation
+59\n\nStage Time
+Fourier preprocessing 48.62 ms/image
+YOLO segmentation 38.77 ms/image
+Total effective time 87.38 ms/image
+4. results & evaluation
+60
+Recorded results - Segmentation
+Fourier branch
+Fourier preprocessing added more time than the model prediction stage itself.
+ Phong - \n\nAttention configuration Full mAP50 Labeled
+mAP50
+Labeled
+mAP50–95Healthy FP HScore
+CA→SimAM 62.99% 65.94% 25.72% 39.00% 59.13%
+LKA→SimAM 56.79% 58.50% 25.02% 39.00% 51.10%
+DPCA 50.46% 53.14% 19.15% 48.80% 44.71%
+CoTEGate + BoundaryLite 43.99% 48.00% 17.33% 36.60% 39.66%
+Fourier Configuration Labeled mAP50 Labeled
+mAP50–95Healthy FP Disease
+miss HScore
+clean-light-aug, no Fourier 56.37% 23.31% 26.83% 9.17% 50.21%
+strong-aug, no Fourier 61.23% 23.63% 46.34% 9.17% 53.48%
+clean-light, Fourier high-pass W1 57.13% 24.08% 31.71% 9.17% 50.32%
+strong-aug, Fourier high-pass W1 59.90% 25.13% 29.27% 5.83% 54.65%
+4. results & evaluation
+Recorded results - Segmentation
+Expanded dataset
+61Nhu - Phong - \n\nBranch Main benefit Main risk Most defensible result
+Attention
+Improved feature
+representation inside
+YOLO11n-seg
+Different protocols prevent
+strict module-only
+attribution
+CA → SimAM led labeled
+localization and HScore
+Fourier Enhanced selected image-
+frequency details
+Healthy false positives,
+augmentation interaction
+and latency
+Fourier improved the
+strict control but was
+condition-dependent
+4. results & evaluation
+62
+Recorded results - Segmentation
+Branches evaluation
+The attention branch produced more consistent improvements under practical
+augmented training, while Fourier preprocessing showed strong isolated gains but
+substantial false-positive, interaction, and runtime trade-offs.
+Nhu - Phong - \n\n4. results & evaluation
+63
+Accepted Paper
+ASL-LDAM with SimAM-DCFR Attention for Robust YOLO-Based Shrimp Disease Image 
+Classification Under Noisy Imaging Conditions got accepted for oral presentation at
+ISBM 2026
+Nhan -\n\nDISCUSSION
+64
+Limitations
+Limitations Future works
+Future works\n\nLimitation Future work
+Primary classification comparison used
+one seed Run 3–5 independent seeds
+Candidate screening inspected test
+Macro-F1
+Use validation-only selection and
+untouched final test
+One segmentation annotator Expand expert and multi-annotator review
+Specimen identity inferred from
+filenames
+Use source metadata and duplicate
+detection
+Synthetic corruptions only Build broader field-oriented corruption
+evaluation
+65
+5. Discussion
+Limitations & Future works
+ Phong - \n\n66
+D E M O\n\n67\n\n\n\n69
+T H A N K S  F O R  Y O U R  A T T E N T I O N  \n\nT H A N K S  F O R
+W A T     H I N G
+70

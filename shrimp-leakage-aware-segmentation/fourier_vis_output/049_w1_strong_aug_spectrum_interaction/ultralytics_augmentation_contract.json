@@ -1,0 +1,46 @@
+{
+  "ultralytics_version": "8.4.62",
+  "recorded_strong_config": {
+    "auto_augment": null,
+    "erasing": 0.15,
+    "mosaic": 0.0,
+    "mixup": 0.0,
+    "cutmix": 0.0,
+    "copy_paste": 0.0,
+    "fliplr": 0.5,
+    "flipud": 0.3,
+    "hsv_h": 0.05,
+    "hsv_s": 0.5,
+    "hsv_v": 0.4,
+    "degrees": 10.0,
+    "translate": 0.1,
+    "scale": 0.5,
+    "shear": 0.0,
+    "perspective": 0.0,
+    "multi_scale": false,
+    "bgr": 0.0
+  },
+  "active_replica_operations": [
+    "letterbox_resize",
+    "random_rotation",
+    "random_translation",
+    "random_scale",
+    "random_hsv",
+    "random_vertical_flip",
+    "random_horizontal_flip"
+  ],
+  "zero_disabled_operations": [
+    "mosaic",
+    "mixup",
+    "cutmix",
+    "copy_paste",
+    "shear",
+    "perspective"
+  ],
+  "hidden_albumentations_hook": "disabled in Path 15",
+  "erasing_in_v8_segmentation_builder_source": false,
+  "classification_builder_found": true,
+  "erasing_in_classification_builder_source": true,
+  "replica_scope": "Image-only deterministic replica of Ultralytics 8.4.62 transform equations and order. It is intended for paired spectral analysis, not as a replacement training loader.",
+  "recorded_training_order": "offline W1 on train/valid/test, then online train-only strong augmentation"
+}

@@ -1,0 +1,4 @@
+image,fourier_method,sigma,alpha,band,normalized_radius_min,normalized_radius_max,original_energy_percent,transformed_energy_percent,absolute_energy_gain_db
+WSSV-28-img-1_jpg.rf.a43ee460976dce0b20eaa8daf9bd338b.jpg,W1_highpass_boost,50,0.1,low,0.0,0.15,99.8980906302685,99.87341131378305,-0.03280685342714652
+WSSV-28-img-1_jpg.rf.a43ee460976dce0b20eaa8daf9bd338b.jpg,W1_highpass_boost,50,0.1,mid,0.15,0.4,0.07678085500941897,0.0951371077132935,0.8992361836529117
+WSSV-28-img-1_jpg.rf.a43ee460976dce0b20eaa8daf9bd338b.jpg,W1_highpass_boost,50,0.1,high,0.4,1.0,0.025138237445280827,0.03144868254287806,0.9409425065463218

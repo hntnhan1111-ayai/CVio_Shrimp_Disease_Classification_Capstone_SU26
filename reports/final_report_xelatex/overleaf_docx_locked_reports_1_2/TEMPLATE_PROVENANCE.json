@@ -1,0 +1,81 @@
+{
+  "source_docx": "Template_AIP491_CP_StudentsGuide.docx",
+  "page": {
+    "width_twips": 11906,
+    "height_twips": 16838,
+    "size": "A4",
+    "top_margin_pt": 72.0,
+    "bottom_margin_pt": 72.0,
+    "left_margin_pt": 72.0,
+    "right_margin_pt": 70.8,
+    "header_distance_pt": 35.4,
+    "footer_distance_pt": 35.4
+  },
+  "body": {
+    "visible_font_family": "Carlito (Calibri-compatible rendering)",
+    "size_pt": 11.0,
+    "line_spacing_ratio": 1.0791666666666666,
+    "approx_baseline_pt": 11.870833333333334,
+    "paragraph_after_pt": 8.0,
+    "first_line_indent_pt": 0.0,
+    "default_alignment": "document-dependent; locked CVio output uses justified body"
+  },
+  "chapter_title": {
+    "source_style": "Heading 1",
+    "visible_font_family": "Noto Serif Bold in reference render",
+    "size_pt": 16.0,
+    "bold": true,
+    "color_hex": "C00000",
+    "space_before_pt": 12.0,
+    "space_after_pt": 0.0,
+    "alignment": "left"
+  },
+  "section": {
+    "source_style": "Heading 2",
+    "visible_font_family": "Noto Serif Bold in reference render",
+    "size_pt": 13.0,
+    "bold": true,
+    "color_hex": "000000",
+    "space_before_pt": 2.0,
+    "space_after_pt": 0.0
+  },
+  "subsection": {
+    "source_style": "Heading 3",
+    "visible_font_family": "Noto Serif Bold in reference render",
+    "size_pt": 12.0,
+    "bold": true,
+    "color_hex": "000000",
+    "space_before_pt": 2.0,
+    "space_after_pt": 0.0
+  },
+  "table": {
+    "header_fill_hex": "FFE8E1",
+    "grid_pt": 0.5,
+    "visible_font_family": "Carlito",
+    "font_size_pt": 11.0,
+    "header_bold": true,
+    "header_alignment": "center",
+    "body_vertical_alignment": "center",
+    "reference_table_width_twips": 8784,
+    "reference_table_width_pt": 439.2
+  },
+  "instruction": {
+    "color_hex": "0000FF",
+    "italic": true,
+    "size_pt": 11.0
+  },
+  "revision": {
+    "project_convention_fill_hex": "FFF200"
+  },
+  "captions": {
+    "source_support": "No scientific figure/table caption example exists in the DOCX; CVio-approved convention retained.",
+    "size_pt": 9.0,
+    "bold_entire_caption": true,
+    "alignment": "center",
+    "table_position": "above",
+    "figure_position": "below",
+    "table_separator": ":",
+    "figure_name": "Fig.",
+    "figure_separator": "."
+  }
+}

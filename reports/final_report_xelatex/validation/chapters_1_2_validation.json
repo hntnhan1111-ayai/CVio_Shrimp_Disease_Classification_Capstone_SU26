@@ -1,0 +1,319 @@
+{
+  "pdf": "C:\\Users\\Admin\\workspace\\CVio_Shrimp_Disease_Classification_Capstone_SU26\\reports\\final_report_xelatex\\final\\chapters_1_2_review.pdf",
+  "pages": 34,
+  "font_char_counts": {
+    "TimesNewRomanPS-BoldMT": 3341,
+    "TimesNewRomanPSMT": 82632,
+    "CMSY10": 2
+  },
+  "page_summary": [
+    {
+      "page": 1,
+      "text_chars": 2427,
+      "images": 0,
+      "yellow_drawings": 25,
+      "footer_numbers": [
+        "1"
+      ]
+    },
+    {
+      "page": 2,
+      "text_chars": 2441,
+      "images": 0,
+      "yellow_drawings": 3,
+      "footer_numbers": [
+        "2"
+      ]
+    },
+    {
+      "page": 3,
+      "text_chars": 1601,
+      "images": 1,
+      "yellow_drawings": 2,
+      "footer_numbers": [
+        "3"
+      ]
+    },
+    {
+      "page": 4,
+      "text_chars": 1463,
+      "images": 1,
+      "yellow_drawings": 2,
+      "footer_numbers": [
+        "4"
+      ]
+    },
+    {
+      "page": 5,
+      "text_chars": 2825,
+      "images": 0,
+      "yellow_drawings": 8,
+      "footer_numbers": [
+        "5"
+      ]
+    },
+    {
+      "page": 6,
+      "text_chars": 2816,
+      "images": 0,
+      "yellow_drawings": 7,
+      "footer_numbers": [
+        "6"
+      ]
+    },
+    {
+      "page": 7,
+      "text_chars": 3101,
+      "images": 0,
+      "yellow_drawings": 8,
+      "footer_numbers": [
+        "7"
+      ]
+    },
+    {
+      "page": 8,
+      "text_chars": 3301,
+      "images": 0,
+      "yellow_drawings": 27,
+      "footer_numbers": [
+        "8"
+      ]
+    },
+    {
+      "page": 9,
+      "text_chars": 2078,
+      "images": 0,
+      "yellow_drawings": 4,
+      "footer_numbers": [
+        "9"
+      ]
+    },
+    {
+      "page": 10,
+      "text_chars": 2494,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "10"
+      ]
+    },
+    {
+      "page": 11,
+      "text_chars": 1243,
+      "images": 1,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "11"
+      ]
+    },
+    {
+      "page": 12,
+      "text_chars": 3415,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "12"
+      ]
+    },
+    {
+      "page": 13,
+      "text_chars": 3079,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "13"
+      ]
+    },
+    {
+      "page": 14,
+      "text_chars": 3381,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "14"
+      ]
+    },
+    {
+      "page": 15,
+      "text_chars": 1661,
+      "images": 1,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "15"
+      ]
+    },
+    {
+      "page": 16,
+      "text_chars": 1555,
+      "images": 1,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "16"
+      ]
+    },
+    {
+      "page": 17,
+      "text_chars": 3026,
+      "images": 0,
+      "yellow_drawings": 2,
+      "footer_numbers": [
+        "17"
+      ]
+    },
+    {
+      "page": 18,
+      "text_chars": 2935,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "18"
+      ]
+    },
+    {
+      "page": 19,
+      "text_chars": 2858,
+      "images": 0,
+      "yellow_drawings": 36,
+      "footer_numbers": [
+        "19"
+      ]
+    },
+    {
+      "page": 20,
+      "text_chars": 1300,
+      "images": 1,
+      "yellow_drawings": 2,
+      "footer_numbers": [
+        "20"
+      ]
+    },
+    {
+      "page": 21,
+      "text_chars": 3114,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "21"
+      ]
+    },
+    {
+      "page": 22,
+      "text_chars": 2993,
+      "images": 0,
+      "yellow_drawings": 9,
+      "footer_numbers": [
+        "22"
+      ]
+    },
+    {
+      "page": 23,
+      "text_chars": 3522,
+      "images": 0,
+      "yellow_drawings": 16,
+      "footer_numbers": [
+        "23"
+      ]
+    },
+    {
+      "page": 24,
+      "text_chars": 3380,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "24"
+      ]
+    },
+    {
+      "page": 25,
+      "text_chars": 2040,
+      "images": 0,
+      "yellow_drawings": 15,
+      "footer_numbers": [
+        "25"
+      ]
+    },
+    {
+      "page": 26,
+      "text_chars": 1923,
+      "images": 1,
+      "yellow_drawings": 1,
+      "footer_numbers": [
+        "26"
+      ]
+    },
+    {
+      "page": 27,
+      "text_chars": 3306,
+      "images": 0,
+      "yellow_drawings": 2,
+      "footer_numbers": [
+        "27"
+      ]
+    },
+    {
+      "page": 28,
+      "text_chars": 3021,
+      "images": 0,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "28"
+      ]
+    },
+    {
+      "page": 29,
+      "text_chars": 1818,
+      "images": 1,
+      "yellow_drawings": 0,
+      "footer_numbers": [
+        "29"
+      ]
+    },
+    {
+      "page": 30,
+      "text_chars": 3045,
+      "images": 0,
+      "yellow_drawings": 1,
+      "footer_numbers": [
+        "30"
+      ]
+    },
+    {
+      "page": 31,
+      "text_chars": 2886,
+      "images": 0,
+      "yellow_drawings": 5,
+      "footer_numbers": [
+        "31"
+      ]
+    },
+    {
+      "page": 32,
+      "text_chars": 3196,
+      "images": 0,
+      "yellow_drawings": 12,
+      "footer_numbers": [
+        "32"
+      ]
+    },
+    {
+      "page": 33,
+      "text_chars": 3055,
+      "images": 0,
+      "yellow_drawings": 9,
+      "footer_numbers": [
+        "33"
+      ]
+    },
+    {
+      "page": 34,
+      "text_chars": 1495,
+      "images": 0,
+      "yellow_drawings": 3,
+      "footer_numbers": [
+        "34"
+      ]
+    }
+  ],
+  "issues": [],
+  "status": "PASS"
+}

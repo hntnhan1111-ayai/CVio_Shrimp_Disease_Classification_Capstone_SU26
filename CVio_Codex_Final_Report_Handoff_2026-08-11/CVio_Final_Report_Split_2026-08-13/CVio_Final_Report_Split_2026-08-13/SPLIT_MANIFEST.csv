@@ -1,0 +1,22 @@
+order,file,source_physical_pages,printed_report_pages,page_count,section
+00,00_front_matter.pdf,1-10,cover + i-ix,10,Front Matter
+01,01_chapter_I_project_introduction.pdf,11-19,1-9,9,I. Project Introduction
+02,02_chapter_II_project_management_plan.pdf,20-47,10-37,28,II. Project Management Plan
+03,03_chapter_III_existing_systems_state_of_the_art.pdf,48-64,38-54,17,III. Existing Systems/State of the Art
+04,04_chapter_IV_methodology.pdf,65-91,55-81,27,IV. Methodology
+05,05_chapter_V_system_design_and_implementation.pdf,92-111,82-101,20,V. System Design and Implementation
+06,06_chapter_VI_experimental_evaluation_results_discussion.pdf,112-155,102-145,44,VI. Experimental Evaluation Results and Discussion
+07,07_chapter_VII_conclusion.pdf,156-162,146-152,7,VII. Conclusion
+08,08_references.pdf,163-166,153-156,4,VIII. References
+09,09_appendix_A_class_mapping_split_manifest.pdf,167,157,1,Appendix A - Classification Class Mapping and Split Manifest Summary
+10,10_appendix_B_classification_experimental_configuration.pdf,168,158,1,Appendix B - Classification Experimental Configuration
+11,11_appendix_C_classification_candidate_inventory.pdf,169-171,159-161,3,Appendix C - Classification Candidate Inventory
+12,12_appendix_D_segmentation_annotation_split_rules.pdf,172,162,1,Appendix D - Segmentation Annotation and Split Rules
+13,13_appendix_E_attention_configuration_ledger.pdf,173-174,163-164,2,Appendix E - Attention Configuration Ledger
+14,14_appendix_F_fourier_configuration_spectrum_ledger.pdf,175-178,165-168,4,Appendix F - Fourier Configuration and Spectrum Ledger
+15,15_appendix_G_evaluation_metric_definitions.pdf,179,169,1,Appendix G - Evaluation Metric Definitions
+16,16_appendix_H_corruption_protocol_inventory.pdf,180,170,1,Appendix H - Corruption Protocol Inventory
+17,17_appendix_I_mobile_interface_deployment_configuration.pdf,181-182,171-172,2,Appendix I - Mobile Interface and Deployment Configuration
+18,18_appendix_J_reproducibility_artifact_checklist.pdf,183-185,173-175,3,Appendix J - Reproducibility and Artifact Checklist
+19,19_appendix_K_supplementary_submission_evidence.pdf,186-187,176-177,2,Appendix K - Supplementary Submission Evidence
+20,20_appendix_L_public_classification_repository.pdf,188,178,1,Appendix L - Public Classification Repository
